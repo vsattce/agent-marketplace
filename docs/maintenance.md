@@ -32,7 +32,7 @@ agent-marketplace/
 └── README.md                      # 概览与文档入口
 ```
 
-原五个跨客户端分类共享 `skills/<name>/`，提供 Codex `plugin.json`、Claude `.claude-plugin/plugin.json` 与 Kimi `kimi.plugin.json`。第三方分类另存 `licenses/<name>/`。Codex / Claude Marketplace 均指向 `./plugins/<plugin>`；Kimi 根 manifest 列出五个共享 Skill 目录。`personal-dev` 第一版只在 Codex 注册，增加一个 Skill，不加入 Claude / Kimi catalog。
+原五个跨客户端分类共享 `skills/<name>/`，提供 Codex `plugin.json`、Claude `.claude-plugin/plugin.json` 与 Kimi `kimi.plugin.json`。第三方分类另存 `licenses/<name>/`。Codex / Claude Marketplace 均指向 `./plugins/<plugin>`；Kimi 根 manifest 列出五个共享 Skill 目录。`personal-dev` 仅在 Codex 注册，包含两个仅手动调用的 Skill，不加入 Claude / Kimi catalog。
 
 Codex 使用便携 manifest，中文信息位于 `extensions.com.openai.interface`。Claude manifest / catalog 有意不写 version，GitHub 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。Kimi 的 version 是显示 metadata，判断 GitHub 内容需比较 receipt 的 ref / installedSha。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
 
@@ -58,7 +58,7 @@ lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，�
 
 ### 使用项目 Skill
 
-在本仓库 Codex 聊天调用 `$upgrade`，入口为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)。它不计入 Codex 六个 Plugin 的 17 个 Skills，也不计入 Claude / Kimi 五个 Plugin 的 16 个 Skills。
+在本仓库 Codex 聊天调用 `$upgrade`，入口为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)。它不计入 Codex 六个 Plugin 的 18 个 Skills，也不计入 Claude / Kimi 五个 Plugin 的 16 个 Skills。
 
 Agent 核对目标、Git 状态与运行时后，按 sources 的既定来源 / ref 同步，保留用户改动，检查差异并运行相关验证。按 [AGENTS.md](../AGENTS.md) 默认提交、推送当前分支；当前任务明确不提交或不推送时遵从该要求。环境、同步或验证失败时停止，零差异不制造提交。
 
@@ -150,7 +150,7 @@ uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,
 | --- | --- |
 | `tests/test_sync.py` | 重复同步、快照恢复、upstream 更新、许可证、失败不写入、路径与重名拒绝、回滚和移出配置项保留 |
 | `tests/test_agent_manager.py` | Plugin 包装、手动策略、Kimi manifest 与只读来源比较 |
-| `tests/test_personal_dev.py` / `tests/test_personal_dev_packaging.py` | 模型选择与中断、用户覆写、CLI 输出，以及 Codex 专用包装与手动策略 |
+| `tests/test_personal_dev.py` / `tests/test_personal_dev_review.py` / `tests/test_personal_dev_packaging.py` | 开发与审查模型选择、阻塞与安全 CLI 输出，以及 Codex 专用包装和手动策略 |
 | `tests/test_configure_project.py` | Codex 事务编辑、路径安全与不支持能力的拒绝 |
 | `tests/test_configure_project_claude.py` | Claude JSON 增量编辑、覆盖检查与失败恢复 |
 

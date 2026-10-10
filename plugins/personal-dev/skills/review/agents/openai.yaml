@@ -1,0 +1,6 @@
+interface:
+  display_name: "增强代码审查"
+  short_description: "仅手动调用；先核实审查与复核条件，再生成证据化报告。"
+  default_prompt: "使用 $personal-dev:review 审查当前项目；开始前完成一次性预检并展示实际审查与复核模型。"
+policy:
+  allow_implicit_invocation: false
