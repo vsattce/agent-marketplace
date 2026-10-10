@@ -1,8 +1,8 @@
 # agent-marketplace
 
-个人使用的 Codex Plugin / Skill 市场。Marketplace 记录可选来源，项目实际启用哪些插件由 Codex 配置控制。
+个人使用的 Codex Plugin / Skill 市场，显示名称为 **Agent Marketplace**。Marketplace 记录可选来源，项目实际启用哪些插件由 Codex 配置控制。
 
-Codex 最小测试链路已通过，测试插件已移除。当前只接入第三方 **handoff**，不实现其他平台、批量迁移或自定义安装器。
+Plugin 按 upstream / Skill Bundle 分组。当前 **Matt Skills** 只包含选定的 4 个 Skills；未来的其他来源分别建立 Plugin。跨 upstream 的“我的常用 Skills”集合暂不实现。
 
 ## 当前结构
 
@@ -14,149 +14,131 @@ agent-marketplace/
 └── LICENSE
 ```
 
-本仓库只保存 Marketplace 指针和 metadata，**没有保存第三方 SKILL.md、scripts、references 或 assets**。真正的 Skill 由 Codex 从 upstream 获取，下载到 Codex 安装缓存是正常安装行为。
+本仓库只保存 Marketplace 指针和 metadata，**没有保存第三方 SKILL.md、scripts、references 或 assets**。Codex 从 upstream 获取内容并下载到安装缓存。
 
-## handoff 来源与适配
+## Matt Skills 来源与适配
 
 | 项目 | 值 |
 | --- | --- |
-| Plugin 标识 | `handoff@agent-marketplace` |
-| Skill 标识 | `handoff:handoff` |
-| 作者 | Matt Pocock |
+| Plugin 标识 | `matt-skills@agent-marketplace` |
+| 展示名称 | Matt Skills |
+| 上游作者 / 市场整理者 | Matt Pocock / hjy |
 | Upstream | [mattpocock/skills](https://github.com/mattpocock/skills) |
-| Upstream path | `skills/productivity/handoff` |
-| 跟随分支 | `main`，已核实为 upstream 默认分支 |
+| Plugin source path | `skills` |
+| 跟随分支 | `main`，upstream 默认分支 |
 | License | [upstream MIT](https://github.com/mattpocock/skills/blob/main/LICENSE) |
-| 安装策略 | `AVAILABLE`，由用户选择安装 |
+| 安装策略 | `AVAILABLE`，手动选择安装 |
 
-Marketplace entry 的关键字段：
+Marketplace entry 的路径配置：
 
 ```json
 {
-  "name": "handoff",
+  "name": "matt-skills",
   "source": {
     "source": "git-subdir",
     "url": "https://github.com/mattpocock/skills.git",
-    "path": "./skills/productivity/handoff",
+    "path": "./skills",
     "ref": "main"
   },
-  "skills": "./."
+  "skills": [
+    "./productivity/handoff",
+    "./engineering/diagnosing-bugs",
+    "./engineering/research",
+    "./productivity/writing-for-agents"
+  ]
 }
 ```
 
-Upstream 子目录只有 Skill，没有完整 Plugin manifest。Codex 原生 Marketplace manifest fallback 把 entry 的 metadata 转为兼容 manifest，并在安装缓存中生成 `.codex-plugin/plugin.json`。`skills: "./."` 指向选中的子目录根，兼容 manifest 的递归发现机制可读取这里的 `SKILL.md`。本仓库无需单独的 adapter 目录。
+Codex 原生 Marketplace manifest fallback 在安装缓存中生成 `.codex-plugin/plugin.json`，按 `skills` 数组发现指定目录。数组路径相对于选中的 Plugin 根 `skills/`；只有这 4 个 Skills 被加载，缓存中可以包含其他 upstream 文件。
 
-这是已验证的 Codex 原生兼容机制。作者后续若在该目录提供 manifest，Codex 会优先使用 upstream manifest，应重新验证路径与加载行为。
+选择 `skills/` 而非仓库根，是因为 upstream 根已有 `.claude-plugin/plugin.json`，会优先于 Marketplace fallback 并声明一整套 Skills。若 upstream 后续在 `skills/` 下新增 Plugin manifest，需要重新验证选择范围。本仓库无需 adapter、同步脚本或下载器。
 
-本轮按需求跟随 `main`，未锁定 tag / commit；安装或重新安装时可能获取未发布变更。CLI 显示的版本 `local` 是缺少 upstream manifest version 时的缓存标签，不是 handoff 的 release 版本。
+CLI 显示的版本 `local` 是 fallback 缓存标签，不是 upstream release 版本。跟随 `main` 时重新安装可能获取未发布变更。
 
-## 添加与安装
+## 启用与调用方式
 
-本机验证版本：`codex-cli 0.162.0-alpha.2`。客户端需要支持自定义 Marketplace、远程 `git-subdir` 和 manifest fallback。可先检查：
+**插件需要手动安装，安装后默认启用；可以在 Codex UI 手动 Enable / Disable。** 启用后 Codex 会发现这些 Skills，但不会在每次会话启动时自动执行它们。
 
-```powershell
-codex --version
-codex plugin marketplace add --help
-codex plugin add --help
+| Skill 标识 | 调用方式 | 匹配场景 |
+| --- | --- | --- |
+| `matt-skills:handoff` | **仅手动** | 显式请求任务交接，例如 `$matt-skills:handoff` |
+| `matt-skills:diagnosing-bugs` | **条件自动 / 手动** | 复杂 Bug、报错、故障或性能回归诊断 |
+| `matt-skills:research` | **条件自动 / 手动** | 要求研究问题、收集官方资料或委派资料调查 |
+| `matt-skills:writing-for-agents` | **条件自动 / 手动** | 创建或修改 Skill、AGENTS.md、CLAUDE.md 等 Agent 文档 |
+
+“条件自动”表示 Codex 可以根据 Skill description 和当前任务选择调用，不保证每次匹配都会调用。显式调用可使用 `$` 选择对应的带前缀 Skill。handoff 的 upstream `agents/openai.yaml` 设置 `allow_implicit_invocation: false`；其余三个未设置该字段，官方默认值为 `true`。这些是当前上游的实际策略，本仓库仅标注，不覆盖策略；上游更新后需要重新核对。
+
+项目级启用状态可用原生 `.codex/config.toml` 控制（仅受信任项目加载）：
+
+```toml
+[plugins."matt-skills@agent-marketplace"]
+enabled = true
 ```
 
-### GitHub 来源
+改为 `false` 可在该项目禁用整个 Bundle；由用户按现有配置增量修改。
 
-**前提：相关文件已提交并推送至 GitHub。** 尚未推送时，GitHub Marketplace 无法读取本地新增 entry。
+## 展示信息与图标限制
 
-首次添加：
+Plugin 提供中文简介、详细描述、调用方式和 capabilities，分类为 `Developer Tools`，`developerName` 为 `hjy`，品牌色为石板灰 `#475569`，同时保留 upstream 作者署名。
+
+Codex 支持 SVG `composerIcon` / `logo`，但资产路径必须位于 Plugin 根内。当前根来自 Matt upstream，本市场仓库的自定义资产不会随远程 source 安装；安装前的远程 fallback 列表还会清除资产路径。因此本 Bundle 暂用默认图标，未添加无效资产或同步逻辑。后续自有 Plugin 可在自身 `assets/` 下配置原创图标。
+
+## 添加、安装与更新
+
+验证客户端：`codex-cli 0.162.0-alpha.2`，需要支持远程 `git-subdir` 和 Marketplace manifest fallback。
+
+首次添加 GitHub 市场：
 
 ```powershell
 codex plugin marketplace add vsattce/agent-marketplace --ref main
 ```
 
-如果已经注册 GitHub 来源，刷新即可：
+已注册市场则刷新，然后列出并安装 Bundle：
 
 ```powershell
 codex plugin marketplace upgrade agent-marketplace --json
-```
-
-然后列出并安装：
-
-```powershell
 codex plugin list --marketplace agent-marketplace --available --json
-codex plugin add handoff@agent-marketplace --json
+codex plugin add matt-skills@agent-marketplace --json
 codex plugin list --marketplace agent-marketplace --json
 ```
 
-确认 available 中有 `handoff`，安装后 `installed: true`、`enabled: true`。桌面插件目录中选择 **Agent Marketplace → Handoff → Install** 也可验收；CLI 操作后若 UI 未刷新，重新打开客户端。
+确认 `matt-skills` 安装后 `installed: true`、`enabled: true`。UI 中选择 **Agent Marketplace → Matt Skills → Install**，然后新建聊天；列表未刷新时重新打开客户端。
 
-### 尚未推送时的本地来源
+本地开发可注册 `codex plugin marketplace add E:\WorkSpace\agent-marketplace`。本地与 GitHub 市场共享标识，先用 `codex plugin marketplace list` 确认来源；需要切换时手动移除市场注册再添加目标来源。以上命令会写入日常 Codex 配置，自动验证使用隔离临时 `CODEX_HOME`。
 
-本地 Marketplace entry 仍然从真实 GitHub upstream 下载 handoff：
+`main` 表示获取时跟随该分支，不表示后台持续同步。更新使用上述原生命令：
 
-```powershell
-codex plugin marketplace add E:\WorkSpace\agent-marketplace
-codex plugin list --marketplace agent-marketplace --available --json
-codex plugin add handoff@agent-marketplace --json
-```
+- `marketplace upgrade` 刷新 Git Marketplace 快照；快照实际变化时，当前官方实现强制刷新该市场中已配置的插件来源。
+- **仅 Matt upstream 更新而市场快照不变时，upgrade 可返回 `upgradedRoots: []`，不会强制刷新插件。** 再执行 `plugin add matt-skills@agent-marketplace` 可重新获取 upstream 并替换安装缓存。
+- 本地路径市场直接重复 `plugin add`。UI 普通 refresh 不视为源码已更新的保证。
 
-本地和 GitHub 来源共享 `agent-marketplace` 标识，先用 `codex plugin marketplace list` 确认现有来源。若需切换，手工移除该市场注册后再添加目标来源：
+## 从旧 handoff Plugin 迁移与手工验收
 
-```powershell
-codex plugin marketplace remove agent-marketplace
-```
+旧 `handoff@agent-marketplace` entry 已由 Matt Bundle 替代。刷新市场不保证删除旧安装或旧配置，本仓库不自动卸载或禁用旧插件。
 
-该命令移除市场注册；以上所有安装命令会写入当前用户 Codex 配置。自动验证使用独立临时 `CODEX_HOME`，没有执行这些日常环境操作。
+1. 刷新市场并安装 `matt-skills@agent-marketplace`，检查中文展示信息及调用方式。
+2. 在仓库外新建聊天，确认只有 4 个带 `matt-skills:` 前缀的 Skills。明确调用 `$matt-skills:handoff`，确认来源为插件缓存中的 `matt-skills/local/productivity/handoff/SKILL.md`。
+3. UI Disable Matt Skills 后新建聊天，确认这 4 个带前缀 Skills 均不可用；Enable 后新建聊天确认恢复。
+4. 新聊天中按表中场景测试其余 Skills 的任务匹配与实际调用。handoff 仍需显式调用。
+5. 确认新 Bundle 正常后，再由用户手动禁用旧 Handoff Plugin，避免重复来源。
 
-## 更新方式与实际限制
+当前全局 `~/.codex/skills` 中的所有 Skills 均保留。独立 `$handoff`、旧插件 `$handoff:handoff` 与新 `$matt-skills:handoff` 可以同时存在；验收选择新前缀。禁用新 Bundle 后，旧来源仍可用属于预期。
 
-`main` 表示获取内容时跟随 upstream 默认分支，不表示后台持续同步。使用 Codex 原生命令：
+## 验证记录
 
-```powershell
-codex plugin marketplace upgrade agent-marketplace --json
-codex plugin add handoff@agent-marketplace --json
-```
+2026-10-10，使用隔离 Codex 配置和仓库外工作目录验证最终 Marketplace entry 的远程安装、发现及中文 metadata，确认恰好加载上述 4 个 Skills。原生配置禁用后发现数为 0，重新启用后恢复为 4；上游调用策略与标注一致。日常 Codex 配置及全局 handoff 的文件指纹保持不变。上游核对 commit 为 `49dd158d1076134a641b33efb035946536778336`，entry 仍跟随 `main`。
 
-- `marketplace upgrade` 适用于注册的 **Git Marketplace**，检查并刷新市场仓库快照。若市场快照实际更新，当前官方实现会强制重新获取该市场中已配置插件的来源。
-- **仅 mattpocock/skills 更新、agent-marketplace 快照未变化时，upgrade 可返回 `upgradedRoots: []`，不会进入上述强制刷新。** 因此不能保证仅执行 upgrade 就更新 handoff。
-- 再执行 `plugin add handoff@agent-marketplace` 会重新拉取 upstream `main` 并替换已安装缓存；本机已实测无需卸载或修改版本号。以此作为明确更新 handoff 的原生操作。
-- 本地路径注册的市场不能使用 Git Marketplace upgrade；直接重新执行 `plugin add` 获取 upstream 即可。
-
-更新后新建聊天确认 Skill。UI 普通 refresh 不视为已更新源码的保证。本仓库不实现 updater、版本检查或自动修改 ref。
-
-## 手工最终验收
-
-1. 按上述当前来源流程安装，检查 Plugin 来源 URL、子目录和安装状态。
-2. 在仓库外新建 Codex 聊天，通过 `$` 选择 **`handoff:handoff`**，明确调用它生成当前聊天的交接文档。确认读取路径位于 Codex 插件缓存，通常为 `~/.codex/plugins/cache/agent-marketplace/handoff/local/SKILL.md`。
-3. UI **Disable** Handoff，另开新聊天，确认 `handoff:handoff` 不再可用；再 **Enable**，新聊天确认恢复并调用。
-4. 重新执行 `plugin add handoff@agent-marketplace`，确认仍能发现并调用缓存中的 Skill；未来 upstream 有新内容时，用这个操作验证实际更新。
-
-当前独立全局 `~/.codex/skills/handoff` 会继续存在，可能同时出现 `handoff` 和 `handoff:handoff`。验收时选择带插件前缀的条目。禁用插件后，原独立 `handoff` 仍可用属于预期；本仓库不自动删除、禁用或解决重复来源。
-
-## 自动验证结果
-
-2026-10-10，使用隔离的 Codex 配置目录和仓库外工作目录验证：
-
-| 验证项 | 结果 |
-| --- | --- |
-| JSON 解析、原生 Marketplace 列表与 manifest fallback | 通过 |
-| 从真实 upstream main 安装选定 git-subdir | 通过 |
-| 安装缓存 Skill 与 upstream 内容比对 | 一致，仅 Git 换行转换不同 |
-| 原生 app-server 发现 `handoff:handoff`，解析无错误 | 通过 |
-| 原生配置接口禁用后不可发现、启用后恢复 | 通过，保留无关配置 |
-| 重复 plugin add 重新获取并替换缓存 | 通过，隔离缓存探针被替换 |
-| Git Marketplace upgrade 的未变化快照 | 原生命令返回 `upgradedRoots: []` |
-| 当前全局 handoff 和日常 Codex 配置 | 文件指纹保持不变 |
-| 含新 entry 的 GitHub 市场、桌面 UI 与真实模型调用 | 待手工验收 |
-
-Skill 内容比对使用 upstream commit `49dd158d1076134a641b33efb035946536778336` 作为本次验证证据，entry 仍跟随 `main`。临时验证文件及下载内容均在仓库外，未纳入 Git。
+发布后的桌面展示、真实模型调用及日常环境迁移需按上述步骤手工验收。所有验证缓存位于仓库外，没有复制第三方核心源码到本仓库。
 
 ## 官方依据
 
-规范核对日期：2026-10-10；官方源码核对 revision：`5ef96ab2785f3ecddf279639eff7b1b42c906fa4`。
+规范核对日期：2026-10-10；官方源码 revision：`5ef96ab2785f3ecddf279639eff7b1b42c906fa4`。
 
-- [Package your plugin](https://developers.openai.com/plugins/build/plugins)：当前 manifest / Marketplace 规范及远程 source 示例。
-- [CLI reference](https://learn.chatgpt.com/docs/cli/reference)：原生 Marketplace 与 Plugin 操作。
-- [marketplace.rs](https://github.com/openai/codex/blob/5ef96ab2785f3ecddf279639eff7b1b42c906fa4/codex-rs/core-plugins/src/marketplace.rs)：远程来源、子目录和 entry manifest fallback。
-- [manifest.rs](https://github.com/openai/codex/blob/5ef96ab2785f3ecddf279639eff7b1b42c906fa4/codex-rs/core-plugins/src/manifest.rs)：兼容 manifest 路径解析。
-- [loader.rs](https://github.com/openai/codex/blob/5ef96ab2785f3ecddf279639eff7b1b42c906fa4/codex-rs/core-plugins/src/loader.rs)：原生 Git 获取、缓存刷新与 Skill 发现。
-- [manager.rs](https://github.com/openai/codex/blob/5ef96ab2785f3ecddf279639eff7b1b42c906fa4/codex-rs/core-plugins/src/manager.rs)：安装及 upgrade 后强制刷新已配置插件。
+- [Plugin 规范](https://developers.openai.com/plugins/build/plugins)：Marketplace source、UI metadata 与资产路径规则。
+- [Skills 规范](https://developers.openai.com/codex/skills)：显式 / 隐式调用及 `allow_implicit_invocation` 默认值。
+- [marketplace.rs](https://github.com/openai/codex/blob/5ef96ab2785f3ecddf279639eff7b1b42c906fa4/codex-rs/core-plugins/src/marketplace.rs)：Marketplace manifest fallback 与远程列表资产限制。
+- [manifest.rs](https://github.com/openai/codex/blob/5ef96ab2785f3ecddf279639eff7b1b42c906fa4/codex-rs/core-plugins/src/manifest.rs)：兼容 manifest 的 Skill 路径数组及 UI 字段。
+- [loader.rs](https://github.com/openai/codex/blob/5ef96ab2785f3ecddf279639eff7b1b42c906fa4/codex-rs/core-plugins/src/loader.rs)：指定 Skill 根发现。
 - [marketplace_upgrade.rs](https://github.com/openai/codex/blob/5ef96ab2785f3ecddf279639eff7b1b42c906fa4/codex-rs/core-plugins/src/marketplace_upgrade.rs)：市场快照未变化时跳过升级。
 
 本仓库使用 MIT License；第三方内容适用 upstream License。

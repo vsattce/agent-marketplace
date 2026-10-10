@@ -5,29 +5,44 @@
   },
   "plugins": [
     {
-      "name": "handoff",
+      "name": "matt-skills",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/mattpocock/skills.git",
-        "path": "./skills/productivity/handoff",
+        "path": "./skills",
         "ref": "main"
       },
       "policy": {
         "installation": "AVAILABLE",
         "authentication": "ON_INSTALL"
       },
-      "category": "Productivity",
-      "description": "Compact a conversation into a handoff.",
+      "category": "Developer Tools",
+      "description": "个人常用开发与工作流 Skills",
       "author": {
         "name": "Matt Pocock",
         "url": "https://github.com/mattpocock"
       },
-      "homepage": "https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff",
+      "homepage": "https://github.com/mattpocock/skills",
       "license": "MIT",
-      "skills": "./.",
+      "skills": [
+        "./productivity/handoff",
+        "./engineering/diagnosing-bugs",
+        "./engineering/research",
+        "./productivity/writing-for-agents"
+      ],
       "interface": {
-        "displayName": "Handoff",
-        "shortDescription": "Compact a conversation into a handoff"
+        "displayName": "Matt Skills",
+        "shortDescription": "个人常用开发与工作流 Skills",
+        "longDescription": "集中整理我常用的任务交接、问题诊断、资料研究与 Agent 文档编写 Skills，方便在不同设备和项目中统一安装与管理。插件需手动安装，可手动启用或禁用；安装后默认启用。Skills 不会在会话启动时自动执行：handoff 仅手动调用，其余三个按任务匹配时可自动调用，也可手动调用。",
+        "developerName": "hjy",
+        "category": "Developer Tools",
+        "capabilities": [
+          "任务交接（仅手动调用）",
+          "复杂问题诊断（任务匹配时自动或手动调用）",
+          "资料研究（任务匹配时自动或手动调用）",
+          "Agent 文档编写（任务匹配时自动或手动调用）"
+        ],
+        "brandColor": "#475569"
       }
     }
   ]
