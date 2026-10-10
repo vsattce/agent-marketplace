@@ -147,6 +147,9 @@ class SyncTests(unittest.TestCase):
         owned = self.root / "plugins/agent-manager/skills/resolve-conflicts"
         owned.mkdir(parents=True)
         (owned / "SKILL.md").write_text("owned source", encoding="utf-8")
+        configure = self.root / "plugins/agent-manager/skills/configure-project"
+        configure.mkdir(parents=True)
+        (configure / "SKILL.md").write_text("owned project configuration source", encoding="utf-8")
         self.run_sync()
         before = skill_sync.fingerprints(self.root / "plugins/agent-manager")
         snapshot = self.snapshot()

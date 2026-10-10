@@ -92,7 +92,7 @@ class PackagingTests(unittest.TestCase):
         self.assertEqual(len(entries), 1)
         self.assertEqual(entries[0]["source"]["path"], "./plugins/agent-manager")
         skills = list((PLUGIN / "skills").iterdir())
-        self.assertEqual({skill.name for skill in skills}, {"resolve-conflicts", "check-updates"})
+        self.assertEqual({skill.name for skill in skills}, {"resolve-conflicts", "check-updates", "configure-project"})
         for skill in skills:
             policy = yaml.safe_load((skill / "agents/openai.yaml").read_text(encoding="utf-8"))
             self.assertIs(policy["policy"]["allow_implicit_invocation"], False)
@@ -102,6 +102,8 @@ class PackagingTests(unittest.TestCase):
         self.assertNotIn("agent-manager", sources["groups"])
         lock = json.loads((ROOT / "sources.lock.json").read_text(encoding="utf-8"))
         self.assertNotIn("agent-manager", {item["group"] for item in lock["skills"].values()})
+        self.assertNotIn("configure-project", lock["skills"])
+        self.assertNotIn("configure-project", {item["name"] for group in sources["groups"].values() for item in group["skills"]})
 
 
 if __name__ == "__main__":

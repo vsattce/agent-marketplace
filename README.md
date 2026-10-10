@@ -1,6 +1,6 @@
 # agent-marketplace
 
-个人使用的 Skill / Plugin 集合，Codex 中显示为 **Agent Marketplace**。四个第三方聚合 Plugin（13 个已选定 Skills）加一个本仓库直接维护的 OWNED Plugin（2 个 Skills），共五个 Plugin、15 个 Skills。作者、GitHub 仓库和 upstream 只作为来源信息，不决定分类。
+个人使用的 Skill / Plugin 集合，Codex 中显示为 **Agent Marketplace**。四个第三方聚合 Plugin（13 个已选定 Skills）加一个本仓库直接维护的 OWNED Plugin（3 个 Skills），共五个 Plugin、16 个 Skills。作者、GitHub 仓库和 upstream 只作为来源信息，不决定分类。
 
 当前先完成 Codex。Skill 内容作为共享核心，其他 Agent 的 manifest / adapter 后续单独增加；本轮没有实现 Claude Code、Kimi Code 或 Antigravity 适配。
 
@@ -12,7 +12,7 @@
 | `frontend-dev@agent-marketplace` | **前端开发**：前端界面设计、Vue 开发与 Web 设计规范。 | frontend-design、web-design-guidelines、vue、vue-best-practices |
 | `backend-dev@agent-marketplace` | **后端开发**：Java / Spring Boot 开发与工程实践。 | java-spring-boot |
 | `testing-automation@agent-marketplace` | **测试与自动化**：网页测试、Playwright 浏览器自动化与测试最佳实践。 | webapp-testing、playwright-cli、playwright-best-practices |
-| `agent-manager@agent-marketplace`（OWNED） | **Agent 管理工具**：项目与全局冲突查找及既定来源版本检查。 | resolve-conflicts、check-updates（均仅手动） |
+| `agent-manager@agent-marketplace`（OWNED） | **Agent 管理工具**：冲突查找、既定来源版本检查及明确项目开关配置。 | resolve-conflicts、check-updates、configure-project（均仅手动） |
 
 默认继续使用已选定的第三方 Skill 和来源；新增第三方 Skill 优先归入四类，只有新的领域才考虑增加分类。自有 Plugin 直接维护，不走第三方同步。`resolving-merge-conflicts` 和第三方 standalone `pdf` 不保留，也没有 Legacy 入口。
 
@@ -37,8 +37,9 @@ Plugin 的详情说明均列出所含 Skill 的用途与触发方式。**主动*
 | 测试与自动化 | playwright-best-practices（Playwright 测试实践） | 指导测试编写、定位器、断言、Fixture、模拟、认证、调试与 CI 配置。 | 主动：Playwright 测试任务；被动：手动 |
 | Agent 管理工具 | resolve-conflicts（冲突查找） | 按当前 Agent 只读检查项目与全局指令、Skill、Plugin 的冲突和歧义。 | 被动：仅手动 |
 | Agent 管理工具 | check-updates（更新检查） | 只读比较既定 upstream、自有仓库、安装缓存与 Marketplace 状态。 | 被动：仅手动 |
+| Agent 管理工具 | configure-project（项目开关配置） | 事务执行明确的 Codex 项目 Plugin 开关；当前单个 Skill 项目开关能力不足，整批 BLOCKED。 | 被动：仅手动 |
 
-在 Codex 中可用 `$<plugin>:<skill>` 手动指定，例如 `$common-workflow:handoff` 或 `$frontend-dev:vue`。handoff 的 upstream 明确设置 `allow_implicit_invocation: false`；其余第三方 Skill 未禁用隐式调用。agent-manager 的两个 Skill 同样明确设置该官方策略，并在 description 中声明 `Only use when explicitly invoked by the user.`。依据 [OpenAI 官方 Skill 调用说明](https://learn.chatgpt.com/docs/build-skills)，设为 false 后仍可显式调用，不进入默认自动选择上下文。
+在 Codex 中可用 `$<plugin>:<skill>` 手动指定，例如 `$common-workflow:handoff` 或 `$frontend-dev:vue`。handoff 的 upstream 明确设置 `allow_implicit_invocation: false`；其余第三方 Skill 未禁用隐式调用。agent-manager 的三个 Skill 同样明确设置该官方策略，并在 description 中声明 `Only use when explicitly invoked by the user.`。依据 [OpenAI 官方 Skill 调用说明](https://learn.chatgpt.com/docs/build-skills)，设为 false 后仍可显式调用，不进入默认自动选择上下文。
 
 ## 目录与维护入口
 
@@ -60,8 +61,9 @@ agent-marketplace/
 │       ├── plugin.json
 │       ├── references/codex.md
 │       └── skills/
-│           ├── resolve-conflicts/ # SKILL.md + agents/openai.yaml + scripts
-│           └── check-updates/     # SKILL.md + agents/openai.yaml + scripts
+│           ├── resolve-conflicts/ # 只读工作流 + agents/openai.yaml
+│           ├── check-updates/     # SKILL.md + agents/openai.yaml + scripts
+│           └── configure-project/ # 工作流 + metadata + references + 事务编辑器
 └── README.md
 ```
 
@@ -94,7 +96,7 @@ agent-marketplace/
 
 ### 通过项目 Skill 升级
 
-在本仓库的 Codex 聊天中直接调用 `$upgrade`，即可由 Agent 核对环境并运行现有同步流程，无需手动输入命令。入口位于 [.agents/skills/upgrade/SKILL.md](.agents/skills/upgrade/SKILL.md)，属于项目 Skill，不计入上方五个 Plugin 的 15 个 Skills，也不进入第三方同步配置。
+在本仓库的 Codex 聊天中直接调用 `$upgrade`，即可由 Agent 核对环境并运行现有同步流程，无需手动输入命令。入口位于 [.agents/skills/upgrade/SKILL.md](.agents/skills/upgrade/SKILL.md)，属于项目 Skill，不计入上方五个 Plugin 的 16 个 Skills，也不进入第三方同步配置。
 
 升级遵循 `sources.yaml` 的既定来源与 ref：分支取最新内容，固定 commit 保持固定。Agent 检查差异、运行相关验证，并按 `AGENTS.md` 默认提交和推送当前分支；用户明确要求不提交或不推送时遵从该要求。环境或同步失败时停止，已有用户改动需保留。该入口升级仓库快照，Codex 安装缓存刷新另行处理。
 
@@ -134,7 +136,7 @@ python scripts/sync.py
 
 ### Agent 管理工具
 
-使用 `$agent-manager:resolve-conflicts`（界面名称“查找 Agent 冲突”）或 `$agent-manager:check-updates` 显式调用。两个入口均保留 `policy.allow_implicit_invocation: false`，无 onboarding、启动 hooks 或自动任务。保留 resolve-conflicts 技术标识以兼容已有调用；安装缓存与新聊天需加载新版内容，仓库可发现不代表当前聊天已安装/加载。
+使用 `$agent-manager:resolve-conflicts`（界面名称“查找 Agent 冲突”）、`$agent-manager:check-updates` 或 `$agent-manager:configure-project`（“配置当前项目的 Agent Skill / Plugin”）显式调用。三个入口均保留 `policy.allow_implicit_invocation: false`，无 onboarding、启动 hooks 或自动任务。保留 resolve-conflicts 技术标识以兼容已有调用；安装缓存与新聊天需加载新版内容，仓库可发现不代表当前聊天已安装/加载。
 
 resolve-conflicts **只读查找并报告**项目级与全局指令、Skills、Plugins / Extensions 的冲突和歧义。先识别当前 Harness，再按其实际配置和加载机制发现来源；Codex 的 AGENTS.md、Claude Code 的 CLAUDE.md、Gemini CLI 的 GEMINI.md 是已记录示例，支持自定义文件名与其他 Agent 的来源发现，不将名单写死。文件兼容/导入机制按当前版本核对，不将其他 Agent 的文件自动判为当前 Agent 冲突。
 
@@ -144,7 +146,11 @@ resolve-conflicts **只读查找并报告**项目级与全局指令、Skills、P
 
 check-updates 保持 Codex 的只读版本检查：比较第三方 sources/lock、自有 Plugin 对应 Git 分支、安装 metadata、Marketplace snapshot 和非系统 standalone Skills。按已记录 repo/path/ref 比较精确 commit，固定 SHA 不跟随 main；OWNED 比较当前 branch/tracking remote 的实时 SHA 与 ancestry。证据不足分别 UNKNOWN / UNKNOWN SOURCE / BLOCKED，不更新对象、不更换来源。
 
-源码入口为 Skill 工作流、`references/codex.md` 和 `references/agent-sources.md`；更新检查保留第三方 API 比较 helper。多 Agent 来源说明不代表 Marketplace 包已在其他客户端完成安装验收。
+configure-project 是独立的纯执行型配置编辑器：只执行用户逐项明确指定的已有目标开关，不按技术栈推荐、不解决冲突、不安装、不更新、不 commit / push 用户项目。只写 Git 确认的当前项目根 `.codex/config.toml`，项目外及全局永远只读。先定位/验证完整批次再事务写入；目标歧义、缺失、配置损坏、路径逃逸或能力不支持均整批 BLOCKED。使用 tomlkit 0.13.3+（<1）保留注释与排版，仅改目标 enabled；Agent 工具环境须已准备，运行 Skill 不安装依赖或写用户缓存。支持最小新配置、幂等、锁、原子替换、二次读取与失败恢复；Windows canonical 路径、symlink、junction、hardlink 均有拒绝测试。
+
+2026-10-10 本机 `codex-cli 0.162.0-alpha.2` 的真实隔离加载器验证：**已安装本地 Marketplace Plugin 的项目开关可覆盖用户状态，正式实现；单个 Skill 项目开关 BLOCKED**。项目 `skills.config` 能被读取却不参与 Skill enablement，项目 true 也无法覆盖用户 false；不写无效配置、不改全局兜底。workspace-managed Plugin、未受信任项目、缺少完整来源/有效层证据、未验证 Codex 版本和非 Codex Agent 同样 BLOCKED。运行时不启动探测 Harness；维护者换版本需先补充真实隔离证据。输入证据由显式调用的 Agent 从现有会话整理，编辑器核验 root/version/manifest，但不把磁盘缓存当安装证明。保存后需要重新加载项目，持久化验证不代表当前会话热重载。
+
+源码入口为 Skill 工作流、`references/codex.md` 和 `references/agent-sources.md`；更新检查保留第三方 API 比较 helper。配置编辑器及能力/输入说明在 `plugins/agent-manager/skills/configure-project/`，属于 OWNED，未进入 sources/lock，现有同步白名单不变。多 Agent 来源说明不代表 Marketplace 包已在其他客户端完成安装验收。
 
 ## Codex 添加、安装与刷新
 
@@ -180,7 +186,7 @@ codex plugin add agent-manager@agent-marketplace --json
 同步工具测试：
 
 ```powershell
-uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" python -B -m unittest discover -s tests -v
+uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" --with "tomlkit>=0.13.3,<1" python -B -m unittest discover -s tests -v
 ```
 
 覆盖重复同步、快照恢复、upstream 内容更新、许可证保留、网络 / 目录失败不写入、非法路径与重名拒绝、替换失败恢复，以及不自动删除移出配置的 Skill。
@@ -189,11 +195,11 @@ Agent 管理工具的包装与只读更新比较测试位于 `tests/test_agent_m
 
 ```powershell
 $env:AGENT_MANAGER_CODEX_TESTS = "1"
-uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" python -B -m unittest discover -s tests -v
+uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" --with "tomlkit>=0.13.3,<1" python -B -m unittest discover -s tests -v
 Remove-Item Env:AGENT_MANAGER_CODEX_TESTS
 ```
 
-loader 测试使用临时 CODEX_HOME、真实本机 Codex 和 localhost 请求捕获器，只验证发现/上下文注入，不调用真实模型或执行 Skill 正文；它是独立开发验收，不属于只读冲突查找运行流程。配置编辑与过滤探测测试已随旧实现移除。其他 Agent 的来源说明依据官方文档核对，尚未做其实际客户端加载验收。
+loader 测试使用项目内隔离 CODEX_HOME、真实本机 Codex 和 localhost 请求捕获器，只验证发现/上下文注入，不调用真实模型或执行 Skill 正文；它是独立开发验收，不属于 Skill 运行流程。`tests/test_configure_project.py` 覆盖事务编辑与路径安全；`tests/test_project_config_codex.py` 验证真实项目 Plugin 覆盖、单个 Skill 项目开关未生效和 untrusted 层忽略。测试安装只发生在隔离 fixture，不更新日常全局配置/安装缓存。其他 Agent 的来源说明依据官方文档核对，尚未做其实际客户端加载验收。
 
 开发完成并通过必要验证后，按项目 AGENTS.md 默认提交并推送；Skill 执行流程本身不 commit / push。
 

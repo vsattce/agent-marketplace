@@ -97,7 +97,7 @@ def rpc_skills(cwd: Path, env: dict[str, str], selector: str | None = None) -> t
 @unittest.skipUnless(os.environ.get("AGENT_MANAGER_CODEX_TESTS") == "1", "Opt-in isolated Codex loader validation")
 class CodexLoaderTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix="agent-manager-loader-")
+        self.temporary = tempfile.TemporaryDirectory(prefix=".skill-sync-loader-", dir=ROOT)
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         self.project = self.root / "project"
@@ -167,12 +167,12 @@ class CodexLoaderTests(unittest.TestCase):
     def test_discovery_and_manual_only_context(self):
         inventory, _ = rpc_skills(self.project, self.env)
         owned = [item for item in inventory if item["name"].startswith("agent-manager:")]
-        self.assertEqual({item["name"] for item in owned}, {"agent-manager:resolve-conflicts", "agent-manager:check-updates"})
+        self.assertEqual({item["name"] for item in owned}, {"agent-manager:resolve-conflicts", "agent-manager:check-updates", "agent-manager:configure-project"})
         self.assertTrue(all(item.get("enabled", True) for item in owned))
-        ordinary = self.capture("请讨论当前项目的 Plugin / Skill 冲突和版本更新检查。")
-        for marker in ("# 查找项目级与全局的 Agent 冲突", "# 只读检查 Agent 更新", "Only use when explicitly invoked by the user."):
+        ordinary = self.capture("请讨论当前项目的 Plugin / Skill 冲突、版本更新和项目开关配置，不调用任何 Skill。")
+        for marker in ("# 查找项目级与全局的 Agent 冲突", "# 只读检查 Agent 更新", "# 配置当前项目的 Agent Skill / Plugin", "Only use when explicitly invoked by the user."):
             self.assertNotIn(marker, ordinary)
-        for name, marker in (("resolve-conflicts", "# 查找项目级与全局的 Agent 冲突"), ("check-updates", "# 只读检查 Agent 更新")):
+        for name, marker in (("resolve-conflicts", "# 查找项目级与全局的 Agent 冲突"), ("check-updates", "# 只读检查 Agent 更新"), ("configure-project", "# 配置当前项目的 Agent Skill / Plugin")):
             with self.subTest(invocation=name):
                 context = self.capture(f"${name} 仅验证 Skill 加载，本轮无需执行任何操作。")
                 print(f"\nBare ${name} injected: {marker in context}", flush=True)
