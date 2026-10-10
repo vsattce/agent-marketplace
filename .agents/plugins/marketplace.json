@@ -1,0 +1,20 @@
+{
+  "name": "agent-marketplace",
+  "interface": {
+    "displayName": "Agent Marketplace"
+  },
+  "plugins": [
+    {
+      "name": "marketplace-smoke",
+      "source": {
+        "source": "local",
+        "path": "./plugins/marketplace-smoke"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
