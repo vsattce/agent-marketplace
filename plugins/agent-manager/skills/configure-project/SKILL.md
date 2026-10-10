@@ -4,7 +4,7 @@ disable-model-invocation: true
 description: Use when explicitly called to edit project AGENTS.md files, install user-specified project Skills or Plugins, or change a supported project Plugin switch. Only use when explicitly invoked by the user.
 ---
 
-# 配置当前项目的 Agent Skill / Plugin
+# 配置当前项目的 Agent 指令 / Skill / Plugin
 
 纯执行型项目配置入口。只有用户明确调用 Codex 的 `$agent-manager:configure-project`、Claude Code 的 `/agent-manager:configure-project`、Kimi Code 的 `/skill:configure-project`（或当前客户端支持的显式别名）后才执行。普通聊天、技术栈识别、配置问题或冲突发现均不能触发，也不从 `resolve-conflicts` 自动转入。
 
