@@ -16,7 +16,7 @@
 
 Kimi 的 Skill 名称不带分类前缀。可用入口以当前会话实际显示的清单为准。
 
-**仅手动调用**：`handoff`、`resolve-conflicts`、`check-updates`、`configure-project`。其他 Skill 可在任务匹配时由 Agent 选用，也可手动指定；自动选用不保证每次发生，启用 Plugin 不会自行执行任务。
+**仅手动调用**：`handoff`、`resolve-conflicts`、`check-updates`、`configure-project`，以及 `personal-dev` 中的 Skills。其他 Skill 可在任务匹配时由 Agent 选用，也可手动指定；自动选用不保证每次发生，启用 Plugin 不会自行执行任务。
 
 例如在 Codex 中：
 
@@ -46,6 +46,30 @@ $agent-manager:check-updates 检查已记录来源和安装副本是否有更新
 | agent-manager | resolve-conflicts | 只读查找项目与全局指令、Skill、Plugin 的冲突和歧义 | 仅手动 |
 | agent-manager | check-updates | 只读比较既定来源、仓库、安装副本与 Marketplace 状态 | 仅手动 |
 | agent-manager | configure-project | 执行用户明确指定的当前项目 Plugin 开关 | 仅手动 |
+| personal-dev | delegated-development | 主模型安排任务，独立编码与验收代理执行，主模型最终整体检查；仅 Codex | 仅手动 |
+
+## 个人开发工具（仅 Codex）
+
+```text
+$personal-dev:delegated-development 实现当前需求，保留现有接口和范围外行为
+```
+
+主模型按可独立验证的功能或修复点拆任务，同类小改动合并。当前已确认的低成本编码系列为 Luna：从本轮派发工具实际允许的型号中选择与主模型同一大版本内数字版本最高者，默认 `xhigh` 编码；另一个干净上下文的同型号代理默认 `max` 验收。最终由当前主模型检查累计改动与跨任务联动。
+
+需要本轮可靠的主模型身份、当前派发工具允许名单和支持强度信息。6.1 / 6.2 主模型可以用 6 Luna；7 主模型不能自动回退到 6 或 5.6。信息缺失、陌生命名、版本歧义、强度不支持或工具不能覆写时输出具体原因并中断。用户明确确认精确替代型号后可用于当前任务；持久接纳新系列需另行维护，不凭升级推荐或价格猜测选模型。
+
+编码开始前一定先显示实际结果，例如：
+
+```text
+编码模型：gpt-6-luna｜思考强度：xhigh
+验收模型：gpt-6-luna｜思考强度：max
+```
+
+成功后直接执行，不额外确认是否开始。用户可明确覆写型号或强度；有变化先重新显示。独立验收检查需求、实现、相关调用点和验证证据，阻塞问题完整汇总，风格建议不扩大返工。初次实现后每个任务累计最多两轮修复，第二轮复验仍阻塞则全流程停止，由用户决定升级；主模型不自动接手编码。终审修复沿用相应任务剩余次数。
+
+随 Skill 提供的 Python 标准库检查器只校验主模型根据当前工具整理的模型信息，不连接服务、不验证输入来源、不修改配置，也不是原生派发工具的强制拦截器。使用已有且符合规则的 Agent 工具解释器；缺少环境时中断，不自动安装或切换。费用与 Codex 额度的实际节省需要实测，不按 API 标价推算固定比例。
+
+Claude / Kimi 暂不注册此 Plugin。安装后新建 Codex 聊天加载；仓库有文件或已经推送，不代表当前会话已注入新 Skill。该 Skill 执行时按目标项目授权与规则处理 Git，不自动取得全局修改或发布权限。
 
 ## Agent 管理工具
 
@@ -93,7 +117,7 @@ Plugin 提供 Skill 内容，不代装 Playwright、Java、Vue 等运行依赖�
 
 ### Codex
 
-从 GitHub 添加 Marketplace，再安装需要的分类；下面列出全部五类，可按需选择：
+从 GitHub 添加 Marketplace，再安装需要的分类；下面列出 Codex 的全部六类，可按需选择：
 
 ```powershell
 codex plugin marketplace add vsattce/agent-marketplace --ref main
@@ -102,6 +126,7 @@ codex plugin add frontend-dev@agent-marketplace --json
 codex plugin add backend-dev@agent-marketplace --json
 codex plugin add testing-automation@agent-marketplace --json
 codex plugin add agent-manager@agent-marketplace --json
+codex plugin add personal-dev@agent-marketplace --json
 ```
 
 安装后默认启用，可在 UI 中单独启用或禁用整个分类。新建聊天加载入口；界面未刷新时重开客户端。
@@ -156,7 +181,7 @@ https://github.com/vsattce/agent-marketplace/tree/main
 | --- | --- |
 | 仓库已更新，客户端仍是旧内容 | 按对应客户端刷新安装副本，再新建会话 |
 | 已安装，但当前聊天找不到入口 | 核对启用状态和当前会话清单，重新加载或新建聊天；磁盘存在不等于会话可用 |
-| 不知道 Skill 是否自动执行 | handoff 和三个管理入口仅手动；其他入口按任务匹配，启用不会自行执行 |
+| 不知道 Skill 是否自动执行 | handoff、三个管理入口和 personal-dev 仅手动；其他入口按任务匹配，启用不会自行执行 |
 | 配置开关返回 BLOCKED | 查看具体原因及上方支持范围；安装成功不代表具备所有项目配置能力 |
 | Kimi 出现重复 Skill | 检查是否同时安装整仓库聚合插件和分类插件 |
 | 想升级仓库里的第三方内容 | 在本仓库 Codex 聊天调用 `$upgrade`，见[维护指南](maintenance.md#升级第三方-skill)；它不刷新安装副本 |

@@ -1,8 +1,8 @@
 # agent-marketplace
 
-个人使用的 Skill / Plugin 集合，客户端显示为 **Agent Marketplace**。支持 Codex、Claude Code 与 Kimi Code，共享同一份 Skill 内容与资源；Antigravity 尚未适配。
+个人使用的 Skill / Plugin 集合，客户端显示为 **Agent Marketplace**。五个分类支持 Codex、Claude Code 与 Kimi Code，共享同一份 Skill 内容与资源；新增 `personal-dev` 第一版仅支持 Codex，Antigravity 尚未适配。
 
-目前包含 **5 个分类 Plugin、16 个 Skills**：四个第三方聚合 Plugin（13 项）和本仓库直接维护的 `agent-manager`（3 项）。
+目前 Codex 包含 **6 个 Plugin、17 个 Skills**：四个第三方聚合 Plugin（13 项）、本仓库直接维护的 `agent-manager`（3 项）和 `personal-dev`（1 项）。Claude / Kimi 保持五个 Plugin、16 个 Skills。
 
 ## 包含哪些能力
 
@@ -13,6 +13,7 @@
 | `backend-dev` | 后端开发 | java-spring-boot |
 | `testing-automation` | 测试与自动化 | webapp-testing、playwright-cli、playwright-best-practices |
 | `agent-manager` | Agent 管理工具 | resolve-conflicts、check-updates、configure-project |
+| `personal-dev` | 个人开发工具，仅 Codex | delegated-development |
 
 Codex / Claude 按分类安装，完整身份为 `<plugin>@agent-marketplace`；Kimi 可一次安装整个仓库，也可按本地分类目录安装。
 
@@ -33,8 +34,11 @@ Codex / Claude 按分类安装，完整身份为 `<plugin>@agent-marketplace`；
 | 使用 Vue Skill | `$frontend-dev:vue` | `/frontend-dev:vue` | `/skill:vue` |
 | 交接当前任务 | `$common-workflow:handoff` | `/common-workflow:handoff` | `/skill:handoff` |
 | 只读检查更新 | `$agent-manager:check-updates` | `/agent-manager:check-updates` | `/skill:check-updates` |
+| 委派开发与独立验收 | `$personal-dev:delegated-development` | 暂不支持 | 暂不支持 |
 
-`handoff` 和三个 Agent 管理 Skill **仅手动调用**；其余 Skill 可按任务匹配，也可显式调用。启用 Plugin 不会自行执行任务。
+`handoff`、三个 Agent 管理 Skill 和 `personal-dev` 中的 Skills **仅手动调用**；其余 Skill 可按任务匹配，也可显式调用。启用 Plugin 不会自行执行任务。
+
+`delegated-development` 由当前主模型安排任务、最终整体检查；自动选择同大版本最新可用 Luna，默认 `xhigh` 编码，另一个同型号代理以 `max` 验收。开始前显示实际模型与强度，再直接执行；判断不明确或两轮修复仍阻塞时中断，由用户决定。改名系列须明确确认，不自动猜测或跨代降级。使用与边界见[个人开发工具](docs/usage.md#个人开发工具仅-codex)。
 
 `configure-project` 当前支持已验证版本的 Codex / Claude 项目 Plugin 开关；单个 Skill 开关和 Kimi 项目开关暂不支持。具体范围见[使用手册](docs/usage.md#项目开关支持范围)。
 

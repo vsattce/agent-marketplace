@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "personal-dev",
+  "version": "0.1.0",
+  "description": "仅手动调用的 Codex 个人开发工具：主模型安排任务，低成本编码模型实现，独立同型号代理验收。",
+  "license": "MIT",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "个人开发工具",
+        "shortDescription": "显式选择编码与验收模型，主模型负责规划和最终检查。",
+        "longDescription": "Codex 专用，所有 Skills 默认仅手动调用。\n\ndelegated-development：当前主模型规划；同代最新可用 Luna 默认 xhigh 编码，独立同型号代理默认 max 验收，主模型最终整体检查。先显示实际模型与强度，再直接执行。型号、代际或能力不明确时中断并解释；最多两轮修复，升级由用户决定。\n\n显式调用：$personal-dev:delegated-development。不会修改全局模型配置或自动安装依赖。Claude Code / Kimi 暂未适配。",
+        "developerName": "hjy",
+        "category": "Developer Tools",
+        "websiteURL": "https://github.com/vsattce/agent-marketplace",
+        "brandColor": "#256D74"
+      }
+    }
+  }
+}
