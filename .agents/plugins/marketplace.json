@@ -17,7 +17,7 @@
         "authentication": "ON_INSTALL"
       },
       "category": "Developer Tools",
-      "description": "个人常用开发与工作流 Skills",
+      "description": "交接任务、排查问题、查资料，整理 Agent 文档",
       "author": {
         "name": "Matt Pocock",
         "url": "https://github.com/mattpocock"
@@ -31,18 +31,96 @@
         "./productivity/writing-for-agents"
       ],
       "interface": {
-        "displayName": "Matt Skills",
-        "shortDescription": "个人常用开发与工作流 Skills",
-        "longDescription": "集中整理我常用的任务交接、问题诊断、资料研究与 Agent 文档编写 Skills，方便在不同设备和项目中统一安装与管理。插件需手动安装，可手动启用或禁用；安装后默认启用。Skills 不会在会话启动时自动执行：handoff 仅手动调用，其余三个按任务匹配时可自动调用，也可手动调用。",
+        "displayName": "Matt 工作流",
+        "shortDescription": "交接、诊断、研究与 Agent 文档",
+        "longDescription": "把常用的交接、问题诊断、资料研究和 Agent 文档编写放在一起。手动安装后默认启用；handoff 仅手动调用，其余按任务匹配时可自动调用，也可手动调用。不会在会话开始时自动执行。",
         "developerName": "hjy",
         "category": "Developer Tools",
         "capabilities": [
-          "任务交接（仅手动调用）",
-          "复杂问题诊断（任务匹配时自动或手动调用）",
-          "资料研究（任务匹配时自动或手动调用）",
-          "Agent 文档编写（任务匹配时自动或手动调用）"
+          "任务交接（仅手动）",
+          "问题诊断（条件自动 / 手动）",
+          "资料研究（条件自动 / 手动）",
+          "Agent 文档（条件自动 / 手动）"
         ],
-        "brandColor": "#475569"
+        "brandColor": "#475569",
+        "websiteURL": "https://github.com/mattpocock/skills"
+      }
+    },
+    {
+      "name": "anthropic-skills",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/anthropics/skills.git",
+        "path": "./skills",
+        "sha": "dbd4588f9e1033efb41dad4bef2f7947c8993d44"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools",
+      "description": "设计前端界面，验证网页交互",
+      "author": {
+        "name": "Anthropic",
+        "url": "https://github.com/anthropics"
+      },
+      "homepage": "https://github.com/anthropics/skills",
+      "license": "Apache-2.0",
+      "skills": [
+        "./frontend-design",
+        "./webapp-testing"
+      ],
+      "interface": {
+        "displayName": "Anthropic 前端与测试",
+        "shortDescription": "前端界面设计与网页交互测试",
+        "longDescription": "用 frontend-design 设计界面，用 webapp-testing 验证网页交互。只收录这两个 Skills，不加载 PDF 或其他能力。手动安装后默认启用；按任务匹配时可自动调用，也可手动调用，不会在会话开始时自动执行。",
+        "developerName": "hjy",
+        "category": "Developer Tools",
+        "capabilities": [
+          "前端设计（条件自动 / 手动）",
+          "网页测试（条件自动 / 手动）"
+        ],
+        "websiteURL": "https://github.com/anthropics/skills",
+        "brandColor": "#9A5B3B"
+      }
+    },
+    {
+      "name": "vue-skills",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/antfu/skills.git",
+        "path": "./skills",
+        "sha": "a74f281a27dadc02397bc1a174b0f2c97531b6ae"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools",
+      "description": "Vue 组件开发与最佳实践",
+      "author": {
+        "name": "Anthony Fu / Vue.js AI",
+        "url": "https://github.com/antfu/skills"
+      },
+      "homepage": "https://github.com/antfu/skills",
+      "license": "MIT",
+      "skills": [
+        "./vue",
+        "./vue-best-practices"
+      ],
+      "interface": {
+        "displayName": "Vue 开发技能",
+        "shortDescription": "Vue 组件开发与最佳实践",
+        "longDescription": "把 vue 和 vue-best-practices 放在一个包里，覆盖组件、响应式、Composition API 与开发规范。采用 Antfu 合集仍包含两者的历史快照，原始作者为 Anthony Fu 和 Vue.js AI。手动安装后默认启用；按任务匹配时可自动调用，也可手动调用，不会在会话开始时自动执行。",
+        "developerName": "hjy",
+        "category": "Developer Tools",
+        "capabilities": [
+          "Vue 组件开发（条件自动 / 手动）",
+          "响应式与 Composition API（条件自动 / 手动）",
+          "Vue 最佳实践（条件自动 / 手动）"
+        ],
+        "websiteURL": "https://github.com/antfu/skills",
+        "brandColor": "#3F7667"
       }
     }
   ]
