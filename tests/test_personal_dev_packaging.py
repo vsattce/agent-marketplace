@@ -21,7 +21,7 @@ class PersonalDevPackagingTests(unittest.TestCase):
         self.assertEqual(entries[0]["skills"], "./skills/")
         manifest = json.loads((PLUGIN / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], entries[0]["name"])
-        self.assertEqual(manifest["version"], "0.3.0")
+        self.assertEqual(manifest["version"], "0.3.1")
         self.assertEqual(manifest["extensions"]["com.openai"]["interface"], entries[0]["interface"])
         self.assertEqual(
             {path.name for path in (PLUGIN / "skills").iterdir()},

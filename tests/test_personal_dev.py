@@ -127,7 +127,9 @@ class SelectModelsTests(unittest.TestCase):
                 self.assert_blocked(payload)
 
     def test_rejects_missing_required_effort(self) -> None:
-        self.assert_blocked(payload_with(model("gpt-6.2-luna", "max")))
+        for efforts in (("max",), ("xhigh",)):
+            with self.subTest(efforts=efforts):
+                self.assert_blocked(payload_with(model("gpt-6.2-luna", *efforts)))
 
     def test_does_not_fall_back_when_highest_model_lacks_effort(self) -> None:
         self.assert_blocked(
@@ -187,6 +189,29 @@ class SelectModelsTests(unittest.TestCase):
         self.assertEqual(result["status"], "READY")
         self.assertEqual(result["coding"]["effort"], "low")
         self.assertEqual(result["review"]["effort"], "high")
+
+    def test_single_role_override_preserves_other_role_default(self) -> None:
+        for overrides, coding_effort, review_effort in (
+            ({"coding_effort": "high"}, "high", "max"),
+            ({"review_effort": "low"}, "xhigh", "low"),
+        ):
+            with self.subTest(overrides=overrides):
+                payload = payload_with(model("gpt-6.2-luna", "low", "high", "xhigh", "max"))
+                payload.update(overrides)
+
+                result = select_models(payload)
+
+                self.assertEqual(result["status"], "READY")
+                self.assertEqual(result["coding"]["effort"], coding_effort)
+                self.assertEqual(result["review"]["effort"], review_effort)
+
+    def test_unsupported_user_effort_does_not_fall_back_to_default(self) -> None:
+        for field in ("coding_effort", "review_effort"):
+            with self.subTest(field=field):
+                payload = payload_with(model("gpt-6.2-luna", "xhigh", "max"))
+                payload[field] = "medium"
+
+                self.assert_blocked(payload)
 
     def test_does_not_mutate_input_payload(self) -> None:
         payload = payload_with(model("gpt-6.2-luna", "xhigh", "max"))

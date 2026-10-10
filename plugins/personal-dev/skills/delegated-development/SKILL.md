@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Only use when explicitly invoked by the user. Codex 使用 `$personal-dev:delegated-development`，Claude Code 使用 `/personal-dev:delegated-development`；普通开发请求不自动触发本 Skill。
 
-当前对话主模型安排任务和最终整体检查；编码与验收由不同的独立 subagent 执行。Codex 使用同型号 Luna，默认分别为 `xhigh` / `max`；Claude Code 沿用当前子代理模型与思考配置。目标是减少主模型的实现与逐项审查负担，不承诺固定费用、额度或总 token 降幅。
+当前对话主模型安排任务和最终整体检查；编码与验收由不同的独立 subagent 执行。Codex 使用同型号 Luna，默认编码 `xhigh`、独立验收 `max`（最强）；Claude Code 沿用当前子代理模型与思考配置。用户可分别指定本次编码与验收的思考强度，明确指定的角色优先使用用户值，未指定的角色保留默认策略；按对应 adapter 核验支持后直接执行，无需再次确认强度。目标是减少主模型的实现与逐项审查负担，不承诺固定费用、额度或总 token 降幅。
 
 ## 1. 先确定 Harness 与委派策略
 

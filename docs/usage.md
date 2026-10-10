@@ -53,12 +53,13 @@ $agent-manager:check-updates 检查已记录来源和安装副本是否有更新
 
 ```text
 $personal-dev:delegated-development 实现当前需求，保留现有接口和范围外行为
+$personal-dev:delegated-development 实现当前需求，编码 medium，验收 xhigh
 $personal-dev:review 检查当前项目的性能、资源、请求、磁盘和长期运行风险
 ```
 
-Claude Code 使用 `/personal-dev:delegated-development` 与 `/personal-dev:review`，沿用当前子代理模型与思考配置；不覆写 `model` / `effort`，也不要求 Codex 的 Luna、`reasoning_effort` 或 Python 检查器。派发前显示默认策略；实际 ID 或强度无法确认时标 `UNKNOWN`，不冒充已验证值。独立验收、两轮修复上限与主模型终审流程和 Codex 相同。
+Claude Code 使用 `/personal-dev:delegated-development` 与 `/personal-dev:review`，未指定时沿用当前子代理模型与思考配置，省略 `model` / `effort`；用户明确指定时按本轮原生工具能力核验，也不要求 Codex 的 Luna、`reasoning_effort` 或 Python 检查器。派发前显示模型策略；实际 ID 或强度无法确认时标 `UNKNOWN`，不冒充已验证值。独立验收、两轮修复上限与主模型终审流程和 Codex 相同。
 
-主模型按可独立验证的功能或修复点拆任务，同类小改动合并。Codex 当前已确认的低成本编码系列为 Luna：从本轮派发工具实际允许的型号中选择与主模型同一大版本内数字版本最高者，默认 `xhigh` 编码；另一个干净上下文的同型号代理默认 `max` 验收。最终由当前主模型检查累计改动与跨任务联动。
+主模型按可独立验证的功能或修复点拆任务，同类小改动合并。Codex 当前已确认的低成本编码系列为 Luna：从本轮派发工具实际允许的型号中选择与主模型同一大版本内数字版本最高者，默认 `xhigh` 编码；另一个干净上下文的同型号代理默认 `max`（最强）验收。用户可分别指定本次编码与验收强度，明确指定的值优先，未指定的角色保留默认值，无需再次确认强度；不支持的值会说明原因并中断。最终由当前主模型检查累计改动与跨任务联动。
 
 Codex 需要本轮可靠的主模型身份、当前派发工具允许名单和支持强度信息。6.1 / 6.2 主模型可以用 6 Luna；7 主模型不能自动回退到 6 或 5.6。信息缺失、陌生命名、版本歧义、强度不支持或工具不能覆写时输出具体原因并中断。用户明确确认精确替代型号后可用于当前任务；持久接纳新系列需另行维护，不凭升级推荐或价格猜测选模型。
 
