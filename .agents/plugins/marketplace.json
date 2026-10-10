@@ -5,16 +5,30 @@
   },
   "plugins": [
     {
-      "name": "marketplace-smoke",
+      "name": "handoff",
       "source": {
-        "source": "local",
-        "path": "./plugins/marketplace-smoke"
+        "source": "git-subdir",
+        "url": "https://github.com/mattpocock/skills.git",
+        "path": "./skills/productivity/handoff",
+        "ref": "main"
       },
       "policy": {
         "installation": "AVAILABLE",
         "authentication": "ON_INSTALL"
       },
-      "category": "Productivity"
+      "category": "Productivity",
+      "description": "Compact a conversation into a handoff.",
+      "author": {
+        "name": "Matt Pocock",
+        "url": "https://github.com/mattpocock"
+      },
+      "homepage": "https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff",
+      "license": "MIT",
+      "skills": "./.",
+      "interface": {
+        "displayName": "Handoff",
+        "shortDescription": "Compact a conversation into a handoff"
+      }
     }
   ]
 }

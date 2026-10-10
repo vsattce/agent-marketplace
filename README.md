@@ -1,37 +1,58 @@
 # agent-marketplace
 
-个人使用的 Agent Plugin / Skill 整理与分发仓库，以 GitHub 为主仓库，优先使用各平台原生能力。
+个人使用的 Codex Plugin / Skill 市场。Marketplace 记录可选来源，项目实际启用哪些插件由 Codex 配置控制。
 
-当前只实现 **Phase 1：Codex Marketplace 测试链路**。市场只列出可选插件，实际安装与启用由 Codex 管理。后续平台为 Claude Code、Kimi Code 和 Antigravity，当前均未适配。
+Codex 最小测试链路已通过，测试插件已移除。当前只接入第三方 **handoff**，不实现其他平台、批量迁移或自定义安装器。
 
 ## 当前结构
 
 ```text
 agent-marketplace/
-├── .agents/
-│   └── plugins/
-│       └── marketplace.json
-├── plugins/
-│   └── marketplace-smoke/
-│       ├── plugin.json
-│       └── skills/
-│           └── marketplace-hello/
-│               └── SKILL.md
+├── .agents/plugins/marketplace.json
+├── AGENTS.md
 ├── README.md
 └── LICENSE
 ```
 
-- `.agents/plugins/marketplace.json` 是 Codex 原生市场入口，市场标识为 `agent-marketplace`。
-- `plugins/marketplace-smoke/plugin.json` 使用官方当前推荐的根目录 manifest；`extensions.com.openai` 只提供 Codex 展示信息。
-- 插件从根目录 `skills/` 发现 Skill，无需额外配置 Skill 路径。
-- 市场条目的 `source.path` 相对**仓库根目录**解析，当前为 `./plugins/marketplace-smoke`。
-- 安装策略为 `AVAILABLE`，添加市场后由用户选择安装。
+本仓库只保存 Marketplace 指针和 metadata，**没有保存第三方 SKILL.md、scripts、references 或 assets**。真正的 Skill 由 Codex 从 upstream 获取，下载到 Codex 安装缓存是正常安装行为。
 
-目前无需额外的 `catalog.yaml`、平台目录、安装器、服务或依赖。
+## handoff 来源与适配
 
-## 环境要求
+| 项目 | 值 |
+| --- | --- |
+| Plugin 标识 | `handoff@agent-marketplace` |
+| Skill 标识 | `handoff:handoff` |
+| 作者 | Matt Pocock |
+| Upstream | [mattpocock/skills](https://github.com/mattpocock/skills) |
+| Upstream path | `skills/productivity/handoff` |
+| 跟随分支 | `main`，已核实为 upstream 默认分支 |
+| License | [upstream MIT](https://github.com/mattpocock/skills/blob/main/LICENSE) |
+| 安装策略 | `AVAILABLE`，由用户选择安装 |
 
-使用支持自定义 Marketplace 和根目录 `plugin.json` 的 Codex 客户端。先在终端确认当前版本及命令：
+Marketplace entry 的关键字段：
+
+```json
+{
+  "name": "handoff",
+  "source": {
+    "source": "git-subdir",
+    "url": "https://github.com/mattpocock/skills.git",
+    "path": "./skills/productivity/handoff",
+    "ref": "main"
+  },
+  "skills": "./."
+}
+```
+
+Upstream 子目录只有 Skill，没有完整 Plugin manifest。Codex 原生 Marketplace manifest fallback 把 entry 的 metadata 转为兼容 manifest，并在安装缓存中生成 `.codex-plugin/plugin.json`。`skills: "./."` 指向选中的子目录根，兼容 manifest 的递归发现机制可读取这里的 `SKILL.md`。本仓库无需单独的 adapter 目录。
+
+这是已验证的 Codex 原生兼容机制。作者后续若在该目录提供 manifest，Codex 会优先使用 upstream manifest，应重新验证路径与加载行为。
+
+本轮按需求跟随 `main`，未锁定 tag / commit；安装或重新安装时可能获取未发布变更。CLI 显示的版本 `local` 是缺少 upstream manifest version 时的缓存标签，不是 handoff 的 release 版本。
+
+## 添加与安装
+
+本机验证版本：`codex-cli 0.162.0-alpha.2`。客户端需要支持自定义 Marketplace、远程 `git-subdir` 和 manifest fallback。可先检查：
 
 ```powershell
 codex --version
@@ -39,111 +60,103 @@ codex plugin marketplace add --help
 codex plugin add --help
 ```
 
-若客户端没有这些命令，使用其插件界面完成安装；若市场或根目录 manifest 不受支持，先由用户更新客户端。项目不安装或切换任何运行时。
+### GitHub 来源
 
-## 从 GitHub 添加与安装
+**前提：相关文件已提交并推送至 GitHub。** 尚未推送时，GitHub Marketplace 无法读取本地新增 entry。
 
-**前提：这些文件已提交并推送到 GitHub 的 `main` 分支。** 远程安装读取 GitHub 内容，不会包含本地尚未推送的修改。
+首次添加：
 
 ```powershell
 codex plugin marketplace add vsattce/agent-marketplace --ref main
-codex plugin marketplace list
+```
+
+如果已经注册 GitHub 来源，刷新即可：
+
+```powershell
+codex plugin marketplace upgrade agent-marketplace --json
+```
+
+然后列出并安装：
+
+```powershell
 codex plugin list --marketplace agent-marketplace --available --json
-codex plugin add marketplace-smoke@agent-marketplace
+codex plugin add handoff@agent-marketplace --json
 codex plugin list --marketplace agent-marketplace --json
 ```
 
-市场显示名称为 **Agent Marketplace**，测试插件显示名称为 **Marketplace Smoke Test**。安装前应能看到可用条目；安装后应能看到 `installed: true` 和 `enabled: true`。测试插件只有 Skill，不连接外部服务，无需登录第三方服务。
+确认 available 中有 `handoff`，安装后 `installed: true`、`enabled: true`。桌面插件目录中选择 **Agent Marketplace → Handoff → Install** 也可验收；CLI 操作后若 UI 未刷新，重新打开客户端。
 
-也可在 Codex 插件目录选择该市场，打开测试插件并点击 **Install**。CLI 添加市场后，如果桌面界面尚未出现该来源，重启客户端再检查。不同客户端的自定义来源入口可能不同，以实际插件目录为准。
+### 尚未推送时的本地来源
 
-本仓库自有测试插件允许使用 `main`。以后加入第三方插件时，必须单独锁定其 tag 或 commit，由用户人工确认升级。
-
-## 本地试装
-
-推送之前，可在仓库根目录验证本地来源：
+本地 Marketplace entry 仍然从真实 GitHub upstream 下载 handoff：
 
 ```powershell
-codex plugin marketplace add .
+codex plugin marketplace add E:\WorkSpace\agent-marketplace
 codex plugin list --marketplace agent-marketplace --available --json
-codex plugin add marketplace-smoke@agent-marketplace
+codex plugin add handoff@agent-marketplace --json
 ```
 
-本地与 GitHub 来源使用相同市场标识。如果已手工试装本地版本，最终验收远程来源时，先卸载该测试插件并移除本地注册，再添加 GitHub 来源，避免缓存旧安装：
+本地和 GitHub 来源共享 `agent-marketplace` 标识，先用 `codex plugin marketplace list` 确认现有来源。若需切换，手工移除该市场注册后再添加目标来源：
 
 ```powershell
-codex plugin remove marketplace-smoke@agent-marketplace
 codex plugin marketplace remove agent-marketplace
-codex plugin marketplace add vsattce/agent-marketplace --ref main
-codex plugin add marketplace-smoke@agent-marketplace
 ```
 
-以上手工命令会写入当前用户的 Codex 配置并安装测试插件。本次自动验证使用临时配置目录。
+该命令移除市场注册；以上所有安装命令会写入当前用户 Codex 配置。自动验证使用独立临时 `CODEX_HOME`，没有执行这些日常环境操作。
 
-## Skill 调用与开关验收
+## 更新方式与实际限制
 
-1. 在 Codex 插件界面确认测试插件已安装并启用。
-2. **在其他目录新建聊天**，避免直接读取本仓库的 Skill 文件。输入 `$`，从 Skill 列表选择 `marketplace-smoke:marketplace-hello`，再发送：
+`main` 表示获取内容时跟随 upstream 默认分支，不表示后台持续同步。使用 Codex 原生命令：
 
-   ```text
-   使用 $marketplace-smoke:marketplace-hello 执行 Marketplace 测试。
-   ```
-
-3. 确认 Codex 读取的是插件安装缓存中的 `SKILL.md`，最终只输出：
-
-   ```text
-   AGENT_MARKETPLACE_SMOKE_OK
-   ```
-
-4. 在插件界面 **Disable** 测试插件，再新建聊天，确认该插件 Skill 不再作为可用 Skill 出现。不要在已加载 Skill 的旧聊天里判定禁用效果。
-5. 再 **Enable** 测试插件，新建聊天，重新选择并调用 Skill，确认恢复可用。
-
-使用 CLI 时，运行 `codex` 后输入 `/plugins` 打开插件浏览器，再按上述步骤检查和调用。
-
-只有输出标记不能证明安装成功；必须同时确认 Skill 来自安装缓存，以及禁用后不可用、启用后恢复。
-
-### 项目级开关
-
-官方支持在受信任项目的 `.codex/config.toml` 中设置：
-
-```toml
-[plugins."marketplace-smoke@agent-marketplace"]
-enabled = true
+```powershell
+codex plugin marketplace upgrade agent-marketplace --json
+codex plugin add handoff@agent-marketplace --json
 ```
 
-改为 `false` 即可在该项目禁用。手工修改前读取现有配置，只新增或修改这个插件条目，保留其他内容；若条目已经存在，修改原条目，避免重复表定义。修改后重新读取，并在新聊天验证。
+- `marketplace upgrade` 适用于注册的 **Git Marketplace**，检查并刷新市场仓库快照。若市场快照实际更新，当前官方实现会强制重新获取该市场中已配置插件的来源。
+- **仅 mattpocock/skills 更新、agent-marketplace 快照未变化时，upgrade 可返回 `upgradedRoots: []`，不会进入上述强制刷新。** 因此不能保证仅执行 upgrade 就更新 handoff。
+- 再执行 `plugin add handoff@agent-marketplace` 会重新拉取 upstream `main` 并替换已安装缓存；本机已实测无需卸载或修改版本号。以此作为明确更新 handoff 的原生操作。
+- 本地路径注册的市场不能使用 Git Marketplace upgrade；直接重新执行 `plugin add` 获取 upstream 即可。
 
-项目配置可覆盖用户级插件开关。如果 UI 开关与实际可用状态不一致，检查当前项目是否有此覆盖；不把安装状态和启用状态混为一谈。
+更新后新建聊天确认 Skill。UI 普通 refresh 不视为已更新源码的保证。本仓库不实现 updater、版本检查或自动修改 ref。
 
-本仓库不提交项目启用配置，也不实现 `plugin-profile`。
+## 手工最终验收
 
-## 验证状态
+1. 按上述当前来源流程安装，检查 Plugin 来源 URL、子目录和安装状态。
+2. 在仓库外新建 Codex 聊天，通过 `$` 选择 **`handoff:handoff`**，明确调用它生成当前聊天的交接文档。确认读取路径位于 Codex 插件缓存，通常为 `~/.codex/plugins/cache/agent-marketplace/handoff/local/SKILL.md`。
+3. UI **Disable** Handoff，另开新聊天，确认 `handoff:handoff` 不再可用；再 **Enable**，新聊天确认恢复并调用。
+4. 重新执行 `plugin add handoff@agent-marketplace`，确认仍能发现并调用缓存中的 Skill；未来 upstream 有新内容时，用这个操作验证实际更新。
 
-2026-10-10，使用本机 `codex-cli 0.162.0-alpha.2` 和临时 Codex 配置目录执行了原生 CLI / app-server 验证：
+当前独立全局 `~/.codex/skills/handoff` 会继续存在，可能同时出现 `handoff` 和 `handoff:handoff`。验收时选择带插件前缀的条目。禁用插件后，原独立 `handoff` 仍可用属于预期；本仓库不自动删除、禁用或解决重复来源。
+
+## 自动验证结果
+
+2026-10-10，使用隔离的 Codex 配置目录和仓库外工作目录验证：
 
 | 验证项 | 结果 |
 | --- | --- |
-| 添加本地 Marketplace，列出市场及可用插件 | 通过 |
-| 原生安装测试插件，安装状态与启用状态读取 | 通过 |
-| 从仓库外发现安装缓存中的 Skill，解析无错误 | 通过 |
-| 原生配置接口禁用后，Skill 不再被发现 | 通过 |
-| 原生配置接口重新启用后，Skill 恢复 | 通过 |
-| 增量开关操作保留无关配置，缓存 Skill 与源码一致 | 通过 |
-| GitHub 来源添加与安装 | 待文件推送后验收 |
-| 桌面 UI 展示、开关与新聊天中的真实 Skill 调用 | 待手工验收 |
+| JSON 解析、原生 Marketplace 列表与 manifest fallback | 通过 |
+| 从真实 upstream main 安装选定 git-subdir | 通过 |
+| 安装缓存 Skill 与 upstream 内容比对 | 一致，仅 Git 换行转换不同 |
+| 原生 app-server 发现 `handoff:handoff`，解析无错误 | 通过 |
+| 原生配置接口禁用后不可发现、启用后恢复 | 通过，保留无关配置 |
+| 重复 plugin add 重新获取并替换缓存 | 通过，隔离缓存探针被替换 |
+| Git Marketplace upgrade 的未变化快照 | 原生命令返回 `upgradedRoots: []` |
+| 当前全局 handoff 和日常 Codex 配置 | 文件指纹保持不变 |
+| 含新 entry 的 GitHub 市场、桌面 UI 与真实模型调用 | 待手工验收 |
 
-自动验证使用独立临时配置，未修改日常 Codex 配置；测试文件未纳入仓库。上述本地结果不代表 GitHub 和 UI 全链路已完成。
-
-Phase 1 通过前，不进入后续 Phase。
+Skill 内容比对使用 upstream commit `49dd158d1076134a641b33efb035946536778336` 作为本次验证证据，entry 仍跟随 `main`。临时验证文件及下载内容均在仓库外，未纳入 Git。
 
 ## 官方依据
 
-规范核对日期：2026-10-10。
+规范核对日期：2026-10-10；官方源码核对 revision：`5ef96ab2785f3ecddf279639eff7b1b42c906fa4`。
 
-- [Package your plugin](https://developers.openai.com/plugins/build/plugins)：Marketplace 入口、根目录 manifest、市场路径规则、原生 CLI 和项目级开关。
-- [Build skills](https://learn.chatgpt.com/docs/build-skills)：`SKILL.md` frontmatter、发现与显式调用。
-- [Codex 官方 Marketplace 实现](https://github.com/openai/codex/blob/4bad6d78e9b50f9fa8bd941f1db012ed491ad2da/codex-rs/core-plugins/src/marketplace.rs)：入口路径与市场条目解析。
-- [Codex 官方根目录 manifest 实现](https://github.com/openai/codex/blob/4bad6d78e9b50f9fa8bd941f1db012ed491ad2da/codex-rs/core-plugins/src/agent_plugin_manifest.rs)：Agent Plugins schema、默认 `skills/` 和 OpenAI 扩展。
-- [Codex 官方 Plugin CLI 实现](https://github.com/openai/codex/blob/4bad6d78e9b50f9fa8bd941f1db012ed491ad2da/codex-rs/cli/src/plugin_cmd.rs)：原生安装和列表命令。
+- [Package your plugin](https://developers.openai.com/plugins/build/plugins)：当前 manifest / Marketplace 规范及远程 source 示例。
+- [CLI reference](https://learn.chatgpt.com/docs/cli/reference)：原生 Marketplace 与 Plugin 操作。
+- [marketplace.rs](https://github.com/openai/codex/blob/5ef96ab2785f3ecddf279639eff7b1b42c906fa4/codex-rs/core-plugins/src/marketplace.rs)：远程来源、子目录和 entry manifest fallback。
+- [manifest.rs](https://github.com/openai/codex/blob/5ef96ab2785f3ecddf279639eff7b1b42c906fa4/codex-rs/core-plugins/src/manifest.rs)：兼容 manifest 路径解析。
+- [loader.rs](https://github.com/openai/codex/blob/5ef96ab2785f3ecddf279639eff7b1b42c906fa4/codex-rs/core-plugins/src/loader.rs)：原生 Git 获取、缓存刷新与 Skill 发现。
+- [manager.rs](https://github.com/openai/codex/blob/5ef96ab2785f3ecddf279639eff7b1b42c906fa4/codex-rs/core-plugins/src/manager.rs)：安装及 upgrade 后强制刷新已配置插件。
+- [marketplace_upgrade.rs](https://github.com/openai/codex/blob/5ef96ab2785f3ecddf279639eff7b1b42c906fa4/codex-rs/core-plugins/src/marketplace_upgrade.rs)：市场快照未变化时跳过升级。
 
-MIT License。当前测试插件为本仓库自有内容。
+本仓库使用 MIT License；第三方内容适用 upstream License。
