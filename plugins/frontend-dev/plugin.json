@@ -8,7 +8,7 @@
       "interface": {
         "displayName": "前端开发",
         "shortDescription": "前端界面设计、Vue 开发与 Web 设计规范。",
-        "longDescription": "前端界面设计、Vue 开发与 Web 设计规范。",
+        "longDescription": "前端界面设计、Vue 开发与 Web 设计规范。\n\nfrontend-design（界面设计）：新建或重塑前端页面，指导视觉风格、排版和界面细节。触发：主动（界面设计任务）／被动（手动）。\nweb-design-guidelines（Web 界面审查）：检查 UI 代码、可访问性和交互是否符合 Web 设计规范。触发：主动（界面审查任务）／被动（手动）。\nvue（Vue 3 开发）：指导组件、Composition API、响应式逻辑及内置组件的使用。触发：主动（Vue 开发任务）／被动（手动）。\nvue-best-practices（Vue 开发规范）：指导 Vue 组件、Vue Router、Pinia 和 Vite 项目的实现与最佳实践。触发：主动（Vue 开发任务）／被动（手动）。\n\n主动表示 Codex 可按当前任务自动选用；被动表示手动指定 Skill，例如 $frontend-dev:vue。启用插件不会自行执行任务。",
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://github.com/vsattce/agent-marketplace",

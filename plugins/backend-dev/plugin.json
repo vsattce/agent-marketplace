@@ -8,7 +8,7 @@
       "interface": {
         "displayName": "后端开发",
         "shortDescription": "Java / Spring Boot 开发与工程实践。",
-        "longDescription": "Java / Spring Boot 开发与工程实践。",
+        "longDescription": "Java / Spring Boot 开发与工程实践。\n\njava-spring-boot（Spring Boot 开发）：指导 REST API、安全认证、数据访问及 Actuator 监控的实现。触发：主动（Spring Boot 开发任务）／被动（手动）。\n\n主动表示 Codex 可按当前任务自动选用；被动表示手动指定 Skill，例如 $backend-dev:java-spring-boot。启用插件不会自行执行任务。",
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://github.com/vsattce/agent-marketplace",

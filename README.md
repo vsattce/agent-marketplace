@@ -15,6 +15,28 @@
 
 默认继续使用已选定的 Skill 和来源；新增 Skill 优先归入四类，只有新的领域才考虑增加分类。`resolving-merge-conflicts` 和第三方 standalone `pdf` 不保留，也没有 Legacy 入口。
 
+### 各 Skill 的用途与触发方式
+
+四个 Plugin 的详情说明均列出所含 Skill 的用途与触发方式。**主动**表示 Codex 可在当前任务匹配 Skill 描述时自动选用；**被动**表示用户手动指定 Skill。两者是调用方式，启用插件不会自行执行任务，主动选用也不保证每次发生。
+
+| Plugin | Skill（是什么） | 做什么 | 触发方式 |
+| --- | --- | --- | --- |
+| 通用工作流 | handoff（任务交接） | 将当前会话的进度、决定和后续工作整理成文档，供新会话继续。 | 被动：仅手动 |
+| 通用工作流 | diagnosing-bugs（问题诊断） | 逐步排查复杂 Bug、报错、故障和性能回归，核验证据与原因。 | 主动：诊断任务；被动：手动 |
+| 通用工作流 | research（资料研究） | 从可信来源收集资料和 API 文档，形成可追溯的研究记录。 | 主动：研究任务；被动：手动 |
+| 通用工作流 | writing-for-agents（Agent 文档编写） | 创建或修改 Skill、AGENTS.md、CLAUDE.md 等供 Agent 使用的文档。 | 主动：Agent 文档任务；被动：手动 |
+| 通用工作流 | find-skills（Skill 查找） | 按需求寻找可用 Skill，了解其能力与安装方式。 | 主动：查找 Skill 时；被动：手动 |
+| 前端开发 | frontend-design（界面设计） | 新建或重塑前端页面，指导视觉风格、排版和界面细节。 | 主动：界面设计任务；被动：手动 |
+| 前端开发 | web-design-guidelines（Web 界面审查） | 检查 UI 代码、可访问性和交互是否符合 Web 设计规范。 | 主动：界面审查任务；被动：手动 |
+| 前端开发 | vue（Vue 3 开发） | 指导组件、Composition API、响应式逻辑及内置组件的使用。 | 主动：Vue 开发任务；被动：手动 |
+| 前端开发 | vue-best-practices（Vue 开发规范） | 指导 Vue 组件、Vue Router、Pinia 和 Vite 项目的实现与最佳实践。 | 主动：Vue 开发任务；被动：手动 |
+| 后端开发 | java-spring-boot（Spring Boot 开发） | 指导 REST API、安全认证、数据访问及 Actuator 监控的实现。 | 主动：Spring Boot 开发任务；被动：手动 |
+| 测试与自动化 | webapp-testing（网页测试） | 用 Playwright 验证本地网页交互，查看截图与控制台日志，排查界面问题。 | 主动：网页测试任务；被动：手动 |
+| 测试与自动化 | playwright-cli（浏览器自动化） | 通过 Playwright CLI 打开网页、点击输入、读取快照和验证交互。 | 主动：浏览器操作或网页验证任务；被动：手动 |
+| 测试与自动化 | playwright-best-practices（Playwright 测试实践） | 指导测试编写、定位器、断言、Fixture、模拟、认证、调试与 CI 配置。 | 主动：Playwright 测试任务；被动：手动 |
+
+在 Codex 中可用 `$<plugin>:<skill>` 手动指定，例如 `$common-workflow:handoff` 或 `$frontend-dev:vue`。handoff 的 upstream 明确设置 `allow_implicit_invocation: false`；其余当前 Skill 未禁用隐式调用。依据 [OpenAI 官方 Skill 调用说明](https://learn.chatgpt.com/docs/build-skills)，隐式调用默认允许，实际自动选用取决于任务是否匹配 Skill 描述。
+
 ## 目录与维护入口
 
 ```text
