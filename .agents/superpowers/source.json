@@ -1,0 +1,36 @@
+{
+  "repository": "https://github.com/obra/superpowers",
+  "ref": "main",
+  "commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+  "installed_on": "2026-10-10",
+  "scope": "project",
+  "skills_directory": ".agents/skills",
+  "skills": [
+    "brainstorming",
+    "diagnosing-superpowers",
+    "dispatching-parallel-agents",
+    "executing-plans",
+    "finishing-a-development-branch",
+    "receiving-code-review",
+    "requesting-code-review",
+    "subagent-driven-development",
+    "systematic-debugging",
+    "test-driven-development",
+    "using-git-worktrees",
+    "using-superpowers",
+    "verification-before-completion",
+    "writing-plans",
+    "writing-skills"
+  ],
+  "executable_files": [
+    ".agents/skills/brainstorming/scripts/start-server.sh",
+    ".agents/skills/brainstorming/scripts/stop-server.sh",
+    ".agents/skills/executing-plans/scripts/task-done",
+    ".agents/skills/executing-plans/scripts/task-start",
+    ".agents/skills/subagent-driven-development/scripts/review-package",
+    ".agents/skills/subagent-driven-development/scripts/sdd-workspace",
+    ".agents/skills/subagent-driven-development/scripts/task-brief",
+    ".agents/skills/systematic-debugging/find-polluter.sh",
+    ".agents/skills/writing-skills/render-graphs.js"
+  ]
+}
