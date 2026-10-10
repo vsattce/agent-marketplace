@@ -1,15 +1,15 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-manager",
-  "version": "0.1.0",
-  "description": "手动整理当前项目的 Agent Plugin / Skill 冲突，或只读检查现有来源的版本。",
+  "version": "0.2.0",
+  "description": "手动查找项目级与全局 Agent 指令、Skill、Plugin 的冲突及歧义，或只读检查现有来源版本。",
   "license": "MIT",
   "extensions": {
     "com.openai": {
       "interface": {
         "displayName": "Agent 管理工具",
-        "shortDescription": "项目冲突整理与现有来源版本检查，仅手动调用。",
-        "longDescription": "本仓库直接维护的 OWNED Plugin。\n\nresolve-conflicts：扫描当前项目实际可见的 Plugin / Skill 重复入口，按明确优先级安全调整项目配置。\ncheck-updates：只读对比已记录 upstream、自有仓库、已安装 Plugin、standalone Skill 与 Marketplace 状态。\n\n两个 Skill 都仅接受用户显式调用：$agent-manager:resolve-conflicts、$agent-manager:check-updates。第一版支持 Codex，控制粒度或版本证据不足时报告 BLOCKED / UNKNOWN。",
+        "shortDescription": "项目与全局冲突查找及现有来源版本检查，仅手动调用。",
+        "longDescription": "本仓库直接维护的 OWNED Plugin。\n\nresolve-conflicts：按当前 Agent 的加载规则，只读查找项目与全局指令、Skills、Plugins / Extensions 的冲突及歧义，输出原文、位置和建议。\ncheck-updates：只读对比已记录 upstream、自有仓库、已安装 Plugin、standalone Skill 与 Marketplace 状态。\n\n两个 Skill 都仅接受用户显式调用：$agent-manager:resolve-conflicts、$agent-manager:check-updates。冲突查找按 Harness 发现来源，含 Codex / Claude Code / Gemini CLI 示例及其他 Agent 的扩展流程；更新检查仍支持 Codex。加载或机制证据不足时标记 PARTIAL / UNKNOWN。",
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://github.com/vsattce/agent-marketplace",

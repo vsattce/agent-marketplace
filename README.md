@@ -12,7 +12,7 @@
 | `frontend-dev@agent-marketplace` | **前端开发**：前端界面设计、Vue 开发与 Web 设计规范。 | frontend-design、web-design-guidelines、vue、vue-best-practices |
 | `backend-dev@agent-marketplace` | **后端开发**：Java / Spring Boot 开发与工程实践。 | java-spring-boot |
 | `testing-automation@agent-marketplace` | **测试与自动化**：网页测试、Playwright 浏览器自动化与测试最佳实践。 | webapp-testing、playwright-cli、playwright-best-practices |
-| `agent-manager@agent-marketplace`（OWNED） | **Agent 管理工具**：当前项目冲突整理与既定来源版本检查。 | resolve-conflicts、check-updates（均仅手动） |
+| `agent-manager@agent-marketplace`（OWNED） | **Agent 管理工具**：项目与全局冲突查找及既定来源版本检查。 | resolve-conflicts、check-updates（均仅手动） |
 
 默认继续使用已选定的第三方 Skill 和来源；新增第三方 Skill 优先归入四类，只有新的领域才考虑增加分类。自有 Plugin 直接维护，不走第三方同步。`resolving-merge-conflicts` 和第三方 standalone `pdf` 不保留，也没有 Legacy 入口。
 
@@ -35,7 +35,7 @@ Plugin 的详情说明均列出所含 Skill 的用途与触发方式。**主动*
 | 测试与自动化 | webapp-testing（网页测试） | 用 Playwright 验证本地网页交互，查看截图与控制台日志，排查界面问题。 | 主动：网页测试任务；被动：手动 |
 | 测试与自动化 | playwright-cli（浏览器自动化） | 通过 Playwright CLI 打开网页、点击输入、读取快照和验证交互。 | 主动：浏览器操作或网页验证任务；被动：手动 |
 | 测试与自动化 | playwright-best-practices（Playwright 测试实践） | 指导测试编写、定位器、断言、Fixture、模拟、认证、调试与 CI 配置。 | 主动：Playwright 测试任务；被动：手动 |
-| Agent 管理工具 | resolve-conflicts（冲突整理） | 检测项目重复入口，验证项目层精确 path disable；不支持时 BLOCKED。 | 被动：仅手动 |
+| Agent 管理工具 | resolve-conflicts（冲突查找） | 按当前 Agent 只读检查项目与全局指令、Skill、Plugin 的冲突和歧义。 | 被动：仅手动 |
 | Agent 管理工具 | check-updates（更新检查） | 只读比较既定 upstream、自有仓库、安装缓存与 Marketplace 状态。 | 被动：仅手动 |
 
 在 Codex 中可用 `$<plugin>:<skill>` 手动指定，例如 `$common-workflow:handoff` 或 `$frontend-dev:vue`。handoff 的 upstream 明确设置 `allow_implicit_invocation: false`；其余第三方 Skill 未禁用隐式调用。agent-manager 的两个 Skill 同样明确设置该官方策略，并在 description 中声明 `Only use when explicitly invoked by the user.`。依据 [OpenAI 官方 Skill 调用说明](https://learn.chatgpt.com/docs/build-skills)，设为 false 后仍可显式调用，不进入默认自动选择上下文。
@@ -134,21 +134,17 @@ python scripts/sync.py
 
 ### Agent 管理工具
 
-使用 `$agent-manager:resolve-conflicts` 或 `$agent-manager:check-updates` 显式调用。两个入口均有 `agents/openai.yaml` 的 `policy.allow_implicit_invocation: false`，无 onboarding、启动 hooks 或自动任务。本机 0.162.0-alpha.2 的裸 `$resolve-conflicts` / `$check-updates` 未注入 Plugin Skill 正文，使用带 Plugin namespace 的实际入口。安装缓存刷新及新聊天加载规则与其他 Plugin 一致；仓库可发现不代表当前聊天已经安装/加载。
+使用 `$agent-manager:resolve-conflicts`（界面名称“查找 Agent 冲突”）或 `$agent-manager:check-updates` 显式调用。两个入口均保留 `policy.allow_implicit_invocation: false`，无 onboarding、启动 hooks 或自动任务。保留 resolve-conflicts 技术标识以兼容已有调用；安装缓存与新聊天需加载新版内容，仓库可发现不代表当前聊天已安装/加载。
 
-resolve-conflicts 先可靠识别调用时项目根目录和当前 Harness，再用共享 Codex adapter 核验当前官方规范、trust 与配置层。按完全相同 Skill name 查重，比较 namespace / description / Plugin / scope；默认项目优先，用户指定来源优先。同名来源用实际加载 **path** 精确区分，不按 name 禁用。实际过滤验证须确认目标 global Skill 不再可用、项目同名 Skill 和 Plugin 其他 Skill 保留。通过后才无损增量修改当前项目 TOML；无法安全验证就 BLOCKED，不能算 RESOLVED。
+resolve-conflicts **只读查找并报告**项目级与全局指令、Skills、Plugins / Extensions 的冲突和歧义。先识别当前 Harness，再按其实际配置和加载机制发现来源；Codex 的 AGENTS.md、Claude Code 的 CLAUDE.md、Gemini CLI 的 GEMINI.md 是已记录示例，支持自定义文件名与其他 Agent 的来源发现，不将名单写死。文件兼容/导入机制按当前版本核对，不将其他 Agent 的文件自动判为当前 Agent 冲突。
 
-**最高优先级红线：全局只读，当前项目可读写，项目外绝不写入。** 所有配置、临时文件、替换与失败清理均由 `write_path()` 校验调用项目及 canonical 路径；拒绝其他仓库、路径逃逸、用户配置禁区、symlink、Windows junction 和 hardlink。全局 Skill path 仅作为项目配置里的只读 selector。非项目目录立即拒绝，不初始化 Git、不创建配置。项目层无法解决时不回退到全局修改，也不禁用整个 Plugin。
+检查内容包括指令与 Skill/Plugin 的交叉要求、同名入口与不同名但同触发场景的要求。区分冲突、歧义、能力重叠和已由明确覆盖规则消解的差异；磁盘存在、安装、启用、会话可用和正文已加载分别记录。每项输出双方原文、绝对路径、行号、共同触发条件、影响、加载证据及最小建议。未知来源/加载状态标 UNKNOWN，扫描不完整标 PARTIAL；不能把有限静态检查写成“全部无冲突”。
 
-**上一轮已验证限制：codex-cli 0.162.0-alpha.2 的项目 `.codex/config.toml` 中 `skills.config` 不参与该 Plugin Skill filtering。** 当时 `config/read` 可以看到规则，但 SKILL.md 路径和目录 selector 都没有屏蔽 global handoff；临时用户层对照有效。该历史结论不代替当前版本核验，旧验证方式也不能按新增红线再次执行。当前无法安全验证时输出 BLOCKED、已知版本与路径、失败原因，不写无效规则、不改用户配置、不关闭整个 Plugin。持久化隔离目前没有已验证 workaround；独立 Skill 同样必须验证项目层实际生效。
+项目与全局均只读，不改配置，不禁用/卸载/安装 Skill 或 Plugin，不刷新 Marketplace，也不创建临时探测环境或报告文件。旧项目配置编辑器与 filtering 探测 helper 已移除，冲突查找在对话中输出结果。
 
-helper `project_config.py` 使用 tomlkit 0.13.x 保留 TOML 注释/格式，避免手工拼接或全文件重建；它是经过 adapter 核验后的底层编辑器，CLI 只做项目识别与只读预检。运行时使用已有依赖及 `python -B`，避免在全局 Plugin 内生成 bytecode 或触发项目外 uv 缓存/安装；无法满足就停止。运行 helper 前服从目标项目约束核对 mise 和 Python，不匹配时停止。
+check-updates 保持 Codex 的只读版本检查：比较第三方 sources/lock、自有 Plugin 对应 Git 分支、安装 metadata、Marketplace snapshot 和非系统 standalone Skills。按已记录 repo/path/ref 比较精确 commit，固定 SHA 不跟随 main；OWNED 比较当前 branch/tracking remote 的实时 SHA 与 ancestry。证据不足分别 UNKNOWN / UNKNOWN SOURCE / BLOCKED，不更新对象、不更换来源。
 
-`probe_codex.py` 已改为只读路径/metadata 预检：**不启动 Codex、不安装测试 Plugin、不创建临时 CODEX_HOME 或项目外临时目录**。旧探测会在系统临时目录写文件，不符合新增红线；设置 CODEX_HOME 也不能保证所有子进程、日志和缓存受限。没有已验证的项目内进程约束时明确 BLOCKED，保留真实全局环境。它不能证明过滤成功；需要安全的当前版本行为证据才允许编辑项目规则。路径校验不是任意外部程序的系统级 sandbox。
-
-check-updates 只读检查第三方 sources/lock、自有 Plugin 对应 Git 分支、Codex 安装 metadata、Marketplace snapshot 和非系统 standalone Skills。按已记录 repo/path/ref 比较精确 commit，固定 SHA 不跟随 main；OWNED 比较当前 branch/tracking remote 的实时 SHA 与 ancestry。缺失路径不删项；安装 version 相同不代表内容最新；来源、权限或版本证据不足分别 UNKNOWN / UNKNOWN SOURCE / BLOCKED，不搜索替代作者。输出版本表及 Latest / Updates available / Unknown 汇总，不更新任何对象，不 commit/push。
-
-源码入口是 Skill 工作流和 `references/codex.md`；确定性 helper 负责项目/TOML安全边界、隔离兼容性探测以及第三方 API 比较。第一版只提供 Codex adapter，其他 Harness 返回 UNSUPPORTED AGENT。
+源码入口为 Skill 工作流、`references/codex.md` 和 `references/agent-sources.md`；更新检查保留第三方 API 比较 helper。多 Agent 来源说明不代表 Marketplace 包已在其他客户端完成安装验收。
 
 ## Codex 添加、安装与刷新
 
@@ -184,25 +180,21 @@ codex plugin add agent-manager@agent-marketplace --json
 同步工具测试：
 
 ```powershell
-uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" --with "tomlkit>=0.13.3,<0.14" python -B -m unittest discover -s tests -v
+uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" python -B -m unittest discover -s tests -v
 ```
 
 覆盖重复同步、快照恢复、upstream 内容更新、许可证保留、网络 / 目录失败不写入、非法路径与重名拒绝、替换失败恢复，以及不自动删除移出配置的 Skill。
 
-本轮新增管理/边界测试位于 `tests/test_agent_manager.py` 和 `tests/test_codex_loader.py`。真实 Codex loader 测试为显式启用的隔离测试：
-
-2026-10-10，上一轮完整执行 30 项测试全部通过（含当时 2 项真实 Codex loader 验证）。普通相关对话不注入两个手动 Skill 的 description / 正文；带 namespace 的两个显式入口均注入正文。此验收覆盖发现与调用策略，不代表已执行两个 Skill 的完整业务流程。新增边界测试验证项目内增量写入、全局 selector 只读、用户配置/Skill/Plugin/其他仓库拒写、路径逃逸、Windows 大小写/盘符、symlink/junction/hardlink 拒写，以及非项目和不受限探测 BLOCKED。
+Agent 管理工具的包装与只读更新比较测试位于 `tests/test_agent_manager.py`；Codex 发现/手动调用测试位于 `tests/test_codex_loader.py`。真实 loader 验证需显式启用：
 
 ```powershell
 $env:AGENT_MANAGER_CODEX_TESTS = "1"
-uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" --with "tomlkit>=0.13.3,<0.14" python -B -m unittest discover -s tests -v
+uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" python -B -m unittest discover -s tests -v
 Remove-Item Env:AGENT_MANAGER_CODEX_TESTS
 ```
 
-loader 测试是独立开发验收，使用临时 CODEX_HOME、真实本机 Codex 和 localhost 请求捕获器，只验证发现/上下文注入，不调用真实模型或执行 Skill 正文；其进程工具已移到测试文件中，不随 Skill 执行，不能作为冲突处理 workaround。旧有系统临时目录 runtime filtering 测试已由零写入 BLOCKED 测试取代。上一轮同步集成验证按现有 13 项配置连续进行两次真实 upstream 同步，两次快照/lock 完全一致，agent-manager 源码 hash 保持不变；实际仓库 sources/lock 与第三方快照没有更新。第三方检查 helper 的实网 GitHub API 查询返回 HTTP 403，各项明确 UNKNOWN；LATEST / UPDATE AVAILABLE / 路径缺失等分支另以受控响应验证。
+loader 测试使用临时 CODEX_HOME、真实本机 Codex 和 localhost 请求捕获器，只验证发现/上下文注入，不调用真实模型或执行 Skill 正文；它是独立开发验收，不属于只读冲突查找运行流程。配置编辑与过滤探测测试已随旧实现移除。其他 Agent 的来源说明依据官方文档核对，尚未做其实际客户端加载验收。
 
 开发完成并通过必要验证后，按项目 AGENTS.md 默认提交并推送；Skill 执行流程本身不 commit / push。
-
-本次边界强化验证：37 项测试，36 项通过，1 项真实 Codex loader 测试未启用；Windows symlink、junction、hardlink 和盘符/大小写检查均真实通过。项目 TOML 增量编辑验证的是文件边界与内容保留，未宣称当前 Codex 的项目级过滤已生效。
 
 加载方式参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)。

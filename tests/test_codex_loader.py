@@ -170,9 +170,9 @@ class CodexLoaderTests(unittest.TestCase):
         self.assertEqual({item["name"] for item in owned}, {"agent-manager:resolve-conflicts", "agent-manager:check-updates"})
         self.assertTrue(all(item.get("enabled", True) for item in owned))
         ordinary = self.capture("请讨论当前项目的 Plugin / Skill 冲突和版本更新检查。")
-        for marker in ("# 整理当前项目的 Agent 冲突", "# 只读检查 Agent 更新", "Only use when explicitly invoked by the user."):
+        for marker in ("# 查找项目级与全局的 Agent 冲突", "# 只读检查 Agent 更新", "Only use when explicitly invoked by the user."):
             self.assertNotIn(marker, ordinary)
-        for name, marker in (("resolve-conflicts", "# 整理当前项目的 Agent 冲突"), ("check-updates", "# 只读检查 Agent 更新")):
+        for name, marker in (("resolve-conflicts", "# 查找项目级与全局的 Agent 冲突"), ("check-updates", "# 只读检查 Agent 更新")):
             with self.subTest(invocation=name):
                 context = self.capture(f"${name} 仅验证 Skill 加载，本轮无需执行任何操作。")
                 print(f"\nBare ${name} injected: {marker in context}", flush=True)
