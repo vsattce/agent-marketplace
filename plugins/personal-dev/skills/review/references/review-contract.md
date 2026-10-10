@@ -7,7 +7,9 @@
 - 派发内容只包含完成任务必需的信息。报告和上下文不得泄露 token、cookie、密钥、个人信息或 URL 敏感参数。
 - 报告/必要轻量记录是唯一可写内容。没有生产环境资料仍可完成代码层审查；运行量化结论标为待运行验证。
 
-## 模型 adapter 接口
+## Codex 模型 adapter 接口
+
+仅 Codex 使用以下 Python 接口。Claude Code 按 [Claude adapter](../../../references/claude.md) 沿用原生子代理配置，不运行本检查器，也不要求以下输入字段。
 
 CLI 从 stdin 读取一个 JSON object。必填字段为 `primary_model`、`primary_model_source`（`current-turn` 或 `user`）、`inventory_source`（`current-spawn-tool`）和 `models`（当前派发工具实际可用的 `{id, efforts}` 项目数组）。可选字段为 `model_override` 与 `override_confirmed`，以及 `audit_effort` / `verification_effort`（默认 `xhigh` / `max`）。不接受未知字段，也不接受旧的 `coding_effort` / `review_effort` 角色字段。模型覆盖仍须按兄弟 helper 规则明确确认，并在当前工具名单中。
 

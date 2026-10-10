@@ -80,6 +80,17 @@ class ConfigureProjectTests(unittest.TestCase):
         self.assertEqual(tomllib.loads(self.config.read_text()), {"plugins": {"alpha@fixture": {"enabled": True}}})
         self.assertEqual(list(self.config.parent.iterdir()), [self.config])
 
+    def test_current_and_previously_verified_codex_versions(self):
+        for version in ("codex-cli 0.162.0-alpha.2", "codex-cli 0.162.0-alpha.17.2"):
+            with self.subTest(version=version), patch.object(editor, "codex_version", return_value=version):
+                self.payload["inventory"]["codex_version"] = version
+                self.assertEqual(self.run_editor()["Status"], "SUCCESS")
+
+    def test_verified_but_mismatched_codex_version_blocks(self):
+        self.payload["inventory"]["codex_version"] = "codex-cli 0.162.0-alpha.2"
+        with patch.object(editor, "codex_version", return_value="codex-cli 0.162.0-alpha.17.2"):
+            self.blocked("CODEX PROJECT-LEVEL CONFIGURATION NOT SUPPORTED")
+
     def test_kimi_project_switch_blocks_entire_batch_without_writing(self):
         self.payload["agent"] = "kimi"
         self.payload["requests"].append({"kind": "skill", "target": "vue", "enabled": False})

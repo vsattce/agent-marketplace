@@ -46,19 +46,21 @@ $agent-manager:check-updates 检查已记录来源和安装副本是否有更新
 | agent-manager | resolve-conflicts | 只读查找项目与全局指令、Skill、Plugin 的冲突和歧义 | 仅手动 |
 | agent-manager | check-updates | 只读比较既定来源、仓库、安装副本与 Marketplace 状态 | 仅手动 |
 | agent-manager | configure-project | 预检后编辑项目指令、安装指定 Skill 或执行受支持的 Plugin 开关 | 仅手动 |
-| personal-dev | delegated-development | 主模型安排任务，独立编码与验收代理执行，主模型最终整体检查；仅 Codex | 仅手动 |
-| personal-dev | review | 只读审查当前项目或明确范围，独立复核高等级发现并生成报告；仅 Codex | 仅手动 |
+| personal-dev | delegated-development | 主模型安排任务，独立编码与验收代理执行，主模型最终整体检查；Codex / Claude Code | 仅手动 |
+| personal-dev | review | 只读审查当前项目或明确范围，独立复核高等级发现并生成报告；Codex / Claude Code | 仅手动 |
 
-## 个人开发工具（仅 Codex）
+## 个人开发工具（Codex / Claude Code）
 
 ```text
 $personal-dev:delegated-development 实现当前需求，保留现有接口和范围外行为
 $personal-dev:review 检查当前项目的性能、资源、请求、磁盘和长期运行风险
 ```
 
-主模型按可独立验证的功能或修复点拆任务，同类小改动合并。当前已确认的低成本编码系列为 Luna：从本轮派发工具实际允许的型号中选择与主模型同一大版本内数字版本最高者，默认 `xhigh` 编码；另一个干净上下文的同型号代理默认 `max` 验收。最终由当前主模型检查累计改动与跨任务联动。
+Claude Code 使用 `/personal-dev:delegated-development` 与 `/personal-dev:review`，沿用当前子代理模型与思考配置；不覆写 `model` / `effort`，也不要求 Codex 的 Luna、`reasoning_effort` 或 Python 检查器。派发前显示默认策略；实际 ID 或强度无法确认时标 `UNKNOWN`，不冒充已验证值。独立验收、两轮修复上限与主模型终审流程和 Codex 相同。
 
-需要本轮可靠的主模型身份、当前派发工具允许名单和支持强度信息。6.1 / 6.2 主模型可以用 6 Luna；7 主模型不能自动回退到 6 或 5.6。信息缺失、陌生命名、版本歧义、强度不支持或工具不能覆写时输出具体原因并中断。用户明确确认精确替代型号后可用于当前任务；持久接纳新系列需另行维护，不凭升级推荐或价格猜测选模型。
+主模型按可独立验证的功能或修复点拆任务，同类小改动合并。Codex 当前已确认的低成本编码系列为 Luna：从本轮派发工具实际允许的型号中选择与主模型同一大版本内数字版本最高者，默认 `xhigh` 编码；另一个干净上下文的同型号代理默认 `max` 验收。最终由当前主模型检查累计改动与跨任务联动。
+
+Codex 需要本轮可靠的主模型身份、当前派发工具允许名单和支持强度信息。6.1 / 6.2 主模型可以用 6 Luna；7 主模型不能自动回退到 6 或 5.6。信息缺失、陌生命名、版本歧义、强度不支持或工具不能覆写时输出具体原因并中断。用户明确确认精确替代型号后可用于当前任务；持久接纳新系列需另行维护，不凭升级推荐或价格猜测选模型。
 
 编码开始前一定先显示实际结果，例如：
 
@@ -69,15 +71,15 @@ $personal-dev:review 检查当前项目的性能、资源、请求、磁盘和�
 
 成功后直接执行，不额外确认是否开始。用户可明确覆写型号或强度；有变化先重新显示。独立验收检查需求、实现、相关调用点和验证证据，阻塞问题完整汇总，风格建议不扩大返工。初次实现后每个任务累计最多两轮修复，第二轮复验仍阻塞则全流程停止，由用户决定升级；主模型不自动接手编码。终审修复沿用相应任务剩余次数。
 
-随 Skill 提供的 Python 标准库检查器只校验主模型根据当前工具整理的模型信息，不连接服务、不验证输入来源、不修改配置，也不是原生派发工具的强制拦截器。使用已有且符合规则的 Agent 工具解释器；缺少环境时中断，不自动安装或切换。费用与 Codex 额度的实际节省需要实测，不按 API 标价推算固定比例。
+Codex 随 Skill 提供的 Python 标准库检查器只校验主模型根据当前工具整理的模型信息，不连接服务、不验证输入来源、不修改配置，也不是原生派发工具的强制拦截器。使用已有且符合规则的 Agent 工具解释器；缺少环境时中断，不自动安装或切换。费用与 Codex 额度的实际节省需要实测，不按 API 标价推算固定比例。
 
-Claude / Kimi 暂不注册此 Plugin。安装后新建 Codex 聊天加载；仓库有文件或已经推送，不代表当前会话已注入新 Skill。该 Skill 执行时按目标项目授权与规则处理 Git，不自动取得全局修改或发布权限。
+Codex / Claude 均注册此 Plugin，Kimi 暂不注册。安装后新建对应客户端会话加载；仓库有文件或已经推送，不代表当前会话已注入新 Skill。该 Skill 执行时按目标项目授权与规则处理 Git，不自动取得全局修改或发布权限。
 
 ### 增强代码审查
 
-`$personal-dev:review` 仅在用户显式调用时运行。默认检查当前项目全部自有代码，包括已提交存量和工作区源码，即使没有 diff；指定目录、文件、模块、主题、commit 或 diff 时严格限定范围。它不依赖 Git，也不会启动原生 `/review`。
+`$personal-dev:review` / `/personal-dev:review` 仅在用户显式调用时运行。默认检查当前项目全部自有代码，包括已提交存量和工作区源码，即使没有 diff；指定目录、文件、模块、主题、commit 或 diff 时严格限定范围。它不依赖 Git，也不会启动原生 `/review`。
 
-主模型在正式派发前一次性核对项目规则、范围、源码可读性、改动基线、报告位置、可靠模型身份、当前派发工具名单与强度、adapter 和解释器。缺少必需项时集中输出 `BLOCKED`；生产权限、凭证、配额或实时运行数据属于可选证据，缺少时仍可进行代码层审查，并把相关量化结论列为待运行验证。审查和复核的实际型号/强度会在派发前展示；必要的独立复核只针对 P0/P1 或实质争议。
+主模型在正式派发前一次性核对项目规则、范围、源码可读性、改动基线、报告位置与当前 Harness adapter。Codex 另核对可靠模型身份、当前派发工具名单与强度及解释器；Claude 核对原生 Agent 与非 fork 子代理能力。缺少必需项时集中输出 `BLOCKED`；生产权限、凭证、配额或实时运行数据属于可选证据，缺少时仍可进行代码层审查，并把相关量化结论列为待运行验证。审查和复核的实际型号/强度会在派发前展示；必要的独立复核只针对 P0/P1 或实质争议。
 
 默认报告写到项目 `docs/reviews/`，代码、配置和 Git 状态只读，审查过程不自动修复或提交。报告区分 `COMPLETE`、`PARTIAL`、`BLOCKED` 执行状态与 P0–P3 风险等级；发现问题不会让执行状态自动变成 `BLOCKED`。没有高等级发现也不代表项目绝对安全。
 
@@ -113,8 +115,8 @@ Claude 使用 `/agent-manager:configure-project`。该入口只处理用户明�
 
 | 客户端与已验证版本 | 项目 Plugin 开关 | 写入位置 |
 | --- | --- | --- |
-| Codex `0.162.0-alpha.2` | 已安装的本地 Marketplace Plugin | `.codex/config.toml` |
-| Claude Code `2.1.296` | 已安装的 Marketplace Plugin | `.claude/settings.json` |
+| Codex `0.162.0-alpha.17.2`、`0.162.0-alpha.2` | 已安装的本地 Marketplace Plugin | `.codex/config.toml` |
+| Claude Code `2.1.291`、`2.1.296` | 已安装的 Marketplace Plugin | `.claude/settings.json` |
 | Kimi Code Desktop `1.0.4` | 暂不支持，整批 `BLOCKED` | 不写配置 |
 
 三个客户端的**单个 Skill 项目开关均不支持**。未验证的 Codex / Claude 版本、目标缺失或歧义、配置损坏、有效项目层证据不足，以及 Codex 未受信任项目或 workspace-managed Plugin，均拒绝整批操作。Claude 的 `.claude/settings.local.json` 若对目标存在反向覆盖，也会整批拒绝。
@@ -162,6 +164,7 @@ claude plugin install frontend-dev@agent-marketplace
 claude plugin install backend-dev@agent-marketplace
 claude plugin install testing-automation@agent-marketplace
 claude plugin install agent-manager@agent-marketplace
+claude plugin install personal-dev@agent-marketplace
 ```
 
 安装默认 user scope；仅某个项目需要时，使用 `claude plugin install <plugin>@agent-marketplace --scope project`。可用 `claude plugin list --json` 或 `claude plugin details <plugin>` 查看安装信息。

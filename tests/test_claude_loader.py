@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import queue
+import shutil
 import subprocess
 import tempfile
 import threading
@@ -48,7 +49,7 @@ class ClaudeLoaderTests(unittest.TestCase):
     def install(self, name):
         run(["claude", "plugin", "install", f"{name}@agent-marketplace"], self.env, self.project)
 
-    def context(self):
+    def context(self, prompt="fixture", tools="Skill"):
         requests = queue.Queue()
 
         class Handler(http.server.BaseHTTPRequestHandler):
@@ -71,9 +72,9 @@ class ClaudeLoaderTests(unittest.TestCase):
         worker.start()
         env = {**self.env, "ANTHROPIC_BASE_URL": f"http://127.0.0.1:{server.server_port}"}
         try:
-            result = subprocess.run(["claude", "-p", "fixture", "--verbose", "--output-format", "stream-json",
+            result = subprocess.run(["claude", "-p", prompt, "--verbose", "--output-format", "stream-json",
                                      "--no-session-persistence", "--model", "claude-sonnet-4-6",
-                                     "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}', "--tools", "Skill"],
+                                     "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}', "--tools", tools],
                                     env=env, cwd=self.project, capture_output=True, text=True, encoding="utf-8",
                                     errors="replace", timeout=45)
             init = next((json.loads(line) for line in result.stdout.splitlines()
@@ -103,8 +104,37 @@ class ClaudeLoaderTests(unittest.TestCase):
                 self.assertIn(f'{entry["name"]}:{skill.name}', commands)
         self.assertIn("frontend-dev:vue", context)
         for name in ("common-workflow:handoff", "agent-manager:resolve-conflicts",
-                     "agent-manager:check-updates", "agent-manager:configure-project"):
+                     "agent-manager:check-updates", "agent-manager:configure-project",
+                     "personal-dev:delegated-development", "personal-dev:review"):
             self.assertNotIn(name, context)
+
+    def test_personal_dev_explicit_invocation_and_native_agent_schema(self):
+        self.install("personal-dev")
+        init, context = self.context(tools="Agent,Skill")
+        for name in ("delegated-development", "review"):
+            self.assertIn(f"personal-dev:{name}", init["slash_commands"])
+            self.assertNotIn(f"personal-dev:{name}", context)
+        agent = next(tool for payload in json.loads(context) for tool in payload.get("tools", [])
+                     if tool.get("name") == "Agent")
+        properties = agent["input_schema"]["properties"]
+        self.assertIn("subagent_type", properties)
+        self.assertNotIn("reasoning_effort", properties)
+        print("Claude Agent parameters:", ", ".join(sorted(properties)), flush=True)
+        for name, marker in (("delegated-development", "# 委派开发与独立验收"), ("review", "# 增强代码审查")):
+            _, explicit = self.context(f"/personal-dev:{name} 仅验证加载，不执行正文、不派发、不修改文件。")
+            self.assertIn(marker, explicit)
+            self.assertIn("Claude adapter", explicit)
+
+    def test_project_upgrade_entry_and_shared_rules_load(self):
+        for directory in (".claude/skills/upgrade", ".agents/skills/upgrade"):
+            shutil.copytree(ROOT / directory, self.project / directory)
+        for filename in ("AGENTS.md", "CLAUDE.md"):
+            shutil.copyfile(ROOT / filename, self.project / filename)
+        init, context = self.context()
+        self.assertEqual(init["slash_commands"].count("upgrade"), 1)
+        self.assertIn("优先兼容 Claude Code 和当前 Codex", context)
+        _, explicit = self.context("/upgrade 仅验证入口加载，不同步、不修改文件。")
+        self.assertIn("../../../.agents/skills/upgrade/SKILL.md", explicit)
 
     def test_project_switches_override_user_and_local_overrides_project(self):
         self.install("frontend-dev")

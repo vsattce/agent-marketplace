@@ -35,8 +35,10 @@ class Blocked(ValueError):
 
 # Exact runtime validated in tests/test_project_config_codex.py. Unknown versions
 # fail closed; a version change needs fresh isolated loader evidence, not a guess.
-VERIFIED_CODEX = "codex-cli 0.162.0-alpha.2"
-VERIFIED_CLAUDE = "2.1.296 (Claude Code)"
+VERIFIED_CODEX = "codex-cli 0.162.0-alpha.17.2"
+VERIFIED_CLAUDE = "2.1.291 (Claude Code)"
+VERIFIED_CODEX_VERSIONS = {VERIFIED_CODEX, "codex-cli 0.162.0-alpha.2"}
+VERIFIED_CLAUDE_VERSIONS = {VERIFIED_CLAUDE, "2.1.296 (Claude Code)"}
 UNSUPPORTED_CONFIG = "CODEX PROJECT-LEVEL CONFIGURATION NOT SUPPORTED"
 UNSUPPORTED_CLAUDE = "CLAUDE PROJECT-LEVEL CONFIGURATION NOT SUPPORTED"
 
@@ -223,7 +225,8 @@ class CodexAdapter:
     """Current Codex supports project plugin switches, not skill filtering."""
 
     def validate(self, root: Path, inventory: dict, targets: list[dict]) -> None:
-        if (codex_version() != VERIFIED_CODEX or inventory.get("codex_version") != VERIFIED_CODEX
+        actual_version = codex_version()
+        if (actual_version not in VERIFIED_CODEX_VERSIONS or inventory.get("codex_version") != actual_version
                 or inventory.get("project_config_active") is not True
                 or inventory.get("project_overrides_effective") is not True
                 or inventory.get("project_root") != str(root)):
@@ -294,7 +297,8 @@ class ClaudeAdapter:
     """Verified Claude Code enabledPlugins in shared project settings."""
 
     def validate(self, root: Path, inventory: dict, targets: list[dict]) -> None:
-        if (claude_version() != VERIFIED_CLAUDE or inventory.get("claude_version") != VERIFIED_CLAUDE
+        actual_version = claude_version()
+        if (actual_version not in VERIFIED_CLAUDE_VERSIONS or inventory.get("claude_version") != actual_version
                 or inventory.get("project_config_active") is not True
                 or inventory.get("project_overrides_effective") is not True
                 or inventory.get("project_root") != str(root)):

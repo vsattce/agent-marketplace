@@ -1,46 +1,39 @@
 ---
 name: delegated-development
-description: Use when the user explicitly invokes this Codex-only skill for a development task with delegated implementation and independent acceptance.
+description: Use when the user explicitly invokes this skill in Codex or Claude Code for a development task with delegated implementation and independent acceptance.
 disable-model-invocation: true
 ---
 
 # 委派开发与独立验收
 
-Only use when explicitly invoked by the user. 仅支持 Codex；普通开发请求不自动触发本 Skill。
+Only use when explicitly invoked by the user. Codex 使用 `$personal-dev:delegated-development`，Claude Code 使用 `/personal-dev:delegated-development`；普通开发请求不自动触发本 Skill。
 
-当前对话主模型安排任务和最终整体检查；独立编码与验收 subagent 使用同一实际型号，默认分别为 `xhigh` / `max`。目标是减少主模型的实现与逐项审查负担，不承诺固定费用、额度或总 token 降幅。
+当前对话主模型安排任务和最终整体检查；编码与验收由不同的独立 subagent 执行。Codex 使用同型号 Luna，默认分别为 `xhigh` / `max`；Claude Code 沿用当前子代理模型与思考配置。目标是减少主模型的实现与逐项审查负担，不承诺固定费用、额度或总 token 降幅。
 
-## 1. 先确定模型，不能猜
+## 1. 先确定 Harness 与委派策略
 
-读取目标项目规则与相关实现，确定实际派发工具是否支持指定 `model`、`reasoning_effort` 和干净上下文。主模型身份仅取本轮可靠运行时信息或用户明确说明；自报身份、默认配置、历史会话与记忆不是本轮身份依据。
+读取目标项目规则与相关实现，从当前会话确认真实 Harness，不能从模型品牌猜客户端。Codex 读取 [Codex adapter](../../references/codex.md)，Claude Code 读取 [Claude adapter](../../references/claude.md)；未知 Harness 或其他平台 `BLOCKED / UNSUPPORTED AGENT`。
 
-根据**当前派发工具声明**整理允许的实际模型 ID 及各自支持的思考强度。模型目录、网页、缓存与工具的推荐顺序不能替代当前派发名单；禁止拼接不存在的 ID。
+按对应 adapter 完成工具、独立上下文、模型与思考配置预检。Codex 用随本 Skill 的 `scripts/select_models.py` 校验当前工具名单，`READY` 才可继续；Claude 用原生 `Agent`，默认不覆写模型或思考配置，不运行 Codex helper，也不因缺少 Python 或 Codex 参数而阻塞。
 
-用随 Skill 提供的 `scripts/select_models.py` 检查选择。使用已有且符合环境规则的 Agent 工具 Python，通过解释器执行脚本；不安装依赖、不修改目标项目运行时、PATH 或全局配置。解释器不可用时说明原因并中断。脚本只校验传入信息，不发现模型、不验证来源真实性，也不拦截原生派发；你必须提供真实的当前工具数据并使用其结果。
-
-JSON 输入：`primary_model`、`primary_model_source`（`current-turn` / `user`）、`inventory_source`（`current-spawn-tool`）、`models`（每项含 `id` 与 `efforts` 数组）。可选 `coding_effort`、`review_effort` 覆写默认强度。把 JSON 送到脚本 stdin；退出 0 的 `READY` 才允许派发，退出 2 的 `BLOCKED` 必须停止。输入只含模型元数据，不含任务秘密。
-
-- 当前已确认的低成本编码系列是 `gpt-<数字版本>-luna`。选与主模型同一大版本内数值最高的可用版本；6.1 / 6.2 主模型可以用 6 Luna，7 主模型不能自动回退 6 或 5.6。
-- 缺少可靠身份、名单、支持强度，数值版本存在多 ID 歧义，最高版本缺少所需强度，或工具不能显式覆写：中断。不能为了继续执行改用旧代、较旧版本、较低强度或主模型编码。
-- 陌生系列或命名变化：查官方定位与替代关系，报告候选和不确定项，等用户决定。不能凭 `mini` / `lite` 等名称、价格猜测或升级推荐自动放行。
-- 用户明确确认当前任务的精确替代型号时，才传 `model_override` 与 `override_confirmed: true`；仍检查实际名单与所需强度。确认只作用于当前任务，持久更新系列规则需要用户另行授权。
+必需能力缺失时集中给出具体原因与继续所需信息，不安装依赖、修改全局配置或由主模型代做来绕过。
 
 ## 2. 展示后直接执行
 
-模型检查成功后，**在任何代码编辑和编码派发之前**向用户显示检查结果的两行实际值：
+预检成功后，**在任何代码编辑和编码派发之前**按 adapter 展示编码 / 验收两行。Codex 显示 helper 返回的实际值，例如：
 
 ```text
 编码模型：gpt-6-luna｜思考强度：xhigh
 验收模型：gpt-6-luna｜思考强度：max
 ```
 
-这是输出形式示例，不是固定型号。成功解析后直接执行，不额外询问是否开始；型号或强度变化时先重新显示。中断时输出 `BLOCKED：<具体理由>`、已有成果及继续所需信息；不能输出成功启动提示。
+这是输出形式示例，不是固定型号。Claude 显示“Claude Code 子代理默认 / 沿用当前配置”，实际 ID 或强度未确认时标 `UNKNOWN`。成功预检后直接执行，不额外询问是否开始；型号或强度变化时先重新显示。中断时输出 `BLOCKED：<具体理由>`、已有成果及继续所需信息；不能输出成功启动提示。
 
 ## 3. 安排任务并派发
 
 按可独立验证的功能或修复点拆分，同类小改动合并，不机械按文件分代理。主模型解决关键方案和接口判断，把具体实现交给编码代理；默认一次只有一个写入代理。相关信息不足时由主模型补齐，影响业务或授权边界的缺口交用户决定。
 
-派发前读取 [角色交接与验收契约](references/roles.md)。显式填写实际 `model` 与 `reasoning_effort`，新任务使用干净上下文（当前工具为 `fork_turns: "none"`），不复制整段聊天。提供工作目录、任务范围、接口约束、验收条件与验证要求。所有子代理禁止继续派生代理。
+派发前读取 [角色交接与验收契约](references/roles.md)。按当前 Harness adapter 调用原生委派工具，新任务使用干净上下文，不复制整段聊天。提供工作目录、任务范围、接口约束、验收条件与验证要求。所有子代理禁止继续派生代理。
 
 简单任务在派发消息中交接即可。多步骤或长任务在项目允许的位置建立独立的轻量任务记录，包含需求、实际模型、代理身份、验收状态、修复次数、改动基线和证据位置；不记录敏感信息。上下文压缩后先恢复记录，禁止重复开发已完成任务或清零修复计数。
 
@@ -48,7 +41,7 @@ JSON 输入：`primary_model`、`primary_model_source`（`current-turn` / `user`
 
 ## 4. 独立严格验收与有限返工
 
-编码代理自检和报告后，由主模型派发**另一个干净上下文**的同型号验收代理，默认 `max`。同时检查需求符合度、正确性、相关调用点、代码质量及验证证据。严格意味着有依据地发现实际阻塞项；风格偏好和范围外优化仅建议，不扩大需求。
+编码代理自检和报告后，由主模型派发**另一个干净上下文**的验收代理。Codex 为同型号、默认 `max`；Claude 沿用相同原生默认策略。同时检查需求符合度、正确性、相关调用点、代码质量及验证证据。严格意味着有依据地发现实际阻塞项；风格偏好和范围外优化仅建议，不扩大需求。
 
 首轮尽量完整汇总阻塞项。报告中的“完成 / 测试通过”是待核实声明，审查实际代码与证据。证据足以覆盖当前代码时复用；有具体疑点再做针对性验证，按项目规则与真实风险决定深度。
 

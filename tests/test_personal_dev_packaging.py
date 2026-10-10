@@ -1,4 +1,4 @@
-"""Codex-only registration and manual invocation of the owned development plugin."""
+"""Shared registration and manual invocation of the owned development plugin."""
 
 import json
 from pathlib import Path
@@ -13,7 +13,7 @@ REVIEW = PLUGIN / "skills/review"
 
 
 class PersonalDevPackagingTests(unittest.TestCase):
-    def test_registered_only_in_codex_with_bundled_resources(self):
+    def test_registered_in_codex_and_claude_with_bundled_resources(self):
         codex = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text(encoding="utf-8"))
         entries = [entry for entry in codex["plugins"] if entry["name"] == "personal-dev"]
         self.assertEqual(len(entries), 1)
@@ -21,7 +21,7 @@ class PersonalDevPackagingTests(unittest.TestCase):
         self.assertEqual(entries[0]["skills"], "./skills/")
         manifest = json.loads((PLUGIN / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], entries[0]["name"])
-        self.assertEqual(manifest["version"], "0.2.0")
+        self.assertEqual(manifest["version"], "0.3.0")
         self.assertEqual(manifest["extensions"]["com.openai"]["interface"], entries[0]["interface"])
         self.assertEqual(
             {path.name for path in (PLUGIN / "skills").iterdir()},
@@ -42,9 +42,14 @@ class PersonalDevPackagingTests(unittest.TestCase):
 
         claude = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
         kimi = json.loads((ROOT / "kimi.plugin.json").read_text(encoding="utf-8"))
-        self.assertNotIn("personal-dev", {entry["name"] for entry in claude["plugins"]})
+        claude_entry = next(entry for entry in claude["plugins"] if entry["name"] == "personal-dev")
+        self.assertEqual(claude_entry["source"], "./plugins/personal-dev")
+        claude_manifest = json.loads((PLUGIN / ".claude-plugin/plugin.json").read_text(encoding="utf-8"))
+        self.assertEqual(claude_manifest["name"], "personal-dev")
+        self.assertNotIn("version", claude_manifest)
+        self.assertTrue((PLUGIN / "references/codex.md").is_file())
+        self.assertTrue((PLUGIN / "references/claude.md").is_file())
         self.assertNotIn("./plugins/personal-dev/skills/", kimi["skills"])
-        self.assertFalse((PLUGIN / ".claude-plugin").exists())
         self.assertFalse((PLUGIN / "kimi.plugin.json").exists())
 
     def test_manual_only_policy_and_owned_source_boundary(self):

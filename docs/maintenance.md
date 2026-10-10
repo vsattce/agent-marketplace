@@ -11,6 +11,7 @@ agent-marketplace/
 ├── .agents/
 │   ├── plugins/marketplace.json    # Codex Marketplace
 │   └── skills/upgrade/SKILL.md     # 项目升级入口
+├── .claude/skills/upgrade/SKILL.md # Claude 入口，读取共享升级正文
 ├── .claude-plugin/marketplace.json # Claude Marketplace
 ├── kimi.plugin.json               # Kimi 整仓库聚合入口
 ├── AGENTS.md                      # 项目规则
@@ -25,14 +26,14 @@ agent-marketplace/
 │   ├── backend-dev/               # 第三方快照
 │   ├── testing-automation/        # 第三方快照
 │   ├── agent-manager/             # OWNED，直接维护
-│   └── personal-dev/              # OWNED，Codex 专用、仅手动
+│   └── personal-dev/              # OWNED，Codex / Claude、仅手动
 ├── docs/
 │   ├── usage.md
 │   └── maintenance.md
 └── README.md                      # 概览与文档入口
 ```
 
-原五个跨客户端分类共享 `skills/<name>/`，提供 Codex `plugin.json`、Claude `.claude-plugin/plugin.json` 与 Kimi `kimi.plugin.json`。第三方分类另存 `licenses/<name>/`。Codex / Claude Marketplace 均指向 `./plugins/<plugin>`；Kimi 根 manifest 列出五个共享 Skill 目录。`personal-dev` 仅在 Codex 注册，包含两个仅手动调用的 Skill，不加入 Claude / Kimi catalog。
+原五个跨客户端分类共享 `skills/<name>/`，提供 Codex `plugin.json`、Claude `.claude-plugin/plugin.json` 与 Kimi `kimi.plugin.json`。第三方分类另存 `licenses/<name>/`。Codex / Claude Marketplace 均指向 `./plugins/<plugin>`；Kimi 根 manifest 列出五个共享 Skill 目录。`personal-dev` 在 Codex / Claude 注册，包含两个仅手动调用的 Skill，不加入 Kimi catalog；共享正文按 `references/codex.md` / `references/claude.md` 适配原生委派工具。
 
 Codex 使用便携 manifest，中文信息位于 `extensions.com.openai.interface`。Claude manifest / catalog 有意不写 version，GitHub 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。Kimi 的 version 是显示 metadata，判断 GitHub 内容需比较 receipt 的 ref / installedSha。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
 
@@ -58,11 +59,11 @@ lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，�
 
 ### 使用项目 Skill
 
-在本仓库 Codex 聊天调用 `$upgrade`，入口为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)。它不计入 Codex 六个 Plugin 的 18 个 Skills，也不计入 Claude / Kimi 五个 Plugin 的 16 个 Skills。
+在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入 Codex / Claude 六个 Plugin 的 18 个 Skills，也不计入 Kimi 五个 Plugin 的 16 个 Skills。
 
 Agent 核对目标、Git 状态与运行时后，按 sources 的既定来源 / ref 同步，保留用户改动，检查差异并运行相关验证。按 [AGENTS.md](../AGENTS.md) 默认提交、推送当前分支；当前任务明确不提交或不推送时遵从该要求。环境、同步或验证失败时停止，零差异不制造提交。
 
-项目 Skill 从 `.agents/skills/` 发现；当前聊天未显示 `$upgrade` 时，新建本项目聊天，仍未出现再重启 Codex。此入口升级仓库快照，客户端安装副本按[使用手册](usage.md#安装与更新)另行刷新。
+Codex 项目 Skill 从 `.agents/skills/` 发现，Claude 从 `.claude/skills/` 发现；当前聊天未显示 `$upgrade` 时，新建本项目聊天，仍未出现再重启 Codex。此入口升级仓库快照，客户端安装副本按[使用手册](usage.md#安装与更新)另行刷新。
 
 ### 手动同步
 
@@ -117,11 +118,13 @@ git diff --check
 
 Plugin 开关编辑器的 Codex 分支使用 tomlkit 0.13.3+（<1）保留注释与排版；Claude 分支使用标准库增量替换 JSON 值，拒绝重复键和损坏配置。它只处理 Plugin 开关；AGENTS.md 与 standalone Skill 文件操作由 Skill 层完成，并在混合请求写入前统一预检。现有开关事务保留无关字节，具备幂等、锁、原子替换、二次读取和失败恢复；Windows 路径、symlink、junction 与 hardlink 的拒绝行为有测试覆盖。
 
-Skill 运行时使用已准备的 Agent 工具环境，不安装依赖、不启动客户端做能力探测，不用全局写入弥补项目能力缺失。客户端版本适配先补充真实隔离证据，再更新编辑器的已验证版本常量及支持说明。Gemini 来源发现说明不代表其 Marketplace 安装已适配。
+Skill 运行时使用已准备的 Agent 工具环境，不安装依赖、不启动客户端做能力探测，不用全局写入弥补项目能力缺失。客户端版本适配先补充真实隔离证据，再更新编辑器的精确版本集合及支持说明；inventory 版本必须等于实际客户端版本，不以范围匹配放行未知版本。Gemini 来源发现说明不代表其 Marketplace 安装已适配。
 
 ## 开发验证
 
 以下命令用于开发验收，按改动范围选择。执行 Python 前按上方核对 mise 和实际版本；执行 Node 前同样核对项目约束、`mise current` 与 `node -v`。文档整理无需运行这些客户端或模型流程。
+
+Windows 若系统临时目录使用 `ADMINI~1` 等短路径别名，路径安全测试会拒绝该非规范路径。可仅在测试进程中将 `TMP` / `TEMP` 设为当前仓库的规范绝对路径；不修改系统或用户环境变量，测试临时目录由 fixture 清理。
 
 ### Manifest 检查
 
@@ -150,7 +153,7 @@ uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,
 | --- | --- |
 | `tests/test_sync.py` | 重复同步、快照恢复、upstream 更新、许可证、失败不写入、路径与重名拒绝、回滚和移出配置项保留 |
 | `tests/test_agent_manager.py` | Plugin 包装、手动策略、Kimi manifest 与只读来源比较 |
-| `tests/test_personal_dev.py` / `tests/test_personal_dev_review.py` / `tests/test_personal_dev_packaging.py` | 开发与审查模型选择、阻塞与安全 CLI 输出，以及 Codex 专用包装和手动策略 |
+| `tests/test_personal_dev.py` / `tests/test_personal_dev_review.py` / `tests/test_personal_dev_packaging.py` | 开发与审查模型选择、阻塞与安全 CLI 输出，以及 Codex / Claude 共享包装和手动策略 |
 | `tests/test_configure_project.py` | Codex 事务编辑、路径安全与不支持能力的拒绝 |
 | `tests/test_configure_project_claude.py` | Claude JSON 增量编辑、覆盖检查与失败恢复 |
 
@@ -167,11 +170,11 @@ Remove-Item Env:AGENT_MANAGER_CODEX_TESTS
 使用项目内隔离 CODEX_HOME、临时项目、安装 fixture 与 localhost 请求捕获器，不调用真实模型、不执行 Skill 正文，也不更新日常全局配置或安装缓存。
 
 `tests/test_personal_dev_loader.py` 复用同一隔离方式，检查新 Plugin 的发现、普通提示不注入以及显式调用注入。模型选择检查器与 Skill 流程独立维护，当前系列识别不代表已经验证任意未来命名或实际额度折算。
-该加载用例已在 Codex CLI 0.160.1 上通过；这是实际验证版本记录，不定义版本支持范围。
+该加载用例已在 Codex CLI 0.160.1 与 0.162.0-alpha.17.2 上通过；这是实际验证版本记录，不定义版本支持范围。隔离 fixture 显式让 localhost 绕过代理，并关闭远端 Plugin 同步和系统代理回退，避免工作站网络配置干扰加载证据；失败时保留 fixture 内的退出诊断。
 
 ### Claude 隔离加载器
 
-`tests/test_claude_loader.py` 覆盖五个 Plugin 安装与发现、手动策略、项目值覆盖用户值及 local 反向覆盖：
+`tests/test_claude_loader.py` 覆盖六个 Plugin 安装与发现、手动策略、personal-dev 显式加载与原生 Agent schema、项目 upgrade 入口、CLAUDE.md 导入 AGENTS.md、项目值覆盖用户值及 local 反向覆盖：
 
 ```powershell
 $env:AGENT_MANAGER_CLAUDE_TESTS = "1"
@@ -206,6 +209,14 @@ Remove-Item Env:KIMI_CODE_TEST_ASAR
 | Kimi Code Desktop | `1.0.4` | 原生核心函数验证整仓库与五分类安装、16 项发现、资源复制、receipt、手动策略及启停 |
 
 这些工程检查覆盖包装、发现、内容与配置能力，未逐个执行全部 Skill 的业务流程。日常安装成功与隔离工程验收分别记录，不能由前者推断所有 Skill 内部流程都已验证。
+
+### 2026-10-11 自有能力双平台验收
+
+Windows Python 3.12.13，Codex CLI `0.162.0-alpha.17.2`、Claude Code `2.1.291`。同时启用两端隔离测试，以规范项目路径作为本次测试进程的临时目录，完整 Python 测试 **127 项全部通过，无跳过**。
+
+覆盖六个 Plugin / 18 个 Skills 的双端注册包装、管理工具和 personal-dev 的发现与手动加载、Claude 原生 Agent schema、项目 `/upgrade` 入口与 `CLAUDE.md` 导入 `AGENTS.md`、两端项目 Plugin 覆盖及配置事务。保留此前验证版本；新增精确版本仍须与本轮实际客户端版本一致，未知版本继续拒绝。
+
+Claude `2.1.291` 捕获到的 Agent 参数为 `description`、`isolation`、`model`、`prompt`、`run_in_background`、`subagent_type`，没有 `effort`；默认策略省略模型和思考覆写。Codex 模型选择器的 Luna `xhigh` / `max` 规则有单元测试，双平台工作流另做只读场景验收。未运行真实模型委派或逐项业务流程，不把请求捕获和场景检查称为真实推理验收。
 
 ## 交付
 

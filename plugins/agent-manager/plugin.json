@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-manager",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "手动查找 Agent 冲突、检查来源版本，并按明确请求编辑项目指令、安装指定 Skill 或修改受支持的 Plugin 开关。",
   "license": "MIT",
   "extensions": {

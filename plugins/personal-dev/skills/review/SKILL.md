@@ -1,12 +1,12 @@
 ---
 name: review
-description: Use only when the user explicitly invokes this Codex-only skill for an evidence-led project code review.
+description: Use when the user explicitly invokes this skill in Codex or Claude Code for an evidence-led project code review.
 disable-model-invocation: true
 ---
 
 # 增强代码审查
 
-Only use when the user explicitly invokes this skill. 仅支持 Codex，不启动原生 `/review`，不嵌套启动客户端。
+Only use when the user explicitly invokes this skill. Codex 使用 `$personal-dev:review`，Claude Code 使用 `/personal-dev:review`；不启动原生 `/review`，不嵌套启动客户端。
 
 当前对话主模型负责预检、安排审查与独立复核、核验证据并生成 Markdown 报告。审查代理只读并回传发现，不写文件、不修复、不提交、不继续派生代理。
 
@@ -18,22 +18,22 @@ Only use when the user explicitly invokes this skill. 仅支持 Codex，不启�
 
 报告默认写到项目的 `docs/reviews/YYYY-MM-DD-HHMMSS-review.md`，按用户时区取时间；冲突时用唯一后缀，绝不覆盖。先检查目录/位置可写。仓库规则不允许默认位置时选合规位置；若报告无法写入，BLOCKED，集中询问用户其他位置或是否接受仅聊天输出。未来执行仅报告及同目录必要的轻量进度记录可写；代码、配置、Git 状态只读。
 
-派发前确认：当前主模型可靠身份来自本轮运行时或用户明确说明；当前 `spawn_agent` 工具实际可用的型号与各自强度；随包审查 adapter 和所需解释器可用。不得根据默认配置、历史会话、记忆、自报身份或推荐列表猜测。用 `scripts/select_models.py` 校验实际值：输入只含模型元数据，不含项目秘密。复用兄弟 `delegated-development` helper 的选择规则，审查默认 `xhigh`，复核默认 `max`；先选同一大版本中数值最高的认可 Luna，再检查其是否支持两种强度。最高版本缺少任一强度时必须 `BLOCKED`，不能退回较旧版本。用户对当前任务明确确认精确型号时遵循原 helper 覆写规则。
+派发前从当前会话确认真实 Harness，不能从模型品牌猜客户端。Codex 读取 [Codex adapter](../../references/codex.md)，用本 Skill 的 `scripts/select_models.py` 校验本轮可信主模型身份、实际派发名单与强度；同代最高数值版本 Luna 默认 `xhigh` 审查、`max` 复核，最高版本缺少任一强度时 `BLOCKED`。Claude Code 读取 [Claude adapter](../../references/claude.md)，沿用原生子代理模型与思考配置，不运行 Codex helper，不要求 Python 或 Codex 参数。其他或未知 Harness `BLOCKED / UNSUPPORTED AGENT`。
 
-必需项缺失时，在任何正式审查派发前一次性汇总所有已知缺口、理由、需要用户提供的明确内容和已完成工作，标记 `BLOCKED` 并停止。不能以默认模型替代。可选生产权限、凭证、配额、运行环境、实时数据或完整运行证据缺失，不阻塞普通静态审查；明确说明本次为代码层面审查，并将量化/运行结论列为待验证。只有用户明确要求的实测缺少条件才阻塞。
+必需项缺失时，在任何正式审查派发前一次性汇总所有已知缺口、理由、需要用户提供的明确内容和已完成工作，标记 `BLOCKED` 并停止。不能以其他模型替代用户指定的策略。Claude 默认配置的实际型号未解析时如实标 `UNKNOWN`，不因此单独阻塞。可选生产权限、凭证、配额、运行环境、实时数据或完整运行证据缺失，不阻塞普通静态审查；明确说明本次为代码层面审查，并将量化/运行结论列为待验证。只有用户明确要求的实测缺少条件才阻塞。
 
-模型校验成功后，在派发前按以下格式展示 helper 返回的实际型号和强度：
+预检成功后，在派发前按 adapter 展示审查与复核两行。Codex 显示 helper 返回的实际型号和强度：
 
 ```text
 审查模型：<实际型号>｜思考强度：<实际强度>
 复核模型：<实际型号>｜思考强度：<实际强度>
 ```
 
-不可用或结果 `BLOCKED` 时不派发，不宣称已启动；不自动降级、升级，或让主模型替代全部审查。
+Claude 显示“Claude Code 子代理默认 / 沿用当前配置”，未确认实际值标 `UNKNOWN`。不可用或结果 `BLOCKED` 时不派发，不宣称已启动；不自动降级、升级，或让主模型替代全部审查。
 
 ## 2. 只读检查与派发
 
-明确任务会话工作目录、范围、适用规则、基线、必要参考和禁止事项。按规模及独立调用链分工；小范围只派一个审查代理，默认同时最多两个且服从工具槽位。所有代理使用校验过的实际型号/强度、干净任务上下文，不得继续派生。禁止自动修复、commit/push、安装/升级依赖、切换运行时或全局配置、连接生产、压测第三方、运行有副作用的项目脚本。
+明确任务会话工作目录、范围、适用规则、基线、必要参考和禁止事项。按规模及独立调用链分工；小范围只派一个审查代理，默认同时最多两个且服从工具槽位。按对应 adapter 使用已确认的模型策略与原生工具，所有代理使用干净任务上下文，不得继续派生。禁止自动修复、commit/push、安装/升级依赖、切换运行时或全局配置、连接生产、压测第三方、运行有副作用的项目脚本。
 
 审查基础正确性、边界、异常、安全、并发、回归及关键验证缺口。专项标准见 [审查契约](references/review-contract.md)。判断性能、内存、第三方请求、磁盘和长期运行问题时，说明真实可达路径和放大条件；区分浏览器到自有后端与后端到第三方，区分应用写入与宿主机实际磁盘写入。
 

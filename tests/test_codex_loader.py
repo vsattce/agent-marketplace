@@ -12,6 +12,7 @@ import queue
 import subprocess
 import tempfile
 import threading
+import time
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -105,6 +106,9 @@ class CodexLoaderTests(unittest.TestCase):
         self.agent_home = self.root / "codex-home"
         self.agent_home.mkdir()
         self.env = {**os.environ, "CODEX_HOME": str(self.agent_home), "GIT_TERMINAL_PROMPT": "0"}
+        # A workstation HTTP proxy must not intercept the localhost fixture API.
+        for key in ("NO_PROXY", "no_proxy"):
+            self.env[key] = ",".join(filter(None, (self.env.get(key), "127.0.0.1", "localhost")))
         self.requests = []
         self.request_received = threading.Event()
         self.release_response = threading.Event()
@@ -135,6 +139,7 @@ class CodexLoaderTests(unittest.TestCase):
         config = (
             'model = "loader-fixture"\nmodel_provider = "loader-probe"\n'
             'approval_policy = "never"\nsandbox_mode = "read-only"\n'
+            '[features]\nremote_plugin = false\nsystem_proxy_fallback = false\n'
             '[model_providers.loader-probe]\nname = "Local loader capture"\n'
             f'base_url = "http://127.0.0.1:{self.server.server_port}/v1"\n'
             'wire_api = "responses"\nrequires_openai_auth = false\n'
@@ -150,18 +155,25 @@ class CodexLoaderTests(unittest.TestCase):
         self.request_received.clear()
         self.release_response.clear()
         self.handler_done.clear()
-        process = subprocess.Popen(["codex", "exec", "--ephemeral", "--json", "--color", "never", prompt],
-                                   cwd=self.project, env=self.env, stdin=subprocess.DEVNULL,
-                                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        captured = False
-        try:
-            captured = self.request_received.wait(timeout=40)
-        finally:
-            stop_process(process)
-            self.release_response.set()
-            if captured:
-                self.handler_done.wait(timeout=10)
-        self.assertTrue(captured and self.requests, f"No loader request captured; exit {process.returncode}")
+        trace_path = self.root / "capture.log"
+        with trace_path.open("wb") as trace:
+            process = subprocess.Popen(["codex", "exec", "--ephemeral", "--json", "--color", "never", prompt],
+                                       cwd=self.project, env=self.env, stdin=subprocess.DEVNULL,
+                                       stdout=trace, stderr=subprocess.STDOUT)
+            captured = False
+            try:
+                deadline = time.monotonic() + 40
+                while process.poll() is None and time.monotonic() < deadline:
+                    if self.request_received.wait(timeout=0.25):
+                        captured = True
+                        break
+            finally:
+                stop_process(process)
+                self.release_response.set()
+                if captured:
+                    self.handler_done.wait(timeout=10)
+        diagnostic = trace_path.read_text(encoding="utf-8", errors="replace")[-1600:]
+        self.assertTrue(captured and self.requests, f"No loader request captured; exit {process.returncode}: {diagnostic}")
         return json.dumps(self.requests[0], ensure_ascii=False)
 
     def test_discovery_and_manual_only_context(self):

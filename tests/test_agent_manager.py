@@ -133,7 +133,7 @@ class PackagingTests(unittest.TestCase):
         codex = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text(encoding="utf-8"))
         claude = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
         self.assertEqual(claude["name"], codex["name"])
-        self.assertEqual({entry["name"] for entry in claude["plugins"]}, {entry["name"] for entry in codex["plugins"]} - {"personal-dev"})
+        self.assertEqual({entry["name"] for entry in claude["plugins"]}, {entry["name"] for entry in codex["plugins"]})
         count = 0
         for entry in claude["plugins"]:
             counterpart = next(item for item in codex["plugins"] if item["name"] == entry["name"])
@@ -145,7 +145,7 @@ class PackagingTests(unittest.TestCase):
             self.assertNotIn("version", entry)
             self.assertNotIn("skills", manifest)  # Default directory discovery, one shared copy.
             count += len(list((root / "skills").glob("*/SKILL.md")))
-        self.assertEqual(count, 16)
+        self.assertEqual(count, 18)
         handoff = (ROOT / "plugins/common-workflow/skills/handoff/SKILL.md").read_text(encoding="utf-8")
         self.assertIs(yaml.safe_load(handoff.split("---", 2)[1])["disable-model-invocation"], True)
 

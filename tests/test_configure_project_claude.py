@@ -17,6 +17,17 @@ class ClaudeConfigureTests(unittest.TestCase):
     blocked = common.ConfigureProjectTests.blocked
     assert_global_unchanged = common.ConfigureProjectTests.assert_global_unchanged
 
+    def test_current_and_previously_verified_claude_versions(self):
+        for version in ("2.1.291 (Claude Code)", "2.1.296 (Claude Code)"):
+            with self.subTest(version=version), patch.object(editor, "claude_version", return_value=version):
+                self.payload["inventory"]["claude_version"] = version
+                self.assertEqual(self.run_editor()["Status"], "SUCCESS")
+
+    def test_verified_but_mismatched_claude_version_blocks(self):
+        self.payload["inventory"]["claude_version"] = "2.1.296 (Claude Code)"
+        with patch.object(editor, "claude_version", return_value="2.1.291 (Claude Code)"):
+            self.blocked("CLAUDE PROJECT-LEVEL CONFIGURATION NOT SUPPORTED")
+
     def setUp(self):
         self.actual_protected_roots = editor.protected_roots
         common.ConfigureProjectTests.setUp(self)
