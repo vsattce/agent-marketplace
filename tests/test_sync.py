@@ -143,6 +143,59 @@ class SyncTests(unittest.TestCase):
             self.run_sync()
         self.assertEqual(before, self.snapshot())
 
+    def test_owned_plugin_survives_repeated_sync_and_failure(self):
+        owned = self.root / "plugins/agent-manager/skills/resolve-conflicts"
+        owned.mkdir(parents=True)
+        (owned / "SKILL.md").write_text("owned source", encoding="utf-8")
+        self.run_sync()
+        before = skill_sync.fingerprints(self.root / "plugins/agent-manager")
+        snapshot = self.snapshot()
+        self.run_sync()
+        self.assertEqual(snapshot, self.snapshot())
+        self.mock_fetch.side_effect = skill_sync.SyncError("network unavailable")
+        with self.assertRaises(skill_sync.SyncError):
+            self.run_sync()
+        self.assertEqual(before, skill_sync.fingerprints(self.root / "plugins/agent-manager"))
+
+    def test_sources_cannot_grant_owned_plugin_write_access(self):
+        (self.root / "plugins/agent-manager").mkdir()
+        (self.root / "plugins/agent-manager/plugin.json").write_text('{}', encoding="utf-8")
+        document = {"groups": {"agent-manager": {"displayName": "Owned", "skills": self.sources}}}
+        (self.root / "sources.yaml").write_text(yaml.safe_dump(document), encoding="utf-8")
+        before = self.snapshot()
+        with self.assertRaises(skill_sync.SyncError):
+            self.run_sync()
+        self.assertEqual(before, self.snapshot())
+        self.assertEqual(self.mock_fetch.call_count, 0)
+
+    def test_publisher_rejects_owned_manifest_and_snapshot_targets(self):
+        with tempfile.TemporaryDirectory(dir=self.root) as staging:
+            staged = Path(staging) / "replacement"
+            staged.mkdir()
+            for relative in ("plugins/agent-manager/skills/resolve-conflicts", "plugins/common-workflow/plugin.json", "plugins/common-workflow/skills"):
+                with self.subTest(target=relative), self.assertRaises(skill_sync.SyncError):
+                    skill_sync.publish([(staged, self.root / relative)], Path(staging), self.root)
+            self.assertTrue(staged.exists())
+
+    def test_owned_lock_item_is_rejected_before_fetch(self):
+        (self.root / "sources.lock.json").write_text(json.dumps({"skills": {"owned": {"group": "agent-manager"}}}), encoding="utf-8")
+        with self.assertRaises(skill_sync.SyncError):
+            self.run_sync()
+        self.assertEqual(self.mock_fetch.call_count, 0)
+
+    def test_managed_directory_cannot_redirect_into_owned(self):
+        owned = self.root / "plugins/agent-manager"
+        owned.mkdir()
+        target = self.root / "plugins/common-workflow/skills"
+        try:
+            target.symlink_to(owned, target_is_directory=True)
+        except OSError:
+            self.skipTest("Host does not permit symlink creation")
+        before = self.snapshot()
+        with self.assertRaises(skill_sync.SyncError):
+            self.run_sync()
+        self.assertEqual(before, self.snapshot())
+
 
 if __name__ == "__main__":
     unittest.main()

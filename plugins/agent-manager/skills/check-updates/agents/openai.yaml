@@ -1,0 +1,6 @@
+interface:
+  display_name: "检查 Agent 更新"
+  short_description: "仅手动调用，只读对比已记录来源、已安装 Plugin 和自有仓库版本。"
+  default_prompt: "使用 $agent-manager:check-updates 只读检查现有 Plugin / Skill 的上游版本。"
+policy:
+  allow_implicit_invocation: false

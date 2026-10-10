@@ -1,3 +1,9 @@
 # Keep synchronized upstream snapshots byte-for-byte on every platform.
-plugins/*/skills/** -text
-plugins/*/licenses/** -text
+plugins/common-workflow/skills/** -text
+plugins/common-workflow/licenses/** -text
+plugins/frontend-dev/skills/** -text
+plugins/frontend-dev/licenses/** -text
+plugins/backend-dev/skills/** -text
+plugins/backend-dev/licenses/** -text
+plugins/testing-automation/skills/** -text
+plugins/testing-automation/licenses/** -text

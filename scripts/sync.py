@@ -27,6 +27,25 @@ class SyncError(Exception):
     """A source or snapshot cannot be synchronized safely."""
 
 
+# Only these explicitly generated Plugins belong to the third-party pipeline.
+# Adding an owned Plugin or a sources.yaml group never grants write access.
+MANAGED_PLUGINS = frozenset({"common-workflow", "frontend-dev", "backend-dev", "testing-automation"})
+
+
+def managed_target(path: Path, root: Path) -> None:
+    """Enforce the write boundary independently of sources and the lock."""
+    contained(path, root)
+    relative = path.relative_to(root)
+    if relative.as_posix() == "sources.lock.json":
+        return
+    parts = relative.parts
+    if len(parts) != 4 or parts[0] != "plugins" or parts[1] not in MANAGED_PLUGINS or parts[2] not in {"skills", "licenses"} or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", parts[3]):
+        raise SyncError(f"Not a managed snapshot target: {relative}")
+    if path.resolve() != path.absolute():
+        raise SyncError(f"Managed target is redirected: {relative}")
+    # Snapshot targets are directories: plugins/<group>/<kind>/<skill>.
+
+
 def read_sources(root: Path) -> list[dict[str, str]]:
     document = yaml.safe_load((root / "sources.yaml").read_text(encoding="utf-8"))
     if not isinstance(document, dict) or set(document) != {"groups"}:
@@ -39,8 +58,12 @@ def read_sources(root: Path) -> list[dict[str, str]]:
     for group, settings in groups.items():
         if not isinstance(group, str) or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", group):
             raise SyncError(f"Invalid group: {group!r}")
+        if group not in MANAGED_PLUGINS:
+            raise SyncError(f"Not a managed/generated Plugin: {group!r}")
         plugin = root / "plugins" / group
         contained(plugin, root / "plugins")
+        if plugin.resolve() != plugin.absolute():
+            raise SyncError(f"Managed Plugin redirects outside its declared directory: {group}")
         if not (plugin / "plugin.json").is_file():
             raise SyncError(f"Missing plugins/{group}/plugin.json; create the Plugin explicitly")
         if not isinstance(settings, dict) or set(settings) != {"displayName", "skills"}:
@@ -102,7 +125,7 @@ def validate_skill(directory: Path, name: str) -> None:
     if not directory.is_dir():
         raise SyncError(f"{name}: upstream directory does not exist")
     for path in [directory, *directory.rglob("*")]:
-        if path.is_symlink():
+        if path.is_symlink() or path.is_junction():
             raise SyncError(f"{name}: symlink is not supported: {path.name}")
     entry = directory / "SKILL.md"
     if not entry.is_file():
@@ -121,7 +144,7 @@ def fingerprints(directory: Path) -> dict[str, str]:
         return {}
     result = {}
     for path in directory.rglob("*"):
-        if path.is_symlink():
+        if path.is_symlink() or path.is_junction():
             raise SyncError(f"Refusing to replace a symlink: {path}")
         if path.is_file():
             result[path.relative_to(directory).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
@@ -145,11 +168,11 @@ def copy_licenses(repository: Path, directory: Path) -> None:
 def publish(replacements: list[tuple[Path, Path]], workspace: Path, root: Path) -> None:
     """Restore existing snapshots if a filesystem replacement fails."""
     for _, target in replacements:
-        contained(target, root)
+        managed_target(target, root)
     applied = []
     try:
         for index, (staged, target) in enumerate(replacements):
-            contained(target, root)
+            managed_target(target, root)
             target.parent.mkdir(parents=True, exist_ok=True)
             backup = workspace / f"backup-{index}" if target.exists() else None
             if backup is not None:
@@ -158,7 +181,7 @@ def publish(replacements: list[tuple[Path, Path]], workspace: Path, root: Path) 
             staged.replace(target)
     except (OSError, SyncError):
         for target, backup in reversed(applied):
-            contained(target, root)
+            managed_target(target, root)
             if target.is_dir():
                 shutil.rmtree(target)
             elif target.exists():
@@ -176,6 +199,9 @@ def sync(root: Path) -> None:
     if not isinstance(previous, dict) or not isinstance(previous.get("skills"), dict):
         raise SyncError("Invalid sources.lock.json: expected a skills mapping")
     records = dict(previous["skills"])
+    for name, record in records.items():
+        if not isinstance(record, dict) or record.get("group") not in MANAGED_PLUGINS:
+            raise SyncError(f"Lock contains a non-generated or invalid item: {name}")
     replacements = []
     summaries = []
     # Stage and validate every source before changing any tracked snapshot.
@@ -194,6 +220,7 @@ def sync(root: Path) -> None:
             validate_skill(upstream, name)
             target = root / "plugins" / group / "skills" / name
             contained(target, root / "plugins" / group)
+            managed_target(target, root)
             staged = workspace / f"skill-{name}"
             shutil.copytree(upstream, staged)
             before, after = fingerprints(target), fingerprints(staged)
@@ -204,6 +231,7 @@ def sync(root: Path) -> None:
             copy_licenses(repository, licenses)
             license_target = root / "plugins" / group / "licenses" / name
             contained(license_target, root / "plugins" / group)
+            managed_target(license_target, root)
             if fingerprints(license_target) != fingerprints(licenses):
                 replacements.append((licenses, license_target))
             record = {**source, "commit": commit}

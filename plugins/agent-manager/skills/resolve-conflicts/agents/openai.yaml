@@ -1,0 +1,6 @@
+interface:
+  display_name: "整理 Agent 冲突"
+  short_description: "仅手动调用，扫描项目重复 Skill，安全调整当前项目配置并验证结果。"
+  default_prompt: "使用 $agent-manager:resolve-conflicts 整理当前项目的 Plugin / Skill 冲突。"
+policy:
+  allow_implicit_invocation: false

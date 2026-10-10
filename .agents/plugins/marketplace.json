@@ -95,6 +95,23 @@
         "websiteURL": "https://github.com/vsattce/agent-marketplace",
         "brandColor": "#526B8D"
       }
+    },
+    {
+      "name": "agent-manager",
+      "source": {"source": "local", "path": "./plugins/agent-manager"},
+      "policy": {"authentication": "ON_INSTALL", "installation": "AVAILABLE"},
+      "description": "项目冲突整理与现有来源版本检查，仅手动调用。",
+      "category": "Developer Tools",
+      "skills": "./skills/",
+      "interface": {
+        "displayName": "Agent 管理工具",
+        "shortDescription": "项目冲突整理与现有来源版本检查，仅手动调用。",
+        "longDescription": "本仓库直接维护的 OWNED Plugin。\n\nresolve-conflicts：整理当前项目实际可见的 Plugin / Skill 重复入口，安全调整项目配置。\ncheck-updates：只读对比已记录 upstream、自有仓库、已安装 Plugin、standalone Skill 与 Marketplace 状态。\n\n仅手动调用：$agent-manager:resolve-conflicts、$agent-manager:check-updates。第一版正式支持 Codex；控制粒度或版本证据不足时报告 BLOCKED / UNKNOWN。",
+        "developerName": "hjy",
+        "category": "Developer Tools",
+        "websiteURL": "https://github.com/vsattce/agent-marketplace",
+        "brandColor": "#475569"
+      }
     }
   ]
 }
