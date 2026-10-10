@@ -1,0 +1,69 @@
+# 第三方 Skill 的唯一来源维护入口。ref 保留现有分支 / 固定快照策略。
+groups:
+  common-workflow:
+    displayName: 通用工作流
+    skills:
+      - name: handoff
+        repo: mattpocock/skills
+        path: skills/productivity/handoff
+        ref: main
+      - name: diagnosing-bugs
+        repo: mattpocock/skills
+        path: skills/engineering/diagnosing-bugs
+        ref: main
+      - name: research
+        repo: mattpocock/skills
+        path: skills/engineering/research
+        ref: main
+      - name: writing-for-agents
+        repo: mattpocock/skills
+        path: skills/productivity/writing-for-agents
+        ref: main
+      - name: find-skills
+        repo: vercel-labs/skills
+        path: skills/find-skills
+        ref: main
+
+  frontend-dev:
+    displayName: 前端开发
+    skills:
+      - name: frontend-design
+        repo: anthropics/skills
+        path: skills/frontend-design
+        ref: dbd4588f9e1033efb41dad4bef2f7947c8993d44
+      - name: web-design-guidelines
+        repo: vercel-labs/agent-skills
+        path: skills/web-design-guidelines
+        ref: main
+      - name: vue
+        repo: antfu/skills
+        path: skills/vue
+        ref: a74f281a27dadc02397bc1a174b0f2c97531b6ae
+      - name: vue-best-practices
+        repo: antfu/skills
+        path: skills/vue-best-practices
+        ref: a74f281a27dadc02397bc1a174b0f2c97531b6ae
+
+  backend-dev:
+    displayName: 后端开发
+    skills:
+      - name: java-spring-boot
+        repo: pluginagentmarketplace/custom-plugin-java
+        path: skills/java-spring-boot
+        ref: main
+
+  testing-automation:
+    displayName: 测试与自动化
+    skills:
+      - name: webapp-testing
+        repo: anthropics/skills
+        path: skills/webapp-testing
+        ref: dbd4588f9e1033efb41dad4bef2f7947c8993d44
+      - name: playwright-cli
+        repo: microsoft/playwright-cli
+        path: skills/playwright-cli
+        ref: main
+      - name: playwright-best-practices
+        repo: currents-dev/playwright-best-practices-skill
+        path: playwright-best-practices
+        ref: main

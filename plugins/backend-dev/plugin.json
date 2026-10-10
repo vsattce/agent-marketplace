@@ -1,0 +1,19 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "backend-dev",
+  "version": "1.0.0",
+  "description": "Java / Spring Boot 开发与工程实践。",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "后端开发",
+        "shortDescription": "Java / Spring Boot 开发与工程实践。",
+        "longDescription": "Java / Spring Boot 开发与工程实践。",
+        "developerName": "hjy",
+        "category": "Developer Tools",
+        "websiteURL": "https://github.com/vsattce/agent-marketplace",
+        "brandColor": "#9A5B3B"
+      }
+    }
+  }
+}

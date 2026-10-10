@@ -1,0 +1,121 @@
+{
+  "skills": {
+    "handoff": {
+      "name": "handoff",
+      "repo": "mattpocock/skills",
+      "path": "skills/productivity/handoff",
+      "ref": "main",
+      "group": "common-workflow",
+      "commit": "49dd158d1076134a641b33efb035946536778336",
+      "syncedAt": "2026-10-10T04:02:08+00:00"
+    },
+    "diagnosing-bugs": {
+      "name": "diagnosing-bugs",
+      "repo": "mattpocock/skills",
+      "path": "skills/engineering/diagnosing-bugs",
+      "ref": "main",
+      "group": "common-workflow",
+      "commit": "49dd158d1076134a641b33efb035946536778336",
+      "syncedAt": "2026-10-10T04:02:08+00:00"
+    },
+    "research": {
+      "name": "research",
+      "repo": "mattpocock/skills",
+      "path": "skills/engineering/research",
+      "ref": "main",
+      "group": "common-workflow",
+      "commit": "49dd158d1076134a641b33efb035946536778336",
+      "syncedAt": "2026-10-10T04:02:08+00:00"
+    },
+    "writing-for-agents": {
+      "name": "writing-for-agents",
+      "repo": "mattpocock/skills",
+      "path": "skills/productivity/writing-for-agents",
+      "ref": "main",
+      "group": "common-workflow",
+      "commit": "49dd158d1076134a641b33efb035946536778336",
+      "syncedAt": "2026-10-10T04:02:08+00:00"
+    },
+    "find-skills": {
+      "name": "find-skills",
+      "repo": "vercel-labs/skills",
+      "path": "skills/find-skills",
+      "ref": "main",
+      "group": "common-workflow",
+      "commit": "13e4063a1cf913f5606d57d42ab83a86f5001e04",
+      "syncedAt": "2026-10-10T04:02:11+00:00"
+    },
+    "frontend-design": {
+      "name": "frontend-design",
+      "repo": "anthropics/skills",
+      "path": "skills/frontend-design",
+      "ref": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+      "group": "frontend-dev",
+      "commit": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+      "syncedAt": "2026-10-10T04:02:16+00:00"
+    },
+    "web-design-guidelines": {
+      "name": "web-design-guidelines",
+      "repo": "vercel-labs/agent-skills",
+      "path": "skills/web-design-guidelines",
+      "ref": "main",
+      "group": "frontend-dev",
+      "commit": "063bee94c3f4df8453406c830b0a7df0f2860278",
+      "syncedAt": "2026-10-10T04:02:19+00:00"
+    },
+    "vue": {
+      "name": "vue",
+      "repo": "antfu/skills",
+      "path": "skills/vue",
+      "ref": "a74f281a27dadc02397bc1a174b0f2c97531b6ae",
+      "group": "frontend-dev",
+      "commit": "a74f281a27dadc02397bc1a174b0f2c97531b6ae",
+      "syncedAt": "2026-10-10T04:02:23+00:00"
+    },
+    "vue-best-practices": {
+      "name": "vue-best-practices",
+      "repo": "antfu/skills",
+      "path": "skills/vue-best-practices",
+      "ref": "a74f281a27dadc02397bc1a174b0f2c97531b6ae",
+      "group": "frontend-dev",
+      "commit": "a74f281a27dadc02397bc1a174b0f2c97531b6ae",
+      "syncedAt": "2026-10-10T04:02:23+00:00"
+    },
+    "java-spring-boot": {
+      "name": "java-spring-boot",
+      "repo": "pluginagentmarketplace/custom-plugin-java",
+      "path": "skills/java-spring-boot",
+      "ref": "main",
+      "group": "backend-dev",
+      "commit": "51aa571c25436e667618e27b8ac8c1d500d62aa2",
+      "syncedAt": "2026-10-10T04:02:25+00:00"
+    },
+    "webapp-testing": {
+      "name": "webapp-testing",
+      "repo": "anthropics/skills",
+      "path": "skills/webapp-testing",
+      "ref": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+      "group": "testing-automation",
+      "commit": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+      "syncedAt": "2026-10-10T04:02:25+00:00"
+    },
+    "playwright-cli": {
+      "name": "playwright-cli",
+      "repo": "microsoft/playwright-cli",
+      "path": "skills/playwright-cli",
+      "ref": "main",
+      "group": "testing-automation",
+      "commit": "b85c7a736bb473bf55b584e54a09ffa698d6d871",
+      "syncedAt": "2026-10-10T04:02:28+00:00"
+    },
+    "playwright-best-practices": {
+      "name": "playwright-best-practices",
+      "repo": "currents-dev/playwright-best-practices-skill",
+      "path": "playwright-best-practices",
+      "ref": "main",
+      "group": "testing-automation",
+      "commit": "283d5cbc5d11aac1abda058b16ad22c317d54dc0",
+      "syncedAt": "2026-10-10T04:02:30+00:00"
+    }
+  }
+}

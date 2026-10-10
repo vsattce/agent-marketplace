@@ -1,0 +1,19 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "testing-automation",
+  "version": "1.0.0",
+  "description": "网页测试、Playwright 浏览器自动化与测试最佳实践。",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "测试与自动化",
+        "shortDescription": "网页测试、Playwright 浏览器自动化与测试最佳实践。",
+        "longDescription": "网页测试、Playwright 浏览器自动化与测试最佳实践。",
+        "developerName": "hjy",
+        "category": "Developer Tools",
+        "websiteURL": "https://github.com/vsattce/agent-marketplace",
+        "brandColor": "#526B8D"
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "common-workflow",
+  "version": "1.0.0",
+  "description": "任务交接、问题诊断、资料研究与 Agent 工作流工具。",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "通用工作流",
+        "shortDescription": "任务交接、问题诊断、资料研究与 Agent 工作流工具。",
+        "longDescription": "任务交接、问题诊断、资料研究与 Agent 工作流工具。",
+        "developerName": "hjy",
+        "category": "Developer Tools",
+        "websiteURL": "https://github.com/vsattce/agent-marketplace",
+        "brandColor": "#475569"
+      }
+    }
+  }
+}

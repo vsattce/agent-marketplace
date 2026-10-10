@@ -5,280 +5,95 @@
   },
   "plugins": [
     {
-      "name": "matt-skills",
+      "name": "common-workflow",
       "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/mattpocock/skills.git",
-        "path": "./skills",
-        "ref": "main"
+        "path": "./plugins/common-workflow",
+        "source": "local"
       },
       "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
       },
+      "description": "任务交接、问题诊断、资料研究与 Agent 工作流工具。",
       "category": "Developer Tools",
-      "description": "交接任务、排查问题、查资料，整理 Agent 文档",
-      "author": {
-        "name": "Matt Pocock",
-        "url": "https://github.com/mattpocock"
-      },
-      "homepage": "https://github.com/mattpocock/skills",
-      "license": "MIT",
-      "skills": [
-        "./productivity/handoff",
-        "./engineering/diagnosing-bugs",
-        "./engineering/research",
-        "./productivity/writing-for-agents"
-      ],
+      "skills": "./skills/",
       "interface": {
-        "displayName": "Matt 工作流",
-        "shortDescription": "交接、诊断、研究与 Agent 文档",
-        "longDescription": "把常用的交接、问题诊断、资料研究和 Agent 文档编写放在一起。手动安装后默认启用；handoff 仅手动调用，其余按任务匹配时可自动调用，也可手动调用。不会在会话开始时自动执行。",
+        "displayName": "通用工作流",
+        "shortDescription": "任务交接、问题诊断、资料研究与 Agent 工作流工具。",
+        "longDescription": "任务交接、问题诊断、资料研究与 Agent 工作流工具。",
         "developerName": "hjy",
         "category": "Developer Tools",
-        "capabilities": [
-          "任务交接（仅手动）",
-          "问题诊断（条件自动 / 手动）",
-          "资料研究（条件自动 / 手动）",
-          "Agent 文档（条件自动 / 手动）"
-        ],
-        "brandColor": "#475569",
-        "websiteURL": "https://github.com/mattpocock/skills"
+        "websiteURL": "https://github.com/vsattce/agent-marketplace",
+        "brandColor": "#475569"
       }
     },
     {
-      "name": "anthropic-skills",
+      "name": "frontend-dev",
       "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/anthropics/skills.git",
-        "path": "./skills",
-        "sha": "dbd4588f9e1033efb41dad4bef2f7947c8993d44"
+        "path": "./plugins/frontend-dev",
+        "source": "local"
       },
       "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
       },
+      "description": "前端界面设计、Vue 开发与 Web 设计规范。",
       "category": "Developer Tools",
-      "description": "设计前端界面，验证网页交互",
-      "author": {
-        "name": "Anthropic",
-        "url": "https://github.com/anthropics"
-      },
-      "homepage": "https://github.com/anthropics/skills",
-      "license": "Apache-2.0",
-      "skills": [
-        "./frontend-design",
-        "./webapp-testing"
-      ],
+      "skills": "./skills/",
       "interface": {
-        "displayName": "Anthropic 前端与测试",
-        "shortDescription": "前端界面设计与网页交互测试",
-        "longDescription": "用 frontend-design 设计界面，用 webapp-testing 验证网页交互。只收录这两个 Skills，不加载 PDF 或其他能力。手动安装后默认启用；按任务匹配时可自动调用，也可手动调用，不会在会话开始时自动执行。",
+        "displayName": "前端开发",
+        "shortDescription": "前端界面设计、Vue 开发与 Web 设计规范。",
+        "longDescription": "前端界面设计、Vue 开发与 Web 设计规范。",
         "developerName": "hjy",
         "category": "Developer Tools",
-        "capabilities": [
-          "前端设计（条件自动 / 手动）",
-          "网页测试（条件自动 / 手动）"
-        ],
-        "websiteURL": "https://github.com/anthropics/skills",
+        "websiteURL": "https://github.com/vsattce/agent-marketplace",
+        "brandColor": "#3F7667"
+      }
+    },
+    {
+      "name": "backend-dev",
+      "source": {
+        "path": "./plugins/backend-dev",
+        "source": "local"
+      },
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "description": "Java / Spring Boot 开发与工程实践。",
+      "category": "Developer Tools",
+      "skills": "./skills/",
+      "interface": {
+        "displayName": "后端开发",
+        "shortDescription": "Java / Spring Boot 开发与工程实践。",
+        "longDescription": "Java / Spring Boot 开发与工程实践。",
+        "developerName": "hjy",
+        "category": "Developer Tools",
+        "websiteURL": "https://github.com/vsattce/agent-marketplace",
         "brandColor": "#9A5B3B"
       }
     },
     {
-      "name": "vue-skills",
+      "name": "testing-automation",
       "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/antfu/skills.git",
-        "path": "./skills",
-        "sha": "a74f281a27dadc02397bc1a174b0f2c97531b6ae"
+        "path": "./plugins/testing-automation",
+        "source": "local"
       },
       "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
       },
+      "description": "网页测试、Playwright 浏览器自动化与测试最佳实践。",
       "category": "Developer Tools",
-      "description": "Vue 组件开发与最佳实践",
-      "author": {
-        "name": "Anthony Fu / Vue.js AI",
-        "url": "https://github.com/antfu/skills"
-      },
-      "homepage": "https://github.com/antfu/skills",
-      "license": "MIT",
-      "skills": [
-        "./vue",
-        "./vue-best-practices"
-      ],
+      "skills": "./skills/",
       "interface": {
-        "displayName": "Vue 开发技能",
-        "shortDescription": "Vue 组件开发与最佳实践",
-        "longDescription": "把 vue 和 vue-best-practices 放在一个包里，覆盖组件、响应式、Composition API 与开发规范。采用 Antfu 合集仍包含两者的历史快照，原始作者为 Anthony Fu 和 Vue.js AI。手动安装后默认启用；按任务匹配时可自动调用，也可手动调用，不会在会话开始时自动执行。",
+        "displayName": "测试与自动化",
+        "shortDescription": "网页测试、Playwright 浏览器自动化与测试最佳实践。",
+        "longDescription": "网页测试、Playwright 浏览器自动化与测试最佳实践。",
         "developerName": "hjy",
         "category": "Developer Tools",
-        "capabilities": [
-          "Vue 组件开发（条件自动 / 手动）",
-          "响应式与 Composition API（条件自动 / 手动）",
-          "Vue 最佳实践（条件自动 / 手动）"
-        ],
-        "websiteURL": "https://github.com/antfu/skills",
-        "brandColor": "#3F7667"
-      }
-    },
-    {
-      "name": "vercel-skills",
-      "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/vercel-labs/skills.git",
-        "path": "./skills",
-        "ref": "main"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Developer Tools",
-      "description": "Skill 查找与扩展能力",
-      "author": {
-        "name": "Vercel Labs",
-        "url": "https://github.com/vercel-labs"
-      },
-      "homepage": "https://github.com/vercel-labs/skills",
-      "license": "MIT",
-      "skills": ["./find-skills"],
-      "interface": {
-        "displayName": "Vercel Skills",
-        "shortDescription": "Skill 查找与扩展能力",
-        "longDescription": "查找适合当前任务的 Skills，了解来源和安装方式。当前只收录 Find Skills，同一 upstream 的其他 Skills 可按需加入。跟随 upstream main；本机第三方能力通过 Marketplace / Plugin 安装管理。",
-        "developerName": "hjy",
-        "category": "Developer Tools",
-        "capabilities": ["Skill 查找（条件自动 / 手动）"],
-        "websiteURL": "https://github.com/vercel-labs/skills",
-        "brandColor": "#475569"
-      }
-    },
-    {
-      "name": "web-design-guidelines",
-      "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/vercel-labs/agent-skills.git",
-        "path": "./skills",
-        "ref": "main"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Developer Tools",
-      "description": "Web 界面设计规范与审查",
-      "author": {
-        "name": "Vercel Labs",
-        "url": "https://github.com/vercel-labs"
-      },
-      "homepage": "https://github.com/vercel-labs/agent-skills",
-      "skills": ["./web-design-guidelines"],
-      "interface": {
-        "displayName": "Web 设计规范",
-        "shortDescription": "Web 界面设计规范与审查",
-        "longDescription": "按 Web Interface Guidelines 审查界面、可访问性和交互。Skill 与每次审查读取的规则都跟随 upstream main，不保存本地规则镜像。只加载 web-design-guidelines。",
-        "developerName": "hjy",
-        "category": "Developer Tools",
-        "capabilities": ["界面规范审查（条件自动 / 手动）"],
-        "websiteURL": "https://github.com/vercel-labs/agent-skills",
-        "brandColor": "#475569"
-      }
-    },
-    {
-      "name": "java-spring-boot",
-      "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/pluginagentmarketplace/custom-plugin-java.git",
-        "path": "./skills",
-        "ref": "main"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Developer Tools",
-      "description": "Spring Boot 开发与工程实践",
-      "author": {
-        "name": "Dr. Umit Kacar / Muhsin Elcicek",
-        "url": "https://github.com/pluginagentmarketplace"
-      },
-      "homepage": "https://github.com/pluginagentmarketplace/custom-plugin-java",
-      "license": "Plugin Agent Marketplace Custom License",
-      "skills": ["./java-spring-boot"],
-      "interface": {
-        "displayName": "Java / Spring Boot",
-        "shortDescription": "Spring Boot 开发与工程实践",
-        "longDescription": "覆盖 Spring Boot 的 REST API、安全、数据访问与 Actuator。只加载 java-spring-boot，不加载 upstream 的其他 Java Skills 或 Agents。跟随 upstream main；适用上游自定义许可证。",
-        "developerName": "hjy",
-        "category": "Developer Tools",
-        "capabilities": ["Spring Boot 开发（条件自动 / 手动）"],
-        "websiteURL": "https://github.com/pluginagentmarketplace/custom-plugin-java",
-        "brandColor": "#3F7667"
-      }
-    },
-    {
-      "name": "playwright",
-      "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/microsoft/playwright-cli.git",
-        "path": "./skills",
-        "ref": "main"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Developer Tools",
-      "description": "Playwright 浏览器自动化与命令行工具",
-      "author": {
-        "name": "Microsoft",
-        "url": "https://github.com/microsoft"
-      },
-      "homepage": "https://github.com/microsoft/playwright-cli",
-      "license": "Apache-2.0",
-      "skills": ["./playwright-cli"],
-      "interface": {
-        "displayName": "Playwright",
-        "shortDescription": "Playwright 浏览器自动化与命令行工具",
-        "longDescription": "使用 Microsoft 官方 playwright-cli Skill 操作浏览器、读取快照、验证交互与调试测试。直接调用 CLI，不依赖旧 standalone 安装路径。跟随 upstream main；CLI 运行依赖按目标项目环境准备。",
-        "developerName": "hjy",
-        "category": "Developer Tools",
-        "capabilities": ["浏览器自动化（条件自动 / 手动）"],
-        "websiteURL": "https://github.com/microsoft/playwright-cli",
-        "brandColor": "#3F7667"
-      }
-    },
-    {
-      "name": "playwright-best-practices",
-      "source": {
-        "source": "url",
-        "url": "https://github.com/currents-dev/playwright-best-practices-skill.git",
-        "ref": "main"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Developer Tools",
-      "description": "Playwright 测试编写、调试与最佳实践",
-      "author": {
-        "name": "Currents Software Inc.",
-        "url": "https://github.com/currents-dev"
-      },
-      "homepage": "https://github.com/currents-dev/playwright-best-practices-skill",
-      "license": "MIT",
-      "skills": ["./playwright-best-practices"],
-      "interface": {
-        "displayName": "Playwright 最佳实践",
-        "shortDescription": "Playwright 测试编写、调试与最佳实践",
-        "longDescription": "按任务查阅 Playwright 测试的定位器、断言、Fixture、模拟、认证、调试与 CI 实践。采用 upstream 当前目录结构，跟随 main。与浏览器自动化包来自不同 upstream，分别安装管理。",
-        "developerName": "hjy",
-        "category": "Developer Tools",
-        "capabilities": ["测试最佳实践（条件自动 / 手动）"],
-        "websiteURL": "https://github.com/currents-dev/playwright-best-practices-skill",
-        "brandColor": "#475569"
+        "websiteURL": "https://github.com/vsattce/agent-marketplace",
+        "brandColor": "#526B8D"
       }
     }
   ]

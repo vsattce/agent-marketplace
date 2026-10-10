@@ -1,0 +1,243 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["PyYAML>=6.0.2,<7"]
+# ///
+"""Copy the selected upstream directories; never change sources or commit Git."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+from pathlib import Path, PurePosixPath
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+from datetime import datetime, timezone
+
+try:
+    import yaml
+except ImportError:
+    sys.exit("Missing PyYAML. Run: uv run --script scripts/sync.py")
+
+
+class SyncError(Exception):
+    """A source or snapshot cannot be synchronized safely."""
+
+
+def read_sources(root: Path) -> list[dict[str, str]]:
+    document = yaml.safe_load((root / "sources.yaml").read_text(encoding="utf-8"))
+    if not isinstance(document, dict) or set(document) != {"groups"}:
+        raise SyncError("sources.yaml must contain only a groups mapping")
+    groups = document["groups"]
+    if not isinstance(groups, dict) or not groups:
+        raise SyncError("groups must be a non-empty mapping")
+    sources = []
+    names = set()
+    for group, settings in groups.items():
+        if not isinstance(group, str) or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", group):
+            raise SyncError(f"Invalid group: {group!r}")
+        plugin = root / "plugins" / group
+        contained(plugin, root / "plugins")
+        if not (plugin / "plugin.json").is_file():
+            raise SyncError(f"Missing plugins/{group}/plugin.json; create the Plugin explicitly")
+        if not isinstance(settings, dict) or set(settings) != {"displayName", "skills"}:
+            raise SyncError(f"{group}: expected displayName and skills")
+        if not isinstance(settings["displayName"], str) or not settings["displayName"].strip():
+            raise SyncError(f"{group}: displayName must be non-empty")
+        if not isinstance(settings["skills"], list) or not settings["skills"]:
+            raise SyncError(f"{group}: skills must be a non-empty list")
+        for source in settings["skills"]:
+            if not isinstance(source, dict) or set(source) != {"name", "repo", "path", "ref"}:
+                raise SyncError(f"{group}: each Skill needs name, repo, path, ref")
+            if any(not isinstance(value, str) or not value.strip() for value in source.values()):
+                raise SyncError(f"{group}: source fields must be non-empty strings")
+            name = source["name"]
+            if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", name) or name.casefold() in names:
+                raise SyncError(f"Invalid or duplicate Skill name: {name}")
+            if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", source["repo"]):
+                raise SyncError(f"{name}: repo must be owner/repo")
+            path = PurePosixPath(source["path"])
+            if path.is_absolute() or any(part in {".", ".."} for part in source["path"].split("/")) or "\\" in source["path"] or ":" in source["path"]:
+                raise SyncError(f"{name}: path must stay inside the upstream repository")
+            if source["ref"].startswith("-") or any(character.isspace() for character in source["ref"]):
+                raise SyncError(f"{name}: invalid ref")
+            names.add(name.casefold())
+            sources.append({**source, "group": group})
+    return sources
+
+
+def contained(path: Path, parent: Path) -> None:
+    """Check resolved targets before moving or replacing anything."""
+    if path.is_symlink() or not path.resolve().is_relative_to(parent.resolve()) or path.resolve() == parent.resolve():
+        raise SyncError(f"Path escapes its target directory: {path}")
+
+
+def git(repository: Path, *arguments: str) -> str:
+    command = ["git", "-C", str(repository), *arguments]
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180, env={**os.environ, "GIT_TERMINAL_PROMPT": "0"})
+    except subprocess.TimeoutExpired as error:
+        raise SyncError(f"Git {arguments[0]} timed out after 180 seconds") from error
+    if result.returncode:
+        # Sources accept public owner/repo only; no credential-bearing URLs.
+        raise SyncError(f"Git {arguments[0]} failed: {result.stderr.strip()}")
+    return result.stdout.strip()
+
+
+def fetch(source: dict[str, str], destination: Path) -> tuple[Path, str]:
+    destination.mkdir()
+    git(destination, "init", "--quiet")
+    git(destination, "remote", "add", "origin", f"https://github.com/{source['repo']}.git")
+    git(destination, "fetch", "--quiet", "--depth=1", "origin", source["ref"])
+    commit = git(destination, "rev-parse", "FETCH_HEAD")
+    # Checkout leaves blobs byte-for-byte intact, including upstream LF endings.
+    git(destination, "-c", "core.autocrlf=false", "-c", "core.symlinks=true", "checkout", "--quiet", "--detach", commit)
+    return destination, commit
+
+
+def validate_skill(directory: Path, name: str) -> None:
+    if not directory.is_dir():
+        raise SyncError(f"{name}: upstream directory does not exist")
+    for path in [directory, *directory.rglob("*")]:
+        if path.is_symlink():
+            raise SyncError(f"{name}: symlink is not supported: {path.name}")
+    entry = directory / "SKILL.md"
+    if not entry.is_file():
+        raise SyncError(f"{name}: missing SKILL.md")
+    text = entry.read_text(encoding="utf-8-sig")
+    lines = text.splitlines()
+    if not lines or lines[0] != "---" or "---" not in lines[1:]:
+        raise SyncError(f"{name}: missing YAML frontmatter")
+    metadata = yaml.safe_load("\n".join(lines[1:lines.index("---", 1)]))
+    if not isinstance(metadata, dict) or metadata.get("name") != name or not isinstance(metadata.get("description"), str) or not metadata["description"].strip():
+        raise SyncError(f"{name}: SKILL.md needs the matching name and a description")
+
+
+def fingerprints(directory: Path) -> dict[str, str]:
+    if not directory.exists():
+        return {}
+    result = {}
+    for path in directory.rglob("*"):
+        if path.is_symlink():
+            raise SyncError(f"Refusing to replace a symlink: {path}")
+        if path.is_file():
+            result[path.relative_to(directory).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
+    return result
+
+
+def change_summary(before: dict[str, str], after: dict[str, str]) -> str:
+    added = len(after.keys() - before.keys())
+    removed = len(before.keys() - after.keys())
+    changed = sum(before[path] != after[path] for path in before.keys() & after.keys())
+    return f"+{added} ~{changed} -{removed} files"
+
+
+def copy_licenses(repository: Path, directory: Path) -> None:
+    directory.mkdir()
+    for path in repository.iterdir():
+        if path.is_file() and not path.is_symlink() and re.match(r"^(licen[cs]e|copying|notice)([.-]|$)", path.name, re.IGNORECASE):
+            shutil.copy2(path, directory / path.name)
+
+
+def publish(replacements: list[tuple[Path, Path]], workspace: Path, root: Path) -> None:
+    """Restore existing snapshots if a filesystem replacement fails."""
+    for _, target in replacements:
+        contained(target, root)
+    applied = []
+    try:
+        for index, (staged, target) in enumerate(replacements):
+            contained(target, root)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            backup = workspace / f"backup-{index}" if target.exists() else None
+            if backup is not None:
+                target.replace(backup)
+            applied.append((target, backup))
+            staged.replace(target)
+    except (OSError, SyncError):
+        for target, backup in reversed(applied):
+            contained(target, root)
+            if target.is_dir():
+                shutil.rmtree(target)
+            elif target.exists():
+                target.unlink()
+            if backup is not None:
+                backup.replace(target)
+        raise
+
+
+def sync(root: Path) -> None:
+    sources = read_sources(root)
+    lock_path = root / "sources.lock.json"
+    contained(lock_path, root)
+    previous = json.loads(lock_path.read_text(encoding="utf-8")) if lock_path.exists() else {"skills": {}}
+    if not isinstance(previous, dict) or not isinstance(previous.get("skills"), dict):
+        raise SyncError("Invalid sources.lock.json: expected a skills mapping")
+    records = dict(previous["skills"])
+    replacements = []
+    summaries = []
+    # Stage and validate every source before changing any tracked snapshot.
+    with tempfile.TemporaryDirectory(prefix=".skill-sync-", dir=root) as temporary:
+        workspace = Path(temporary)
+        repositories = {}
+        for source in sources:
+            name, group = source["name"], source["group"]
+            key = (source["repo"], source["ref"])
+            if key not in repositories:
+                print(f"Fetch {source['repo']} @ {source['ref']}", flush=True)
+                repositories[key] = fetch(source, workspace / f"repo-{len(repositories)}")
+            repository, commit = repositories[key]
+            upstream = repository / source["path"]
+            contained(upstream, repository)
+            validate_skill(upstream, name)
+            target = root / "plugins" / group / "skills" / name
+            contained(target, root / "plugins" / group)
+            staged = workspace / f"skill-{name}"
+            shutil.copytree(upstream, staged)
+            before, after = fingerprints(target), fingerprints(staged)
+            changed = before != after
+            if changed:
+                replacements.append((staged, target))
+            licenses = workspace / f"licenses-{name}"
+            copy_licenses(repository, licenses)
+            license_target = root / "plugins" / group / "licenses" / name
+            contained(license_target, root / "plugins" / group)
+            if fingerprints(license_target) != fingerprints(licenses):
+                replacements.append((licenses, license_target))
+            record = {**source, "commit": commit}
+            old = records.get(name, {})
+            if isinstance(old, dict) and all(old.get(field) == value for field, value in record.items()) and not changed and old.get("syncedAt"):
+                record["syncedAt"] = old["syncedAt"]
+            else:
+                record["syncedAt"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            records[name] = record
+            previous_commit = old.get("commit", "none") if isinstance(old, dict) else "none"
+            summaries.append(f"{group}/{name}: {previous_commit} -> {commit}; {change_summary(before, after)}")
+        lock_text = json.dumps({"skills": records}, ensure_ascii=False, indent=2) + "\n"
+        if not lock_path.exists() or lock_path.read_text(encoding="utf-8") != lock_text:
+            staged_lock = workspace / "sources.lock.json"
+            staged_lock.write_text(lock_text, encoding="utf-8", newline="\n")
+            replacements.append((staged_lock, lock_path))
+        publish(replacements, workspace, root)
+    for summary in summaries:
+        print(summary)
+    unlisted = records.keys() - {source["name"] for source in sources}
+    if unlisted:
+        print(f"Unlisted snapshots kept (no automatic deletion): {', '.join(sorted(unlisted))}")
+    print(f"Synchronized {len(sources)} Skills; {len(replacements)} snapshot/record paths changed.")
+    print("Review: git diff --stat; git diff -- sources.lock.json; git status --short")
+
+
+def main() -> int:
+    try:
+        sync(Path(__file__).resolve().parents[1])
+    except (SyncError, OSError, ValueError, yaml.YAMLError) as error:
+        print(f"Sync failed: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
