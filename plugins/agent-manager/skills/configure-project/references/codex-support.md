@@ -6,8 +6,11 @@
 | --- | --- | --- |
 | 已安装本地 Marketplace Plugin 项目开关 | IMPLEMENTED | 根 `.codex/config.toml` 的 `[plugins."name@marketplace"] enabled = true/false`，新进程加载器确实按项目值覆盖用户值 |
 | 单个 Skill 项目开关（standalone / Plugin Skill） | BLOCKED | `config/read` 能看到项目 `skills.config`，但 `skills/list` 的 enabled 不变；同一 `SKILL.md` 选择器在隔离用户层才生效。项目 true 也不能覆盖用户 false |
+| standalone Skill 项目安装 | 手动复制可用 | 当前 Codex 项目 Skill 发现目录 `.agents/skills/`；只复制用户明确指定的来源，不使用可能写 CODEX_HOME 的安装器 |
 | workspace-managed Plugin 项目开关 | BLOCKED | 官方说明项目配置不覆盖 workspace-managed 安装策略 |
 | 未受信任项目 / 被更高配置限制的开关 | BLOCKED | 项目层未加载或不能决定最终状态，不改信任、安全、profile 或 managed 配置 |
+
+Skill 目录复制是项目文件操作，不是单个 Skill 开关，也不证明 Plugin 可项目安装。写入前仍按 [项目文件预检](project-edits.md) 核验来源、目标、真实加载链、冲突和重复。
 
 官方来源：
 

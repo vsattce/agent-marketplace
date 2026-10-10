@@ -45,7 +45,7 @@ $agent-manager:check-updates 检查已记录来源和安装副本是否有更新
 | testing-automation | playwright-best-practices | 指导 Playwright 测试、模拟、认证、调试与 CI | 任务匹配 / 手动 |
 | agent-manager | resolve-conflicts | 只读查找项目与全局指令、Skill、Plugin 的冲突和歧义 | 仅手动 |
 | agent-manager | check-updates | 只读比较既定来源、仓库、安装副本与 Marketplace 状态 | 仅手动 |
-| agent-manager | configure-project | 执行用户明确指定的当前项目 Plugin 开关 | 仅手动 |
+| agent-manager | configure-project | 预检后编辑项目指令、安装指定 Skill 或执行受支持的 Plugin 开关 | 仅手动 |
 | personal-dev | delegated-development | 主模型安排任务，独立编码与验收代理执行，主模型最终整体检查；仅 Codex | 仅手动 |
 | personal-dev | review | 只读审查当前项目或明确范围，独立复核高等级发现并生成报告；仅 Codex | 仅手动 |
 
@@ -97,15 +97,15 @@ Claude / Kimi 暂不注册此 Plugin。安装后新建 Codex 聊天加载；仓�
 
 需要实际更新时，维护仓库按[维护指南](maintenance.md#升级第三方-skill)同步，再按下方对应客户端步骤刷新安装副本。
 
-### 配置项目开关
+### 配置项目
 
-调用时逐项指定完整 Plugin 身份及启用 / 禁用状态，例如：
+修改 Plugin 开关时，逐项指定完整 Plugin 身份及启用 / 禁用状态，例如：
 
 ```text
 $agent-manager:configure-project 在当前项目禁用 frontend-dev@agent-marketplace，启用 testing-automation@agent-marketplace
 ```
 
-Claude 使用 `/agent-manager:configure-project`。它只修改 Git 确认的当前项目根配置，不推荐组合、不安装缺失目标、不更新 Plugin，也不提交或推送用户项目。
+Claude 使用 `/agent-manager:configure-project`。该入口只处理用户明确指定的项目操作：编辑 `AGENTS.md`、从准确来源安装 standalone Skill，或执行受支持的 Plugin 开关。它不推荐组合、不提交或推送用户项目。
 
 #### 项目开关支持范围
 
@@ -119,7 +119,13 @@ Claude 使用 `/agent-manager:configure-project`。它只修改 Git 确认的当
 
 三个客户端的**单个 Skill 项目开关均不支持**。未验证的 Codex / Claude 版本、目标缺失或歧义、配置损坏、有效项目层证据不足，以及 Codex 未受信任项目或 workspace-managed Plugin，均拒绝整批操作。Claude 的 `.claude/settings.local.json` 若对目标存在反向覆盖，也会整批拒绝。
 
-任何一个目标不受支持，整个批次都不写入。全局与项目外配置始终只读；保存后重新加载项目或新建会话，才确认新的会话状态。详细能力证据见 [Codex](../plugins/agent-manager/skills/configure-project/references/codex-support.md)、[Claude](../plugins/agent-manager/skills/configure-project/references/claude-support.md) 与 [Kimi](../plugins/agent-manager/references/kimi.md)。
+standalone Skill 的项目安装与 Skill 开关不同：用户须指定准确来源和项目内目标，并通过当前 Harness 的加载目录、来源、重复、冲突及路径检查。已确认的发现目录为 Codex `.agents/skills/`、Claude `.claude/skills/`、Kimi `.kimi-code/skills/` 或 `.agents/skills/`；实际版本、项目配置和会话证据优先。复制所需资源并记录来源，不运行来源脚本或可能写用户 cache 的安装器。
+
+项目 Plugin 安装当前没有 Codex、Claude Code 或 Kimi Code 的全写入均留在项目内的已验证契约，因此整批 `BLOCKED`。项目 Plugin 开关能力不能替代安装能力。
+
+`AGENTS.md` 默认编辑项目 Git/workspace 根文件；只有明确指定时才处理子目录。先核实当前 Harness 的真实指令链和遮蔽关系：Codex 同目录 `AGENTS.override.md` 优先；Claude Code v2.1.277+ 按祖先 `CLAUDE.md`、`.claude/CLAUDE.md`、`CLAUDE.local.md`、版本与 Project instructions 设置选择是否加载；Kimi 按实际项目来源判断。用户指定编辑文件时可以改文件本身，但不会自动添加引用或声称当前会话已加载。
+
+任何一个目标不受支持、冲突未解决或核心来源/加载证据缺失，整个混合批次都不写入。全局与项目外始终只读；保存后新会话或重新加载才能确认会话状态。详细边界见 [项目文件预检](../plugins/agent-manager/skills/configure-project/references/project-edits.md)、[Codex](../plugins/agent-manager/skills/configure-project/references/codex-support.md)、[Claude](../plugins/agent-manager/skills/configure-project/references/claude-support.md) 与 [Kimi](../plugins/agent-manager/references/kimi.md)。
 
 ## 安装与更新
 

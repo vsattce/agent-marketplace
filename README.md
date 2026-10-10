@@ -43,7 +43,7 @@ Codex / Claude 按分类安装，完整身份为 `<plugin>@agent-marketplace`；
 
 `review` 仅在显式调用后审查，默认覆盖当前项目全部自有代码，即使没有 diff；指定范围时严格遵守。它只读源码与配置，先集中预检，再派发审查和必要的独立复核；没有生产证据时仍可完成代码层审查。问题按证据与影响分级，报告保存在项目的 `docs/reviews/`。使用与边界见[个人开发工具](docs/usage.md#个人开发工具仅-codex)。
 
-`configure-project` 当前支持已验证版本的 Codex / Claude 项目 Plugin 开关；单个 Skill 开关和 Kimi 项目开关暂不支持。具体范围见[使用手册](docs/usage.md#项目开关支持范围)。
+`configure-project` 仅手动处理明确的项目 `AGENTS.md` 编辑、指定来源的 standalone Skill 安装和已支持的 Codex / Claude Plugin 开关；Plugin 项目安装、单个 Skill 开关及 Kimi Plugin 项目开关暂不支持。所有操作先检查冲突、重复和 Harness 加载边界，见[使用手册](docs/usage.md#项目开关支持范围)。
 
 Marketplace 第三方来源以 [sources.yaml](sources.yaml) 为准，同步 commit 记录在 [sources.lock.json](sources.lock.json)。本仓库自有脚本与 metadata 使用 [MIT License](LICENSE)，第三方内容遵守各自附带的许可证。
 

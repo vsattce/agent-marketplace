@@ -110,12 +110,12 @@ git diff --check
 | --- | --- |
 | 冲突查找工作流 | [resolve-conflicts](../plugins/agent-manager/skills/resolve-conflicts/SKILL.md) |
 | 只读版本比较与共享 API helper | [check-updates](../plugins/agent-manager/skills/check-updates/SKILL.md) |
-| 项目开关工作流与事务编辑器 | [configure-project](../plugins/agent-manager/skills/configure-project/SKILL.md) |
+| 项目指令、Skill 安装、开关工作流与编辑器 | [configure-project](../plugins/agent-manager/skills/configure-project/SKILL.md) |
 | Codex / Claude / Kimi 来源与加载机制 | [Codex](../plugins/agent-manager/references/codex.md)、[Claude](../plugins/agent-manager/references/claude.md)、[Kimi](../plugins/agent-manager/references/kimi.md) |
 | 其他 Agent 的只读来源发现 | [agent-sources.md](../plugins/agent-manager/references/agent-sources.md) |
-| 配置执行的能力与输入契约 | [Codex](../plugins/agent-manager/skills/configure-project/references/codex-support.md)、[Claude](../plugins/agent-manager/skills/configure-project/references/claude-support.md)、[editor-input.md](../plugins/agent-manager/skills/configure-project/references/editor-input.md) |
+| 项目文件预检、开关能力与输入契约 | [project-edits.md](../plugins/agent-manager/skills/configure-project/references/project-edits.md)、[Codex](../plugins/agent-manager/skills/configure-project/references/codex-support.md)、[Claude](../plugins/agent-manager/skills/configure-project/references/claude-support.md)、[editor-input.md](../plugins/agent-manager/skills/configure-project/references/editor-input.md) |
 
-配置编辑器的 Codex 分支使用 tomlkit 0.13.3+（<1）保留注释与排版；Claude 分支使用标准库增量替换 JSON 值，拒绝重复键和损坏配置。事务执行保留无关字节，具备幂等、锁、原子替换、二次读取和失败恢复；Windows 路径、symlink、junction 与 hardlink 的拒绝行为有测试覆盖。
+Plugin 开关编辑器的 Codex 分支使用 tomlkit 0.13.3+（<1）保留注释与排版；Claude 分支使用标准库增量替换 JSON 值，拒绝重复键和损坏配置。它只处理 Plugin 开关；AGENTS.md 与 standalone Skill 文件操作由 Skill 层完成，并在混合请求写入前统一预检。现有开关事务保留无关字节，具备幂等、锁、原子替换、二次读取和失败恢复；Windows 路径、symlink、junction 与 hardlink 的拒绝行为有测试覆盖。
 
 Skill 运行时使用已准备的 Agent 工具环境，不安装依赖、不启动客户端做能力探测，不用全局写入弥补项目能力缺失。客户端版本适配先补充真实隔离证据，再更新编辑器的已验证版本常量及支持说明。Gemini 来源发现说明不代表其 Marketplace 安装已适配。
 

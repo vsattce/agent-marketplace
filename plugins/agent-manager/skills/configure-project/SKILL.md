@@ -1,39 +1,34 @@
 ---
 name: configure-project
 disable-model-invocation: true
-description: Execute explicit project Plugin enable/disable requests in Codex or Claude Code; report unsupported Kimi Code project switches. Only use when explicitly invoked by the user. Unsupported capabilities are BLOCKED.
+description: Use when explicitly called to edit project AGENTS.md files, install user-specified project Skills or Plugins, or change a supported project Plugin switch. Only use when explicitly invoked by the user.
 ---
 
 # 配置当前项目的 Agent Skill / Plugin
 
-纯执行型配置编辑器。只有用户明确调用 Codex 的 `$agent-manager:configure-project`、Claude Code 的 `/agent-manager:configure-project`、Kimi Code 的 `/skill:configure-project`（或当前客户端支持的显式别名）后才执行。普通聊天、技术栈识别、配置问题或冲突发现均不能触发，也不能从 resolve-conflicts 自动转入本入口。
+纯执行型项目配置入口。只有用户明确调用 Codex 的 `$agent-manager:configure-project`、Claude Code 的 `/agent-manager:configure-project`、Kimi Code 的 `/skill:configure-project`（或当前客户端支持的显式别名）后才执行。普通聊天、技术栈识别、配置问题或冲突发现均不能触发，也不从 `resolve-conflicts` 自动转入。
 
-最高边界：**当前项目内可写；用户/全局及项目外永远只读**。只接受用户逐项指定的 Skill / Plugin 开关；不推荐组合、不按项目技术栈决定、不安装缺失目标、不刷新 Marketplace、不运行 sync.py。运行本 Skill 不 commit / push 用户项目。
+最高边界：只写当前项目；用户级、全局和项目外始终只读。不改 trust、安全、审批、model、reasoning、MCP 或 profile，不 commit / push，不刷新 Marketplace，不自动安装依赖。只执行用户明确要求的操作，不推荐组合。
 
 ## 执行
 
-1. 确认当前 Harness，而非模型品牌。Codex 与 Claude Code 继续下列执行；Kimi Code 读取 [Kimi 能力边界](../../references/kimi.md)，整批返回 `BLOCKED / KIMI PROJECT-LEVEL CONFIGURATION NOT SUPPORTED`，零配置写入；其他 Agent 输出 `BLOCKED / UNSUPPORTED AGENT`。通过 `git rev-parse --show-toplevel` 确认当前 worktree 根；失败输出 `BLOCKED / PROJECT ROOT NOT FOUND`。不 git init、不猜目录。当前项目由调用环境确定，不能切到另一个项目完成请求。
-2. 解析用户明确指定的全部 ENABLE / DISABLE 请求，保持完整批次。只接受项目范围；用户要求改全局、其他项目或 model / reasoning / MCP / sandbox / approval / profiles 等内容时整批 BLOCKED。说明具体不受支持项，不执行剩余项。
-3. 使用现有会话的权威清单、已存在的安装 receipt / 有效配置和真实路径，建立**完整的当前目标清单**，包括已禁用入口、同名不同来源和项目/用户/Plugin 的目标。只读取已知 Agent 来源目录，不遍历用户内容。按 Plugin 的 `plugin-name@marketplace-name`、Skill 的真实 `SKILL.md` 路径和所属 Plugin identity 标识；所有匹配候选保留，不能按层级、第一项或近似名称挑选。无匹配 `TARGET NOT FOUND`；多个匹配 `AMBIGUOUS TARGET`，列出候选并等待用户明确身份。
-4. 核对当前能力与项目配置层：Codex 读取 [Codex 能力与证据](references/codex-support.md)，Claude Code 读取 [Claude 能力与证据](references/claude-support.md)。必须证明当前项目配置会被加载，并且本地覆盖层、CLI override、profile 或 managed 限制不会阻止本次开关生效；项目不受信任、配置源被排除或证据不足就 BLOCKED。不改 trust 或其他配置来消除限制。不启动 Harness 探测，不调用可能写缓存的 plugin list / install / refresh。
-5. 将全部明确请求及只读证据组成 [编辑器输入](references/editor-input.md)，通过 stdin 交给 `scripts/configure_project.py`。运行目录始终是当前项目；`--cwd` 只用于传入同一项目已确认的当前目录。使用已准备好的、符合 mise / 项目约束的 Agent Python 3.12+ 环境，以 `python -B <skill-absolute-path>/scripts/configure_project.py` 执行；Codex 另需 tomlkit 0.13.3+（<1），Claude 分支仅用标准库。依赖缺失就 BLOCKED，不为运行本 Skill 写用户目录、安装依赖或改目标项目的环境/依赖文件。避免 shell profile、运行时缓存和 bytecode 的项目外写入。
-6. 编辑器完成全批定位、能力校验、canonical 路径校验、配置可逆解析和完整计划后，才增量写当前 Agent 的根配置：Codex `.codex/config.toml` 中目标 Plugin 的 enabled；Claude `.claude/settings.json` 中目标 identity 的 enabledPlugins 布尔值。保留其他配置、未知字段与未请求值及其字节排版。缺文件只创建本次开关所需的最小合法内容；锁和 staging 也只在同一项目内，执行后清理。不人工兜底改全局或 local 配置，不硬改损坏配置。
-7. 写入后重新读取，核对所有请求状态、未请求状态及无关内容。失败尽可能恢复原始字节/删除本次新配置；并发修改阻止恢复时明确报告，不能宣称零修改或成功。项目外读取目标/配置始终只读。返回完整结果；启动新会话或重新加载受信任项目才能获得新的会话状态，不将持久化验证声称为当前会话热重载。
+1. 按当前 Harness 身份确认项目根和请求作用域；优先用当前 workspace / Git 根，不从模型品牌猜 Harness。文件操作默认作用于根目录，只有用户明确给出子目录时才缩小作用域。Plugin 开关仍要求 Git 根；失败返回 `BLOCKED / PROJECT ROOT NOT FOUND`。不 git init、不切换项目。
+2. 解析完整批次，只接受明确指定的项目操作：编辑项目 `AGENTS.md`、从明确来源复制 standalone Skill 到明确项目目标、安装用户明确指定的项目 Plugin，或本版支持的已安装 Plugin 开关。Plugin 安装仅在当前 Harness 的具体安装工具/操作、来源身份、canonical 目标及**全部写入都留在当前项目**均有当前证据时才执行；否则 `BLOCKED`。不把 Plugin 安装、Skill 安装或 `AGENTS.md` 编辑塞进 `configure_project.py` 的 stdin 契约。泛化配置文件编辑不在本 Skill 范围内。
+3. 写入前按 [项目文件预检](references/project-edits.md) 对完整批次做只读预检：确认实际加载链、所有目标与来源，检查冲突、能力重复、路径和支持边界。Plugin 安装还必须核实当前版本真实支持的具体安装操作及其完整写入范围；仅有 `--scope project` 不足以证明安全。任何目标歧义、未解决冲突、无法归并的重复目标或完成操作所必需的加载/能力证据缺失，均先停止整批；给出双方证据与最小选择，只问会改变结果的问题。用户已明确要求将既有规则从 A 改为 B 时，按该授权原位修改并去重，不重复询问。
+4. 批次含 Plugin 开关时，Codex 与 Claude Code 按各自 [支持边界](references/codex-support.md)、[Claude 证据](references/claude-support.md) 和 [编辑器输入](references/editor-input.md) 完成能力、版本、依赖核对并预备**仅开关请求**的编辑器输入；此步不调用会写入的 `scripts/configure_project.py`。保留编辑器原输入契约。纯 `AGENTS.md` 编辑或 standalone Skill 安装不需要 Python，也不走单个 Skill 开关的 unsupported 分支。Kimi Plugin 开关不支持；含此请求的混合批次整批零写入。
+5. 首次写入前重读全部目标并与预检基线比对；基线变化时停止并重新预检。复核通过后，才在已确认的项目路径内做最小编辑或完整复制，并对预备好的 Plugin 开关输入调用 `scripts/configure_project.py`。保留原文、编码、换行和用户已有改动；只改请求涉及的规则。Skill 安装保留所需资源并记录来源；不运行来源脚本或不受支持的原生安装器，不覆盖身份不明的已有文件。Plugin 安装只调用预检证据已确认的具体项目内操作，不自行猜测命令或改用复制伪装安装。
+6. 写后重读目标，核对请求结果、无关内容和适用加载状态。Plugin 安装另核验安装记录、来源身份和实际项目作用域，并确认操作没有产生项目外写入；无法确认则报告 `BLOCKED` / `UNKNOWN`，不得声称安装成功。跨文件操作不是原子事务；执行中失败时只在当前文件仍与本次写入完全一致时恢复本次改动，遇到并发修改则保留现状并报告 `UNKNOWN; CHECK PROJECT FILES`。不把保存文件声称为当前会话已热加载。
 
-## 本版能力
+## 支持边界
 
-- 已安装的本地 Marketplace Plugin：Codex 项目级 ENABLE / DISABLE，可批量事务执行。
-- 单个 Skill：`BLOCKED / CODEX PROJECT-LEVEL CONFIGURATION NOT SUPPORTED`。本机 0.162.0-alpha.2 会读取项目 `skills.config`，但加载器只应用用户层的 Skill 开关；不写无效的项目条目，不改用户配置兜底。
-- workspace-managed / 无可靠本地身份 / 未安装 Plugin：BLOCKED；Marketplace 可发现、磁盘缓存存在不等于已安装。
-- 未验证的 Codex 版本：BLOCKED，维护者需先补充隔离加载器证据。本 Skill 执行时不能自行探测或升级客户端。
-- Claude Code 已安装 Marketplace Plugin：项目级 ENABLE / DISABLE，写 `.claude/settings.json`，支持批量事务与用户层覆盖；本地设置反向覆盖时整批 BLOCKED。
-- Claude Code 单个 Skill：本版 BLOCKED。`skillOverrides` 不作用于 Plugin Skill；standalone Skill 尚未完成编辑器与加载器验收，不写未经验证的条目。未验证的 Claude Code 版本同样 BLOCKED。
-- Kimi Code Plugin / 单个 Skill：项目级开关整批 BLOCKED。原生 Plugin 开关是用户级；不写无效的项目字段或改全局状态兜底。
-
-含一个不受支持目标的混合批次，整个操作为 BLOCKED，零配置写入。
+- **Plugin 项目开关**：Codex `0.162.0-alpha.2` 的已安装本地 Marketplace Plugin 写 `.codex/config.toml`；Claude Code `2.1.296` 写 `.claude/settings.json`。更高覆盖、managed 限制、信任或有效层证据不足时整批拒绝。Codex / Claude 的单个 Skill 项目开关仍为 `BLOCKED`。
+- **项目 standalone Skill 安装**：仅按当前 Harness 已确认的项目发现目录处理，且来源和目标由用户明确指定。Codex 常见目录为 `.agents/skills/`，Claude 为 `.claude/skills/`，Kimi 为 `.kimi-code/skills/` 或 `.agents/skills/`；仍须按当前版本和配置核实。安装不等于启用 Plugin。
+- **项目 Plugin 安装**：本版没有 Codex、Claude Code 或 Kimi Code 的全写入均限于项目内的已验证安装契约，故 `BLOCKED / PROJECT-LOCAL PLUGIN INSTALL NOT VERIFIED`。项目 Plugin 开关证据不构成安装证据。
+- **项目 `AGENTS.md`**：按当前 Harness 的真实指令链检查目标文件是否生效。Codex 同目录 `AGENTS.override.md` 会遮蔽 `AGENTS.md`；Claude 按版本、祖先 `CLAUDE.md` / `CLAUDE.local.md` 与 Project instructions 设置判断；Kimi 按实际 `.kimi-code/AGENTS.md`、`AGENTS.md` 等项目来源判断。可按用户明确要求编辑目标文件，但不自动改名、加引用或声称当前 Harness 会加载它。
+- 未验证的 Plugin 开关版本或其他 Harness 的安装能力为 `BLOCKED / UNSUPPORTED AGENT`。若用户仅明确要求编辑 `AGENTS.md`，但当前 Harness 的加载状态未知，可完成文件编辑并报告 `LOADING UNKNOWN`；若用户要求让当前 Harness 确实遵循它，先问是否授权添加项目内引用/入口。
 
 ## 报告
 
-成功：`SUCCESS`、Agent、Project、Config、实际 Changed（ENABLE / DISABLE + 完整身份）、Unchanged、`Global files modified: NONE`，说明已重读项目配置及激活边界。
+成功报告 `SUCCESS`、Agent、Project、每项操作与路径、Changed / Unchanged、加载状态和 `Global files modified: NONE`。不确定的来源或加载状态写 `UNKNOWN`，不得声称已排除冲突或已生效。
 
-失败：`BLOCKED`、Reason、Target（适用时）、Matches（歧义时）、`Changes applied: NONE`、`Global files modified: NONE`。验证后恢复失败/外部并发改动时，Changes applied 改为 `UNKNOWN; CHECK PROJECT CONFIG`，并给出原因，不展示完整配置或敏感值。
+阻止时报告 `BLOCKED`、Reason、Target、相关来源证据及 `Changes applied: NONE`。如失败恢复被并发修改阻止，明确列出可能已改路径与 `UNKNOWN; CHECK PROJECT FILES`，不声称零修改。

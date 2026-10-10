@@ -8,8 +8,12 @@
 | `.claude/settings.local.json` 覆盖 | local 高于 project；同一目标存在反向值就整批 BLOCKED，不改 local 或全局兜底 |
 | managed / CLI / excluded settings source / 未受信任项目 | 需要现有会话证明项目层有效、请求能决定最终状态，否则 BLOCKED |
 | 单个 Plugin Skill | BLOCKED；官方说明 `skillOverrides` 不应用于 Plugin Skills |
-| standalone Skill | 本版 BLOCKED，尚未实现与验证；不能用 enabledPlugins 模拟 Skill 开关 |
+| standalone Skill 项目安装 | 手动复制用户明确指定来源至 `.claude/skills/` 可用；仅只读来源，写入限于当前项目；不使用可能写用户 cache 的安装器 |
 | 未安装或身份不明 Plugin / 未验证版本 | BLOCKED，不安装、不探测、不刷新 |
+
+Skill 目录复制是项目文件操作，不是单个 Skill 开关，也不证明 Plugin 可项目安装。按 [项目文件预检](project-edits.md) 核验真实目录、来源、冲突和重复。
+
+Claude Code `2.1.277+` 可按版本、当前 Project instructions 设置及工作目录祖先中的 `CLAUDE.md` / `CLAUDE.local.md` 选择是否读取 `AGENTS.md`；编辑前检查实际加载证据，不自动添加 import。官方加载细节见 [memory / AGENTS.md](https://code.claude.com/docs/en/memory)。
 
 证据输入使用 `agent: "claude"`、`inventory.claude_version: "2.1.296 (Claude Code)"`；targets 的 Plugin 使用完整 `name@marketplace`、已存在 `.claude-plugin/plugin.json` 的真实插件根、`installed: true`、`configuration: "marketplace"`。同一身份有不同 scope / projectPath 时仅纳入适用当前项目的 receipt，歧义不猜选。版本、root、完整 inventory、有效项目层和覆盖断言均须来自当前环境。
 

@@ -1,6 +1,6 @@
 interface:
   display_name: "配置当前项目的 Agent Skill / Plugin"
-  short_description: "仅手动执行明确开关请求，只写当前项目配置；不支持的能力整批拒绝。"
-  default_prompt: "使用 $agent-manager:configure-project 执行我明确指定的 Skill / Plugin 开关，仅修改当前项目配置，全局只读；先验证全部目标和官方项目能力再一次写入。"
+  short_description: "仅手动处理明确的项目指令、Skill 安装和受支持的 Plugin 安装/开关。"
+  default_prompt: "使用 $agent-manager:configure-project 执行我明确指定的项目 AGENTS.md 编辑、standalone Skill 安装、Plugin 安装或受支持的 Plugin 开关；Plugin 安装仅在已核实具体操作及全部写入局限当前项目时执行；先检查整批冲突和重复，只写当前项目。"
 policy:
   allow_implicit_invocation: false

@@ -27,6 +27,6 @@
 
 2026-10-10 核对 Kimi Code Desktop 1.0.4：原生 PluginManager 的开关持久化到用户数据根 `plugins/installed.json`，插件对所有项目生效；官方文档明确尚无项目安装 scope。本版未发现已验证的项目 Plugin / 单个 Skill 开关契约，`.kimi-code/local.toml` 不能凭空增加 enablement 字段。
 
-`configure-project` 对 Kimi 的整个请求返回 `BLOCKED / KIMI PROJECT-LEVEL CONFIGURATION NOT SUPPORTED`，不运行编辑器写入步骤、不改用户开关兜底、不修改或移动 Skill。未来支持需要先补官方契约和真实隔离覆盖证据。
+`configure-project` 中 Kimi Plugin 项目开关返回 `BLOCKED / KIMI PROJECT-LEVEL CONFIGURATION NOT SUPPORTED`；混入其他操作时仍整批零写入。Kimi 的项目 `AGENTS.md` 编辑和 standalone Skill 目录复制可按当前实际加载来源与项目发现目录预检，不调用用户级 Plugin 安装器；Plugin 项目安装仍无全写入项目的已验证契约。具体执行见 [项目文件预检](../skills/configure-project/references/project-edits.md)。
 
 官方依据：[Plugin 安装、manifest 与作用域](https://github.com/MoonshotAI/kimi-code/blob/main/docs/en/customization/plugins.md)、[Skill 来源与调用](https://github.com/MoonshotAI/kimi-code/blob/main/docs/en/customization/skills.md)、[配置文件](https://github.com/MoonshotAI/kimi-code/blob/main/docs/en/configuration/config-files.md)。
