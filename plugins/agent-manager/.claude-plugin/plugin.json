@@ -1,0 +1,10 @@
+{
+  "name": "agent-manager",
+  "description": "手动查找 Agent 冲突、只读检查来源版本，或执行当前 Codex / Claude Code 项目的明确 Plugin 开关请求。",
+  "author": {
+    "name": "hjy"
+  },
+  "homepage": "https://github.com/vsattce/agent-marketplace",
+  "repository": "https://github.com/vsattce/agent-marketplace",
+  "license": "MIT"
+}

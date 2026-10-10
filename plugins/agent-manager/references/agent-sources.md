@@ -1,6 +1,6 @@
 # 其他 Agent 的来源发现
 
-用于冲突查找；check-updates 仍按其 Codex 适配执行。只读查看当前 Agent 的已知来源，不启动新 Harness，不操作安装、刷新、禁用或配置。下面是来源示例，不是允许的 Agent 白名单，也不是固定文件名表。
+用于冲突查找；check-updates 使用独立的 Codex / Claude adapter。只读查看当前 Agent 的已知来源，不启动新 Harness，不操作安装、刷新、禁用或配置。下面是来源示例，不是允许的 Agent 白名单，也不是固定文件名表。
 
 ## 通用发现
 

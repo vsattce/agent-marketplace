@@ -1,0 +1,36 @@
+{
+  "name": "agent-marketplace",
+  "owner": {
+    "name": "hjy"
+  },
+  "metadata": {
+    "description": "共享 Skills，支持 Codex 与 Claude Code。"
+  },
+  "plugins": [
+    {
+      "name": "common-workflow",
+      "source": "./plugins/common-workflow",
+      "description": "任务交接、问题诊断、资料研究与 Agent 工作流工具。"
+    },
+    {
+      "name": "frontend-dev",
+      "source": "./plugins/frontend-dev",
+      "description": "前端界面设计、Vue 开发与 Web 设计规范。"
+    },
+    {
+      "name": "backend-dev",
+      "source": "./plugins/backend-dev",
+      "description": "Java / Spring Boot 开发与工程实践。"
+    },
+    {
+      "name": "testing-automation",
+      "source": "./plugins/testing-automation",
+      "description": "网页测试、Playwright 浏览器自动化与测试最佳实践。"
+    },
+    {
+      "name": "agent-manager",
+      "source": "./plugins/agent-manager",
+      "description": "手动查找 Agent 冲突、只读检查来源版本，或执行当前 Codex / Claude Code 项目的明确 Plugin 开关请求。"
+    }
+  ]
+}

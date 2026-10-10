@@ -175,7 +175,7 @@ class SyncTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=self.root) as staging:
             staged = Path(staging) / "replacement"
             staged.mkdir()
-            for relative in ("plugins/agent-manager/skills/resolve-conflicts", "plugins/common-workflow/plugin.json", "plugins/common-workflow/skills"):
+            for relative in ("plugins/agent-manager/skills/resolve-conflicts", "plugins/common-workflow/plugin.json", "plugins/common-workflow/skills", "plugins/common-workflow/.claude-plugin/plugin.json", ".claude-plugin/marketplace.json"):
                 with self.subTest(target=relative), self.assertRaises(skill_sync.SyncError):
                     skill_sync.publish([(staged, self.root / relative)], Path(staging), self.root)
             self.assertTrue(staged.exists())

@@ -22,7 +22,7 @@
 
 ## 更新检查
 
-check-updates 仍只支持 Codex；不因冲突查找扩展 Agent 来源而扩大更新检查范围。每次执行核对当前官方只读查询机制。可用命令与字段须经当前版本证实；无法证明 CLI / RPC 无安装、刷新、日志或缓存写入副作用时，读取现有 metadata，缺失项标 `UNKNOWN`。
+此 adapter 只用于 Codex；Claude Code 使用 [独立 adapter](claude.md)，不因其他 Agent 的来源示例扩大更新检查范围。每次执行核对当前官方只读查询机制。可用命令与字段须经当前版本证实；无法证明 CLI / RPC 无安装、刷新、日志或缓存写入副作用时，读取现有 metadata，缺失项标 `UNKNOWN`。
 
 Codex Plugin 调用优先使用 `$agent-manager:resolve-conflicts`、`$agent-manager:check-updates`；裸别名是否可用以当前会话为准，不通过复制 standalone Skill 或修改配置补别名。
 

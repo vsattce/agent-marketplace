@@ -2,10 +2,10 @@
 # requires-python = ">=3.12"
 # dependencies = ["tomlkit>=0.13.3,<1"]
 # ///
-"""Explicit, transactional project switches. Never launch a Codex harness.
+"""Explicit, transactional project switches. Never launch an Agent harness.
 
 The calling Skill supplies current read-only discovery evidence over stdin.
-Only the project's .codex/config.toml is a persistent write target.
+Only the current Agent's project configuration is a persistent write target.
 """
 
 from __future__ import annotations
@@ -36,7 +36,9 @@ class Blocked(ValueError):
 # Exact runtime validated in tests/test_project_config_codex.py. Unknown versions
 # fail closed; a version change needs fresh isolated loader evidence, not a guess.
 VERIFIED_CODEX = "codex-cli 0.162.0-alpha.2"
+VERIFIED_CLAUDE = "2.1.296 (Claude Code)"
 UNSUPPORTED_CONFIG = "CODEX PROJECT-LEVEL CONFIGURATION NOT SUPPORTED"
+UNSUPPORTED_CLAUDE = "CLAUDE PROJECT-LEVEL CONFIGURATION NOT SUPPORTED"
 
 
 def project_root(cwd: Path) -> Path:
@@ -60,6 +62,7 @@ def protected_roots() -> list[Path]:
     return [path.resolve() for path in (
         home / ".codex", home / ".agents", home / ".claude", home / ".config",
         Path(os.environ.get("CODEX_HOME", home / ".codex")),
+        Path(os.environ.get("CLAUDE_CONFIG_DIR", home / ".claude")),
     )]
 
 
@@ -100,6 +103,87 @@ def codex_version() -> str:
         return result.stdout.strip()
     except (OSError, subprocess.TimeoutExpired) as error:
         raise Blocked(UNSUPPORTED_CONFIG) from error
+
+
+def claude_version() -> str:
+    try:
+        result = subprocess.run(["claude", "--version"], capture_output=True, text=True, timeout=10)
+        if result.returncode:
+            raise Blocked(UNSUPPORTED_CLAUDE)
+        return result.stdout.strip()
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise Blocked(UNSUPPORTED_CLAUDE) from error
+
+
+def read_json(text: str) -> dict:
+    """Reject duplicate keys and non-JSON numbers instead of losing user data."""
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("Duplicate JSON key")
+            result[key] = value
+        return result
+
+    def invalid_constant(value):
+        raise ValueError("Invalid JSON constant")
+
+    document = json.loads(text, object_pairs_hook=unique, parse_constant=invalid_constant)
+    if not isinstance(document, dict):
+        raise ValueError("JSON object required")
+    return document
+
+
+def json_members(text: str) -> dict[str, tuple[int, int]]:
+    """Find value spans in an already validated JSON object with the stdlib decoder."""
+    decoder = json.JSONDecoder()
+    position = text.index("{") + 1
+    members = {}
+    while True:
+        while text[position].isspace():
+            position += 1
+        if text[position] == "}":
+            return members
+        key, position = decoder.raw_decode(text, position)
+        while text[position].isspace():
+            position += 1
+        position += 1  # colon, guaranteed by read_json
+        while text[position].isspace():
+            position += 1
+        start = position
+        _, position = decoder.raw_decode(text, position)
+        members[key] = (start, position)
+        while text[position].isspace():
+            position += 1
+        if text[position] == ",":
+            position += 1
+
+
+def set_json_members(text: str, values: dict) -> str:
+    """Change requested scalar values; preserve all other bytes and key order."""
+    spans = json_members(text)
+    for key, (start, end) in sorted(spans.items(), key=lambda item: item[1][0], reverse=True):
+        if key in values:
+            text = text[:start] + json.dumps(values[key], ensure_ascii=False) + text[end:]
+    missing = {key: value for key, value in values.items() if key not in spans}
+    if missing:
+        # Insert before the closing brace without touching existing members.
+        closing = text.rfind("}")
+        insertion = closing
+        while insertion > 0 and text[insertion - 1].isspace():
+            insertion -= 1
+        newline = "\r\n" if "\r\n" in text else "\n"
+        indent = "  "
+        if "\n" in text:
+            for line in text.splitlines():
+                if line.lstrip().startswith('"'):
+                    indent = line[:len(line) - len(line.lstrip())]
+                    break
+        additions = ("," + newline + indent).join(
+            json.dumps(key, ensure_ascii=False) + ": " + json.dumps(value, ensure_ascii=False)
+            for key, value in missing.items())
+        text = text[:insertion] + ("," if spans else "") + newline + indent + additions + text[insertion:]
+    return text
 
 
 def resolve_requests(requests: list, inventory: dict) -> list[dict]:
@@ -206,6 +290,63 @@ class CodexAdapter:
             raise Blocked("CONFIG CANNOT BE SAFELY MODIFIED") from error
 
 
+class ClaudeAdapter:
+    """Verified Claude Code enabledPlugins in shared project settings."""
+
+    def validate(self, root: Path, inventory: dict, targets: list[dict]) -> None:
+        if (claude_version() != VERIFIED_CLAUDE or inventory.get("claude_version") != VERIFIED_CLAUDE
+                or inventory.get("project_config_active") is not True
+                or inventory.get("project_overrides_effective") is not True
+                or inventory.get("project_root") != str(root)):
+            raise Blocked(UNSUPPORTED_CLAUDE)
+        # This higher project layer must not silently override the edited value.
+        local = root / ".claude/settings.local.json"
+        safe_path(local, root)
+        try:
+            local_settings = read_json(local.read_text(encoding="utf-8")) if local.exists() else {}
+            switches = local_settings.get("enabledPlugins", {})
+            if not isinstance(switches, dict):
+                raise ValueError("Invalid enabledPlugins")
+            for target in targets:
+                if (target["kind"] != "plugin" or target.get("installed") is not True
+                        or target.get("configuration") != "marketplace"
+                        or target["id"].count("@") != 1 or not all(target["id"].split("@"))):
+                    raise Blocked(UNSUPPORTED_CLAUDE, target["id"])
+                if target["id"] in switches and switches[target["id"]] is not target["enabled"]:
+                    raise Blocked("CLAUDE LOCAL SETTINGS OVERRIDE PROJECT", target["id"])
+                plugin_root = Path(target["path"])
+                manifest = plugin_root / ".claude-plugin/plugin.json"
+                if (not plugin_root.is_absolute() or not manifest.is_file()
+                        or read_json(manifest.read_text(encoding="utf-8")).get("name") != target["id"].split("@")[0]):
+                    raise Blocked("TARGET NOT FOUND", target["id"])
+        except (OSError, ValueError, TypeError) as error:
+            if isinstance(error, Blocked):
+                raise
+            raise Blocked("CONFIG CANNOT BE SAFELY MODIFIED") from error
+
+    def plan(self, original: bytes, targets: list[dict]) -> tuple[bytes, dict]:
+        try:
+            text = original.decode("utf-8") if original else "{\n}\n"
+            baseline = read_json(text)
+            expected = deepcopy(baseline)
+            switches = expected.setdefault("enabledPlugins", {})
+            if not isinstance(switches, dict) or any(type(value) is not bool for value in switches.values()):
+                raise ValueError("Invalid enabledPlugins")
+            requested = {target["id"]: target["enabled"] for target in targets}
+            switches.update(requested)
+            spans = json_members(text)
+            if "enabledPlugins" in spans:
+                start, end = spans["enabledPlugins"]
+                text = text[:start] + set_json_members(text[start:end], requested) + text[end:]
+            else:
+                text = set_json_members(text, {"enabledPlugins": requested})
+            if read_json(text) != expected:
+                raise ValueError("Unexpected configuration change")
+            return text.encode("utf-8"), expected
+        except (ValueError, TypeError, KeyError) as error:
+            raise Blocked("CONFIG CANNOT BE SAFELY MODIFIED") from error
+
+
 @contextmanager
 def hold_directories(parent: Path):
     """On Windows deny ancestor rename/delete while validating and publishing."""
@@ -239,7 +380,8 @@ def hold_directories(parent: Path):
 
 def verify_config(path: Path, planned: bytes, expected: dict) -> None:
     actual = path.read_bytes()
-    if actual != planned or tomllib.loads(actual.decode("utf-8")) != expected:
+    parsed = read_json(actual.decode("utf-8")) if path.suffix == ".json" else tomllib.loads(actual.decode("utf-8"))
+    if actual != planned or parsed != expected:
         raise Blocked("CONFIG VERIFICATION FAILED")
 
 
@@ -323,23 +465,26 @@ def publish(root: Path, config: Path, original: bytes | None, planned: bytes, ex
 def configure(payload: dict, cwd: Path) -> dict:
     if not isinstance(payload, dict) or payload.get("explicit_invocation") is not True:
         raise Blocked("USER EXPLICIT REQUEST REQUIRED")
-    if payload.get("agent") != "codex":
+    if payload.get("agent") not in {"codex", "claude"}:
         raise Blocked("UNSUPPORTED AGENT")
     if set(payload) != {"agent", "explicit_invocation", "scope", "requests", "inventory"} or payload["scope"] != "project":
         raise Blocked("PROJECT-ONLY CONFIGURATION REQUIRED")
     root = project_root(cwd)
-    config = root / ".codex/config.toml"
+    is_claude = payload["agent"] == "claude"
+    config = root / (".claude/settings.json" if is_claude else ".codex/config.toml")
     safe_path(config, root)
     inventory = payload["inventory"]
     if not isinstance(inventory, dict):
         raise Blocked("TARGET INVENTORY INCOMPLETE")
     targets = resolve_requests(payload["requests"], inventory)
-    adapter = CodexAdapter()
+    adapter = ClaudeAdapter() if is_claude else CodexAdapter()
     adapter.validate(root, inventory, targets)
     try:
         if config.exists() and not config.stat().st_mode & stat.S_IWUSR:
             raise Blocked("CONFIG CANNOT BE SAFELY MODIFIED")
         original = config.read_bytes() if config.exists() else None
+        if is_claude and original == b"":
+            raise Blocked("CONFIG CANNOT BE SAFELY MODIFIED")
         planned, expected = adapter.plan(original or b"", targets)
         if planned != original:
             publish(root, config, original, planned, expected)
@@ -347,10 +492,11 @@ def configure(payload: dict, cwd: Path) -> dict:
             verify_config(config, planned, expected)
     except OSError as error:
         raise Blocked("CONFIG CANNOT BE SAFELY MODIFIED") from error
-    previous = tomllib.loads((original or b"").decode("utf-8")).get("plugins", {})
-    return {"Status": "SUCCESS", "Agent": "Codex", "Project": str(root), "Config": str(config),
+    previous = (read_json((original or b"{}").decode("utf-8")).get("enabledPlugins", {}) if is_claude
+                else tomllib.loads((original or b"").decode("utf-8")).get("plugins", {}))
+    return {"Status": "SUCCESS", "Agent": "Claude Code" if is_claude else "Codex", "Project": str(root), "Config": str(config),
             "Changed": [f'{"ENABLE" if target["enabled"] else "DISABLE"} {target["id"]}' for target in targets
-                        if previous.get(target["id"], {}).get("enabled") != target["enabled"]],
+                        if (previous.get(target["id"]) if is_claude else previous.get(target["id"], {}).get("enabled")) != target["enabled"]],
             "Unchanged": "All unrequested states, comments and unrelated configuration preserved",
             "Global files modified": "NONE", "Verified": "Project configuration re-read; reload the trusted project to activate"}
 

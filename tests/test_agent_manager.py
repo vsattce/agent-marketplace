@@ -98,12 +98,34 @@ class PackagingTests(unittest.TestCase):
             self.assertIs(policy["policy"]["allow_implicit_invocation"], False)
             text = (skill / "SKILL.md").read_text(encoding="utf-8")
             self.assertIn("Only use when explicitly invoked by the user.", text)
+            frontmatter = yaml.safe_load(text.split("---", 2)[1])
+            self.assertIs(frontmatter["disable-model-invocation"], True)
         sources = yaml.safe_load((ROOT / "sources.yaml").read_text(encoding="utf-8"))
         self.assertNotIn("agent-manager", sources["groups"])
         lock = json.loads((ROOT / "sources.lock.json").read_text(encoding="utf-8"))
         self.assertNotIn("agent-manager", {item["group"] for item in lock["skills"].values()})
         self.assertNotIn("configure-project", lock["skills"])
         self.assertNotIn("configure-project", {item["name"] for group in sources["groups"].values() for item in group["skills"]})
+
+    def test_claude_catalog_uses_same_plugin_roots_and_unpinned_versions(self):
+        codex = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text(encoding="utf-8"))
+        claude = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
+        self.assertEqual(claude["name"], codex["name"])
+        self.assertEqual({entry["name"] for entry in claude["plugins"]}, {entry["name"] for entry in codex["plugins"]})
+        count = 0
+        for entry in claude["plugins"]:
+            counterpart = next(item for item in codex["plugins"] if item["name"] == entry["name"])
+            self.assertEqual(entry["source"], counterpart["source"]["path"])
+            root = ROOT / entry["source"]
+            manifest = json.loads((root / ".claude-plugin/plugin.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["name"], entry["name"])
+            self.assertNotIn("version", manifest)
+            self.assertNotIn("version", entry)
+            self.assertNotIn("skills", manifest)  # Default directory discovery, one shared copy.
+            count += len(list((root / "skills").glob("*/SKILL.md")))
+        self.assertEqual(count, 16)
+        handoff = (ROOT / "plugins/common-workflow/skills/handoff/SKILL.md").read_text(encoding="utf-8")
+        self.assertIs(yaml.safe_load(handoff.split("---", 2)[1])["disable-model-invocation"], True)
 
 
 if __name__ == "__main__":

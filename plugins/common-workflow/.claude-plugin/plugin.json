@@ -1,0 +1,9 @@
+{
+  "name": "common-workflow",
+  "description": "任务交接、问题诊断、资料研究与 Agent 工作流工具。",
+  "author": {
+    "name": "hjy"
+  },
+  "homepage": "https://github.com/vsattce/agent-marketplace",
+  "repository": "https://github.com/vsattce/agent-marketplace"
+}

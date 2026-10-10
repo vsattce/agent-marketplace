@@ -16,4 +16,4 @@
 - [配置层级与信任](https://learn.chatgpt.com/docs/config-file/config-basic)：项目设置高于用户默认值，但受 CLI、profile、managed 限制；仅保存配置不能证明当前会话已刷新。
 - [Skill 开关与显式调用](https://learn.chatgpt.com/docs/build-skills)：当前开关示例在用户 `~/.codex/config.toml`，path 为 `SKILL.md`；metadata 的 `policy.allow_implicit_invocation: false` 阻止隐式调用。
 
-维护者换版本时先在隔离环境运行真实 loader 测试，再修改代码中的 VERIFIED_CODEX 与此表。不能根据 schema、config/read、文档通用层级推断单个 Skill 开关有效；不能通过用户级写入弥补项目能力缺失。未来 Agent adapter 未实现，本版不增加占位 adapter。
+维护者换版本时先在隔离环境运行真实 loader 测试，再修改代码中的 VERIFIED_CODEX 与此表。不能根据 schema、config/read、文档通用层级推断单个 Skill 开关有效；不能通过用户级写入弥补项目能力缺失。Claude Code 使用 [独立 adapter 与证据](claude-support.md)。

@@ -1,5 +1,6 @@
 ---
 name: resolve-conflicts
+disable-model-invocation: true
 description: "Find conflicts and ambiguities between project and global Agent instructions, Skills and Plugins. Read-only. Only use when explicitly invoked by the user."
 ---
 

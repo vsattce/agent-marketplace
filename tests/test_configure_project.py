@@ -147,7 +147,7 @@ class ConfigureProjectTests(unittest.TestCase):
                     self.blocked(editor.UNSUPPORTED_CONFIG)
 
     def test_unsupported_agents(self):
-        for agent in ("claude", "kimi", "antigravity", "other", ""):
+        for agent in ("kimi", "antigravity", "other", ""):
             self.payload["agent"] = agent
             self.blocked("UNSUPPORTED AGENT")
 

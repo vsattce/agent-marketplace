@@ -1,0 +1,9 @@
+{
+  "name": "frontend-dev",
+  "description": "前端界面设计、Vue 开发与 Web 设计规范。",
+  "author": {
+    "name": "hjy"
+  },
+  "homepage": "https://github.com/vsattce/agent-marketplace",
+  "repository": "https://github.com/vsattce/agent-marketplace"
+}
