@@ -31,7 +31,9 @@ enabled = false
 
 ## 本地只读证据
 
-先读 `codex --version` 和对应 `--help`，当前基线支持：
+resolve-conflicts 的「项目外绝不写入」边界同时约束本 adapter。先从当前 Harness 元数据获取版本；只有确认进程本身及其子进程无项目外写入才运行 CLI（包括 --version / --help / list）或新 app-server。只设置 CODEX_HOME 不构成约束，接口名 read/list 也不证明日志、缓存和状态文件只读。可使用已有会话中已证实只读的接口或读取已存在的 metadata；证据不足就 BLOCKED，绝不通过修改 trust、全局配置/缓存或安装测试 Plugin 继续。
+
+当前基线支持以下查询入口，但执行仍受上述边界限制：
 
 ```text
 codex plugin list --json
@@ -41,7 +43,7 @@ codex plugin marketplace list --json
 
 只有确认本版本 list 无安装/刷新副作用才执行；否则读取现有 metadata。禁止把 add / marketplace upgrade 当作状态查询。list 的版本和 enabled 字段不是实际注入的全部证据。
 
-需要 loader/config 精确证据时，核对官方 app-server 文档及本机 protocol schema，再使用 `skills/list`、`config/read`（需要时 includeLayers）等只读接口；不要猜请求格式。不能取得时报告证据不足。不要输出完整 config/read，可能含密钥。
+需要 loader/config 精确证据时，核对官方 app-server 文档及现有本机 protocol schema，在满足执行边界后才使用 `skills/list`、`config/read`（需要时 includeLayers）；不要猜请求格式。不能取得时报告证据不足。不要输出完整 config/read，可能含密钥。之前在系统临时目录安装测试 Plugin 和修改临时用户配置的探测已撤出 Skill；`probe_codex.py` 只读文件并 BLOCKED，不是实际过滤验证。历史 0.162.0-alpha.2 测试结论保留作背景，每次仍需当前证据。
 
 识别项目 trust：核对有效配置层来源与用户配置的 projects/trust metadata；只有实际加载项目层才可写。新建项目配置尚未存在时，用已验证的本机 trust metadata确认该项目层可以加载。不得自动修改用户 trust。同一 Plugin 在项目 catalog 出现且全局安装，不足以证明是项目来源；结合加载路径、安装来源、配置层和 project catalog 判断。
 
@@ -49,7 +51,9 @@ codex plugin marketplace list --json
 
 ## 增量修改与验证
 
-使用 resolve-conflicts 的 helper `edit_config(project, plugin_updates=..., skill_updates=...)`，参数只包含扫描后确定的目标。它只操作项目 `.codex/config.toml`，保留 TOML 注释/格式；未支持的结构、用户 home、重定向或并发文件修改被拒绝。依赖为脚本隔离的 tomlkit 0.13.x，先核对目标项目 Python 约束与 mise；运行时不匹配则 BLOCKED，不替项目切换运行时。
+使用 resolve-conflicts 的 helper `edit_config(project, plugin_updates=..., skill_updates=...)`，参数只包含扫描后确定的目标。`write_path(project, target)` 将 project 与**调用时 cwd 识别的根目录**比较；传入另一个 Git 项目也被拒绝。每次创建、写入、替换、chmod、临时文件和失败清理均重新检查 canonical 包含关系、用户目录禁区及 symlink/junction/hardlink。它只编辑项目 `.codex/config.toml`，保留 TOML 注释/格式；未支持结构、重定向、权限不足或并发修改 BLOCKED。Skill path 参数可引用项目外文件，但只是读取/selector，不是写目标。
+
+helper 需要已有 Python 3.12+、tomlkit 0.13.x、PyYAML 6.x；先服从目标项目约束核对 mise，不匹配 BLOCKED。以 `python -B` 执行，不在全局 Plugin 源码产生 bytecode；不能为此写入项目外的 uv 环境、依赖缓存或全局包目录。所需依赖不可安全取得则停止执行。路径检查不能约束任意外部进程，不能把 helper 说成系统级 sandbox。
 
 编辑前再次核对有效状态；完成后重新读 TOML，重新做官方 loader 发现并对比相关 Skills，核对用户 config 字节未变。需要新会话/重启才能加载时报告 `PENDING RELOAD` 和 Unresolved，不声称即刻生效。不能验证时不扩大修改。
 

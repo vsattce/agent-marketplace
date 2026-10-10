@@ -5,20 +5,93 @@ request context then stops the CLI; no model, external API, or Skill body execut
 """
 
 import http.server
-import importlib.util
 import json
 import os
 from pathlib import Path
-import shutil
+import queue
 import subprocess
 import tempfile
 import threading
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-SPEC = importlib.util.spec_from_file_location("codex_probe", ROOT / "plugins/agent-manager/skills/resolve-conflicts/scripts/probe_codex.py")
-probe = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(probe)
+
+
+class ProbeBlocked(ValueError):
+    """Development-only loader evidence could not be obtained."""
+
+
+def stop_process(process: subprocess.Popen) -> None:
+    """Stop only our probe and its children, including inherited pipe owners."""
+    if process.poll() is None:
+        if os.name == "nt":
+            subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                           capture_output=True, timeout=10)
+        else:
+            process.terminate()
+        try:
+            process.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait(timeout=10)
+
+
+def run(command: list[str], env: dict[str, str], cwd: Path) -> str:
+    result = subprocess.run(command, env=env, cwd=cwd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=40)
+    if result.returncode:
+        raise ProbeBlocked(f"{command[1]} failed (exit {result.returncode}); probe aborted")
+    return result.stdout
+
+
+def rpc_skills(cwd: Path, env: dict[str, str], selector: str | None = None) -> tuple[list[dict], bool]:
+    process = subprocess.Popen(["codex", "app-server", "--stdio"], cwd=cwd, env=env,
+                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                               stderr=subprocess.DEVNULL, text=True, encoding="utf-8")
+    responses = queue.Queue()
+
+    def reader():
+        for line in process.stdout:
+            try:
+                responses.put(json.loads(line))
+            except ValueError:
+                continue
+        responses.put(None)
+
+    worker = threading.Thread(target=reader, daemon=True)
+    worker.start()
+
+    def request(identifier, method, params):
+        process.stdin.write(json.dumps({"id": identifier, "method": method, "params": params}) + "\n")
+        process.stdin.flush()
+        while True:
+            message = responses.get(timeout=40)
+            if message is None:
+                raise ProbeBlocked("Codex app-server stopped before responding")
+            if message.get("id") == identifier:
+                if "error" in message:
+                    raise ProbeBlocked(f"Codex {method} rejected the probe request")
+                return message["result"]
+
+    try:
+        request(1, "initialize", {"clientInfo": {"name": "agent-manager-probe", "version": "0.1.0"}, "capabilities": {"experimentalApi": True}})
+        process.stdin.write('{"method":"initialized"}\n')
+        process.stdin.flush()
+        payload = request(2, "skills/list", {"cwds": [str(cwd)], "forceReload": True})
+        data = payload.get("data", [])
+        if len(data) != 1 or data[0].get("errors"):
+            raise ProbeBlocked("Codex Skill discovery returned incomplete inventory")
+        loaded = request(3, "config/read", {"cwd": str(cwd), "includeLayers": False})
+        entries = (loaded.get("config", {}).get("skills") or {}).get("config") or []
+        visible = any(item.get("path") == selector and item.get("enabled") is False for item in entries)
+        return data[0]["skills"], visible
+    except queue.Empty as error:
+        raise ProbeBlocked("Codex Skill discovery timed out") from error
+    finally:
+        stop_process(process)
+        process.stdin.close()
+        worker.join(timeout=5)
+        if not worker.is_alive():
+            process.stdout.close()
 
 
 @unittest.skipUnless(os.environ.get("AGENT_MANAGER_CODEX_TESTS") == "1", "Opt-in isolated Codex loader validation")
@@ -68,9 +141,9 @@ class CodexLoaderTests(unittest.TestCase):
             f'[projects.{json.dumps(str(self.project))}]\ntrust_level = "trusted"\n'
         )
         (self.agent_home / "config.toml").write_text(config, encoding="utf-8")
-        probe.run(["git", "init", "--quiet"], self.env, self.project)
-        probe.run(["codex", "plugin", "marketplace", "add", str(ROOT), "--json"], self.env, self.project)
-        probe.run(["codex", "plugin", "add", "agent-manager@agent-marketplace", "--json"], self.env, self.project)
+        run(["git", "init", "--quiet"], self.env, self.project)
+        run(["codex", "plugin", "marketplace", "add", str(ROOT), "--json"], self.env, self.project)
+        run(["codex", "plugin", "add", "agent-manager@agent-marketplace", "--json"], self.env, self.project)
 
     def capture(self, prompt):
         self.requests.clear()
@@ -84,7 +157,7 @@ class CodexLoaderTests(unittest.TestCase):
         try:
             captured = self.request_received.wait(timeout=40)
         finally:
-            probe.stop_process(process)
+            stop_process(process)
             self.release_response.set()
             if captured:
                 self.handler_done.wait(timeout=10)
@@ -92,7 +165,7 @@ class CodexLoaderTests(unittest.TestCase):
         return json.dumps(self.requests[0], ensure_ascii=False)
 
     def test_discovery_and_manual_only_context(self):
-        inventory, _ = probe.rpc_skills(self.project, self.env)
+        inventory, _ = rpc_skills(self.project, self.env)
         owned = [item for item in inventory if item["name"].startswith("agent-manager:")]
         self.assertEqual({item["name"] for item in owned}, {"agent-manager:resolve-conflicts", "agent-manager:check-updates"})
         self.assertTrue(all(item.get("enabled", True) for item in owned))
@@ -106,20 +179,6 @@ class CodexLoaderTests(unittest.TestCase):
             with self.subTest(invocation=f"agent-manager:{name}"):
                 context = self.capture(f"$agent-manager:{name} 仅验证 Skill 加载，本轮无需执行任何操作。")
                 self.assertTrue(marker in context, "Namespaced explicit invocation did not inject Skill instructions")
-
-    def test_project_skill_disable_runtime_probe(self):
-        result = probe.probe(ROOT / "plugins/common-workflow", "handoff")
-        checks = result["Checks"]
-        self.assertTrue(checks["project_same_name_enabled"])
-        self.assertTrue(checks["other_plugin_skills_enabled"])
-        self.assertTrue(checks["user_config_unchanged"])
-        self.assertTrue(checks["no_plugin_disable_rule"])
-        self.assertTrue(checks["project_rule_loaded"])
-        if result["Status"] == "BLOCKED":
-            self.assertFalse(checks["global_target_disabled"])
-            self.assertTrue(result["IsolatedUserLayerControlWorks"])
-        else:
-            self.assertTrue(checks["global_target_disabled"])
 
 
 if __name__ == "__main__":

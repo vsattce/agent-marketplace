@@ -124,11 +124,15 @@ python scripts/sync.py
 
 使用 `$agent-manager:resolve-conflicts` 或 `$agent-manager:check-updates` 显式调用。两个入口均有 `agents/openai.yaml` 的 `policy.allow_implicit_invocation: false`，无 onboarding、启动 hooks 或自动任务。本机 0.162.0-alpha.2 的裸 `$resolve-conflicts` / `$check-updates` 未注入 Plugin Skill 正文，使用带 Plugin namespace 的实际入口。安装缓存刷新及新聊天加载规则与其他 Plugin 一致；仓库可发现不代表当前聊天已经安装/加载。
 
-resolve-conflicts 先识别项目和当前 Harness，再用共享 Codex adapter 核验当前官方规范、trust 与配置层。按完全相同 Skill name 查重，比较 namespace / description / Plugin / scope；默认项目优先，用户指定来源优先。同名来源用实际加载 **path** 精确区分，不按 name 禁用。修改前必须在临时 CODEX_HOME 与临时项目探测项目层 filtering：目标 global Skill 不再可用、项目同名 Skill 和 Plugin 其他 Skill 保留。通过后才无损增量修改当前项目 TOML，重新发现全部相关入口；无法验证则不算 RESOLVED。
+resolve-conflicts 先可靠识别调用时项目根目录和当前 Harness，再用共享 Codex adapter 核验当前官方规范、trust 与配置层。按完全相同 Skill name 查重，比较 namespace / description / Plugin / scope；默认项目优先，用户指定来源优先。同名来源用实际加载 **path** 精确区分，不按 name 禁用。实际过滤验证须确认目标 global Skill 不再可用、项目同名 Skill 和 Plugin 其他 Skill 保留。通过后才无损增量修改当前项目 TOML；无法安全验证就 BLOCKED，不能算 RESOLVED。
 
-**当前本机限制：codex-cli 0.162.0-alpha.2 的项目 `.codex/config.toml` 中 `skills.config` 不参与该 Plugin Skill filtering。** `config/read` 可以看到规则，但 SKILL.md 路径和目录 selector 都没有屏蔽 global handoff；临时用户层对照有效。因此该场景输出 BLOCKED、版本、global/project 实际路径及原因，不写无效规则、不改真实用户配置、不关闭整个 Plugin。用户要求的持久化隔离目前没有已验证 workaround；升级后须重新探测，手动选入口仅是临时使用方式。独立 Skill 也必须验证项目层实际生效，不能推测。
+**最高优先级红线：全局只读，当前项目可读写，项目外绝不写入。** 所有配置、临时文件、替换与失败清理均由 `write_path()` 校验调用项目及 canonical 路径；拒绝其他仓库、路径逃逸、用户配置禁区、symlink、Windows junction 和 hardlink。全局 Skill path 仅作为项目配置里的只读 selector。非项目目录立即拒绝，不初始化 Git、不创建配置。项目层无法解决时不回退到全局修改，也不禁用整个 Plugin。
 
-helper `project_config.py` 使用隔离的 tomlkit 0.13.x 保留 TOML 注释/格式，避免手工拼接或全文件重建；无损编辑需要这项轻量依赖（同步和更新查询不需要），不改项目/全局依赖。它是经过 adapter 核验后的底层编辑器，CLI 只做项目识别与只读预检。`probe_codex.py` 只在临时环境做 loader 检查，不运行模型或 Skill 正文；真实项目和用户配置保持不变。运行 helper 前服从目标项目版本约束、核对 mise 和 Python，不匹配时停止。
+**上一轮已验证限制：codex-cli 0.162.0-alpha.2 的项目 `.codex/config.toml` 中 `skills.config` 不参与该 Plugin Skill filtering。** 当时 `config/read` 可以看到规则，但 SKILL.md 路径和目录 selector 都没有屏蔽 global handoff；临时用户层对照有效。该历史结论不代替当前版本核验，旧验证方式也不能按新增红线再次执行。当前无法安全验证时输出 BLOCKED、已知版本与路径、失败原因，不写无效规则、不改用户配置、不关闭整个 Plugin。持久化隔离目前没有已验证 workaround；独立 Skill 同样必须验证项目层实际生效。
+
+helper `project_config.py` 使用 tomlkit 0.13.x 保留 TOML 注释/格式，避免手工拼接或全文件重建；它是经过 adapter 核验后的底层编辑器，CLI 只做项目识别与只读预检。运行时使用已有依赖及 `python -B`，避免在全局 Plugin 内生成 bytecode 或触发项目外 uv 缓存/安装；无法满足就停止。运行 helper 前服从目标项目约束核对 mise 和 Python，不匹配时停止。
+
+`probe_codex.py` 已改为只读路径/metadata 预检：**不启动 Codex、不安装测试 Plugin、不创建临时 CODEX_HOME 或项目外临时目录**。旧探测会在系统临时目录写文件，不符合新增红线；设置 CODEX_HOME 也不能保证所有子进程、日志和缓存受限。没有已验证的项目内进程约束时明确 BLOCKED，保留真实全局环境。它不能证明过滤成功；需要安全的当前版本行为证据才允许编辑项目规则。路径校验不是任意外部程序的系统级 sandbox。
 
 check-updates 只读检查第三方 sources/lock、自有 Plugin 对应 Git 分支、Codex 安装 metadata、Marketplace snapshot 和非系统 standalone Skills。按已记录 repo/path/ref 比较精确 commit，固定 SHA 不跟随 main；OWNED 比较当前 branch/tracking remote 的实时 SHA 与 ancestry。缺失路径不删项；安装 version 相同不代表内容最新；来源、权限或版本证据不足分别 UNKNOWN / UNKNOWN SOURCE / BLOCKED，不搜索替代作者。输出版本表及 Latest / Updates available / Unknown 汇总，不更新任何对象，不 commit/push。
 
@@ -175,7 +179,7 @@ uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,
 
 本轮新增管理/边界测试位于 `tests/test_agent_manager.py` 和 `tests/test_codex_loader.py`。真实 Codex loader 测试为显式启用的隔离测试：
 
-2026-10-10，本机完整执行 30 项测试全部通过（含 2 项真实 Codex loader 验证）。普通相关对话不注入两个手动 Skill 的 description / 正文；带 namespace 的两个显式入口均注入正文。此验收覆盖发现与调用策略，不代表已执行两个 Skill 的完整业务流程。
+2026-10-10，上一轮完整执行 30 项测试全部通过（含当时 2 项真实 Codex loader 验证）。普通相关对话不注入两个手动 Skill 的 description / 正文；带 namespace 的两个显式入口均注入正文。此验收覆盖发现与调用策略，不代表已执行两个 Skill 的完整业务流程。新增边界测试验证项目内增量写入、全局 selector 只读、用户配置/Skill/Plugin/其他仓库拒写、路径逃逸、Windows 大小写/盘符、symlink/junction/hardlink 拒写，以及非项目和不受限探测 BLOCKED。
 
 ```powershell
 $env:AGENT_MANAGER_CODEX_TESTS = "1"
@@ -183,8 +187,10 @@ uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,
 Remove-Item Env:AGENT_MANAGER_CODEX_TESTS
 ```
 
-loader 测试使用临时 CODEX_HOME、真实本机 Codex 和 localhost 请求捕获器，只验证发现/上下文注入，不调用真实模型或执行 Skill 正文。同步集成验证在仓库临时副本中按现有 13 项配置连续进行两次真实 upstream 同步，两次快照/lock 完全一致，agent-manager 源码 hash 保持不变；实际仓库 sources/lock 与第三方快照没有更新。第三方检查 helper 的实网 GitHub API 查询返回 HTTP 403，各项明确 UNKNOWN；LATEST / UPDATE AVAILABLE / 路径缺失等分支另以受控响应验证。
+loader 测试是独立开发验收，使用临时 CODEX_HOME、真实本机 Codex 和 localhost 请求捕获器，只验证发现/上下文注入，不调用真实模型或执行 Skill 正文；其进程工具已移到测试文件中，不随 Skill 执行，不能作为冲突处理 workaround。旧有系统临时目录 runtime filtering 测试已由零写入 BLOCKED 测试取代。上一轮同步集成验证按现有 13 项配置连续进行两次真实 upstream 同步，两次快照/lock 完全一致，agent-manager 源码 hash 保持不变；实际仓库 sources/lock 与第三方快照没有更新。第三方检查 helper 的实网 GitHub API 查询返回 HTTP 403，各项明确 UNKNOWN；LATEST / UPDATE AVAILABLE / 路径缺失等分支另以受控响应验证。
 
-本轮不自动 commit / push；本机使用本地工作区 Marketplace 验证未发布变更。
+开发完成并通过必要验证后，按项目 AGENTS.md 默认提交并推送；Skill 执行流程本身不 commit / push。
+
+本次边界强化验证：37 项测试，36 项通过，1 项真实 Codex loader 测试未启用；Windows symlink、junction、hardlink 和盘符/大小写检查均真实通过。项目 TOML 增量编辑验证的是文件边界与内容保留，未宣称当前 Codex 的项目级过滤已生效。
 
 加载方式参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)。

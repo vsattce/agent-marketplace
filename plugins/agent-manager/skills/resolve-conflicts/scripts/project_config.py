@@ -38,10 +38,17 @@ def user_config() -> Path:
     return Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))) / "config.toml"
 
 
+def global_roots() -> tuple[Path, ...]:
+    return tuple(path.resolve() for path in (
+        Path.home() / ".codex", Path.home() / ".agents", Path.home() / ".claude",
+        Path.home() / ".config", user_config().parent,
+    ))
+
+
 def project_root(cwd: Path) -> Path:
     cwd = cwd.resolve(strict=True)
-    if not cwd.is_dir():
-        raise Blocked("该 Skill 只能在项目目录中执行。")
+    if not cwd.is_dir() or any(cwd.is_relative_to(root) for root in global_roots()):
+        raise Blocked("resolve-conflicts can only run inside a project directory.")
     try:
         result = subprocess.run(
             ["git", "-C", str(cwd), "rev-parse", "--show-toplevel"],
@@ -55,18 +62,46 @@ def project_root(cwd: Path) -> Path:
         candidate = next((directory for directory in (cwd, *cwd.parents)
                           if any((directory / marker).is_file() for marker in PROJECT_MARKERS)
                           or any(directory.glob("*.sln")) or any(directory.glob("*.csproj"))), None)
-    if candidate is None or candidate in {Path.home().resolve(), user_config().parent.resolve()}:
-        raise Blocked("该 Skill 只能在项目目录中执行。")
+    if (candidate is None or candidate == Path.home().resolve()
+            or candidate == Path(candidate.anchor)
+            or not cwd.is_relative_to(candidate)
+            or any(candidate.is_relative_to(root) for root in global_roots())):
+        raise Blocked("resolve-conflicts can only run inside a project directory.")
     return candidate
 
 
+def write_path(project: Path, target: Path) -> Path:
+    """Bind every mutation to the invocation's project and reject redirects.
+
+    Skill selectors may point outside this boundary: they are read-only inputs,
+    never write targets. Do not change cwd to grant access to another project.
+    """
+    root = project.resolve(strict=True)
+    if root != project_root(Path.cwd()):
+        raise Blocked("target path is outside project root")
+    target = target if target.is_absolute() else root / target
+    # Reject lexical drive/parent escapes before resolving an unrelated volume.
+    lexical = Path(os.path.abspath(target))
+    if not lexical.is_relative_to(root):
+        raise Blocked("target path is outside project root")
+    canonical = target.resolve()
+    if (not canonical.is_relative_to(root)
+            or any(canonical.is_relative_to(global_root) for global_root in global_roots())):
+        raise Blocked("target path is outside project root")
+    # Reject in-project redirects as well, including Windows junctions and
+    # hardlinked files. Path-relative checks use platform case/drive semantics.
+    for component in (lexical, *lexical.parents):
+        if component == root:
+            break
+        if component.is_symlink() or component.is_junction():
+            raise Blocked("Project write path is redirected")
+        if component.is_file() and component.stat().st_nlink > 1:
+            raise Blocked("Project write path is hardlinked")
+    return lexical
+
+
 def config_path(project: Path) -> Path:
-    project = project.resolve(strict=True)
-    if project_root(project) != project:
-        raise Blocked("Expected a recognized project root")
-    target = project / ".codex" / "config.toml"
-    if target.resolve() != target.absolute() or target.resolve() == user_config().resolve():
-        raise Blocked("Project config is redirected or points to user/global config")
+    target = write_path(project, project.resolve(strict=True) / ".codex" / "config.toml")
     if target.exists() and not target.is_file():
         raise Blocked("Project config is not a regular file")
     return target
@@ -173,23 +208,27 @@ def edit_config(project: Path, *, plugin_updates: dict[str, bool] | None = None,
         raise Blocked("Project config changed during planning")
     if (global_path.read_bytes() if global_path.exists() else None) != global_before:
         raise Blocked("User config changed during planning; rescan effective state")
-    target.parent.mkdir(exist_ok=True)
+    write_path(project, target.parent).mkdir(exist_ok=True)
     temporary = None
     try:
-        with tempfile.NamedTemporaryFile(dir=target.parent, prefix=".agent-config-", delete=False) as output:
+        with tempfile.NamedTemporaryFile(dir=write_path(project, target.parent), prefix=".agent-config-", delete=False) as output:
             temporary = Path(output.name)
+            write_path(project, temporary)
             output.write(updated)
+            write_path(project, temporary)
             output.flush()
+            write_path(project, temporary)
             os.fsync(output.fileno())
         if existed:
-            os.chmod(temporary, target.stat().st_mode)
+            os.chmod(write_path(project, temporary), target.stat().st_mode)
         config_path(project)
         if target.exists() != existed or (target.read_bytes() if existed else b"") != original:
             raise Blocked("Concurrent project config edit; no changes applied")
-        os.replace(temporary, target)
+        os.replace(write_path(project, temporary), write_path(project, target))
     finally:
         if temporary is not None and temporary.exists():
-            temporary.unlink()
+            # Never follow a directory redirect even for cleanup after failure.
+            write_path(project, temporary).unlink()
     if target.read_bytes() != updated or read_document(target.read_bytes())[1] != expected:
         raise Blocked("Post-write verification failed; inspect project config before continuing")
     if (global_path.read_bytes() if global_path.exists() else None) != global_before:

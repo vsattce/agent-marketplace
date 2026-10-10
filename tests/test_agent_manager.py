@@ -4,6 +4,8 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import tomllib
 import unittest
@@ -23,6 +25,8 @@ def load_module(name, relative):
 
 
 config = load_module("project_config", "skills/resolve-conflicts/scripts/project_config.py")
+with patch.dict(sys.modules, {"project_config": config}):
+    probe = load_module("safe_probe", "skills/resolve-conflicts/scripts/probe_codex.py")
 updates = load_module("check_sources", "skills/check-updates/scripts/check_sources.py")
 
 
@@ -33,6 +37,10 @@ class ConfigTests(unittest.TestCase):
         self.root = Path(self.temporary.name) / "project"
         self.root.mkdir()
         (self.root / "package.json").write_text('{}', encoding="utf-8")
+        # The editor must bind to the invocation cwd, not trust a passed root.
+        self.cwd = patch.object(Path, "cwd", return_value=self.root)
+        self.cwd.start()
+        self.addCleanup(self.cwd.stop)
         self.agent_home = Path(self.temporary.name) / "agent-home"
         self.agent_home.mkdir()
         (self.agent_home / "config.toml").write_text('model = "preserve-global"\n', encoding="utf-8")
@@ -100,6 +108,99 @@ class ConfigTests(unittest.TestCase):
             self.skipTest("Host does not permit symlink creation")
         with self.assertRaises(config.Blocked):
             config.edit_config(self.root, plugin_updates={"loser@market": False})
+
+    def test_external_write_targets_are_rejected(self):
+        other = Path(self.temporary.name) / "project-other"
+        other.mkdir()
+        subprocess.run(["git", "init", "--quiet", str(other)], check=True,
+                       capture_output=True, timeout=10)
+        home = Path.home()
+        targets = [
+            home / ".codex/config.toml", home / ".codex/skills",
+            home / ".agents/skills", home / ".claude/config.json",
+            home / ".config/agent", self.agent_home / "plugins/cache/example",
+            other / ".codex/config.toml", self.root / "../project-other/config.toml",
+        ]
+        for target in targets:
+            with self.subTest(target=target), self.assertRaisesRegex(config.Blocked, "outside project root"):
+                config.write_path(self.root, target)
+        with self.assertRaisesRegex(config.Blocked, "outside project root"):
+            config.edit_config(other, plugin_updates={"loser@market": False})
+        self.assertFalse((other / ".codex").exists())
+
+    def test_external_selector_is_read_only_and_preserves_plugin_siblings(self):
+        plugin = self.agent_home / "plugins/cache/example"
+        for name in ("handoff", "research", "diagnostics"):
+            skill = plugin / "skills" / name / "SKILL.md"
+            skill.parent.mkdir(parents=True)
+            skill.write_text(f"---\nname: {name}\ndescription: fixture\n---\n", encoding="utf-8")
+        selector = plugin / "skills/handoff/SKILL.md"
+        before = {str(path): path.read_bytes() for path in self.agent_home.rglob("*") if path.is_file()}
+        self.assertTrue(config.edit_config(self.root, skill_updates={str(selector): False}))
+        parsed = tomllib.loads(self.target.read_text(encoding="utf-8"))
+        self.assertEqual(parsed["skills"]["config"], [{"path": str(selector), "enabled": False}])
+        self.assertNotIn("plugins", parsed)
+        self.assertEqual(before, {str(path): path.read_bytes() for path in self.agent_home.rglob("*") if path.is_file()})
+
+    def test_redirected_directory_cannot_write_or_clean_external_config(self):
+        before = (self.agent_home / "config.toml").read_bytes()
+        if os.name == "nt":
+            subprocess.run(["cmd", "/c", "mklink", "/J", str(self.target.parent), str(self.agent_home)],
+                           check=True, capture_output=True, timeout=10)
+        else:
+            self.target.parent.symlink_to(self.agent_home, target_is_directory=True)
+        with self.assertRaisesRegex(config.Blocked, "outside project root"):
+            config.edit_config(self.root, plugin_updates={"loser@market": False})
+        self.assertEqual(before, (self.agent_home / "config.toml").read_bytes())
+        self.assertEqual({path.name for path in self.agent_home.iterdir()}, {"config.toml"})
+
+    def test_hardlinked_config_is_rejected(self):
+        self.target.parent.mkdir()
+        os.link(self.agent_home / "config.toml", self.target)
+        before = self.target.read_bytes()
+        with self.assertRaisesRegex(config.Blocked, "hardlinked"):
+            config.edit_config(self.root, plugin_updates={"loser@market": False})
+        self.assertEqual(before, self.target.read_bytes())
+        self.assertEqual(before, (self.agent_home / "config.toml").read_bytes())
+
+    def test_windows_case_and_drive_boundaries(self):
+        if os.name != "nt":
+            self.skipTest("Windows path semantics")
+        target = Path(str(self.root).swapcase()) / ".codex/config.toml"
+        self.assertEqual(config.write_path(self.root, target), target)
+        drive = "Z:" if self.root.drive.upper() != "Z:" else "Y:"
+        with self.assertRaisesRegex(config.Blocked, "outside project root"):
+            config.write_path(self.root, Path(drive + "/external/config.toml"))
+
+    def test_global_directory_cannot_become_project_via_markers(self):
+        skill = self.agent_home / "skills/example"
+        skill.mkdir(parents=True)
+        (skill / "package.json").write_text("{}", encoding="utf-8")
+        with self.assertRaisesRegex(config.Blocked, "can only run inside a project"):
+            config.project_root(skill)
+
+    def test_unconfined_runtime_probe_is_blocked_without_writes(self):
+        before = {str(path): path.read_bytes() for path in self.agent_home.rglob("*") if path.is_file()}
+        # Global metadata is readable; verification must not install/copy/delete
+        # anything or start Codex, even under a disposable CODEX_HOME.
+        with (patch("subprocess.Popen", side_effect=AssertionError("Unexpected process")),
+              patch("tempfile.TemporaryDirectory", side_effect=AssertionError("Unexpected temporary directory")),
+              patch.object(Path, "write_text", side_effect=AssertionError("Unexpected write")),
+              patch.object(Path, "unlink", side_effect=AssertionError("Unexpected cleanup")),
+              patch.object(config.subprocess, "run", return_value=None)):
+            result = probe.probe(ROOT / "plugins/common-workflow", "handoff")
+        self.assertEqual(result["Status"], "BLOCKED")
+        self.assertTrue(result["ReadOnlyPreflight"])
+        self.assertIn("project-only process confinement", result["Reason"])
+        self.assertFalse(self.target.parent.exists())
+        self.assertEqual(before, {str(path): path.read_bytes() for path in self.agent_home.rglob("*") if path.is_file()})
+
+    def test_non_project_probe_does_not_create_configuration(self):
+        empty = Path(self.temporary.name) / "empty"
+        empty.mkdir()
+        with patch.object(Path, "cwd", return_value=empty), self.assertRaisesRegex(config.Blocked, "can only run inside a project"):
+            probe.probe(ROOT / "plugins/common-workflow", "handoff")
+        self.assertEqual(list(empty.iterdir()), [])
 
     def test_partial_plugin_conflict_is_blocked(self):
         # Real common-workflow exposes five capabilities; handoff alone cannot
