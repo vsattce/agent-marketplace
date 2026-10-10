@@ -1,6 +1,6 @@
 {
   "name": "agent-manager",
-  "description": "手动查找 Agent 冲突、只读检查来源版本，或执行当前 Codex / Claude Code 项目的明确 Plugin 开关请求。",
+  "description": "手动查找 Agent 冲突、只读检查 Codex / Claude Code / Kimi Code 来源版本；项目 Plugin 开关支持 Codex / Claude，Kimi 暂不支持。",
   "author": {
     "name": "hjy"
   },

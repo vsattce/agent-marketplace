@@ -1,5 +1,7 @@
 # 编辑器输入
 
+Kimi Code 尚无本版已验证的项目开关契约，Skill 在调用编辑器前整批 BLOCKED；编辑器收到 `agent: "kimi"` 也返回 `KIMI PROJECT-LEVEL CONFIGURATION NOT SUPPORTED`，零写入，不需要生成 inventory。
+
 Codex 使用下方示例。Claude Code 保持相同请求结构，改为 `agent: "claude"`、`inventory.claude_version: "2.1.296 (Claude Code)"`，Plugin targets 使用 `configuration: "marketplace"`，path 为含 `.claude-plugin/plugin.json` 的真实已安装目录。无需 codex_version。能力与高层覆盖证据见 [Claude 支持边界](claude-support.md)。两种 Agent 当前均只支持 Plugin，单个 Skill 或混合批次整批 BLOCKED。
 
 编辑器从 stdin 读取一个 JSON 对象，输出 JSON 报告；成功 exit 0，BLOCKED exit 2。它不联网、不发现/安装 Plugin、不启动 Harness，也不访问 Git 远端。完整请求与只读发现证据由当前显式调用的 Agent 提供，**不是用户需要维护的配置文件**。从现有权威信息整理到 stdin，不为输入创建全局文件或复制完整含密钥的 config。

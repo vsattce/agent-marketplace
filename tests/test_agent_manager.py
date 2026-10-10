@@ -86,6 +86,27 @@ class UpdateTests(unittest.TestCase):
 
 
 class PackagingTests(unittest.TestCase):
+    def test_kimi_manifests_share_all_catalog_skills_without_collisions(self):
+        catalog = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text(encoding="utf-8"))
+        aggregate = json.loads((ROOT / "kimi.plugin.json").read_text(encoding="utf-8"))
+        self.assertEqual(aggregate["name"], catalog["name"])
+        self.assertEqual(aggregate["interface"]["displayName"], "Agent Marketplace")
+        self.assertEqual(set(aggregate["skills"]), {entry["source"]["path"] + "/skills/" for entry in catalog["plugins"]})
+        names = []
+        for entry in catalog["plugins"]:
+            root = ROOT / entry["source"]["path"]
+            native = json.loads((root / "kimi.plugin.json").read_text(encoding="utf-8"))
+            self.assertEqual(native["name"], entry["name"])
+            self.assertEqual(native["skills"], "./skills/")
+            self.assertEqual(native["interface"]["displayName"], entry["interface"]["displayName"])
+            for skill in (root / native["skills"]).glob("*/SKILL.md"):
+                frontmatter = yaml.safe_load(skill.read_text(encoding="utf-8").split("---", 2)[1])
+                names.append(frontmatter["name"].lower())
+        self.assertEqual(len(names), 16)
+        self.assertEqual(len(set(names)), 16)
+        for manifest in [aggregate] + [json.loads((ROOT / entry["source"]["path"] / "kimi.plugin.json").read_text(encoding="utf-8")) for entry in catalog["plugins"]]:
+            self.assertFalse(set(manifest) & {"sessionStart", "hooks", "mcpServers", "systemPrompt", "commands"})
+
     def test_manual_only_metadata_and_marketplace_registration(self):
         catalog = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text(encoding="utf-8"))
         entries = [entry for entry in catalog["plugins"] if entry["name"] == "agent-manager"]

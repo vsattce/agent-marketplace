@@ -1,6 +1,6 @@
 # 其他 Agent 的来源发现
 
-用于冲突查找；check-updates 使用独立的 Codex / Claude adapter。只读查看当前 Agent 的已知来源，不启动新 Harness，不操作安装、刷新、禁用或配置。下面是来源示例，不是允许的 Agent 白名单，也不是固定文件名表。
+用于冲突查找；check-updates 使用独立的 Codex / Claude / Kimi adapter。只读查看当前 Agent 的已知来源，不启动新 Harness，不操作安装、刷新、禁用或配置。下面是来源示例，不是允许的 Agent 白名单，也不是固定文件名表。
 
 ## 通用发现
 
@@ -23,6 +23,10 @@ Skills 从会话清单、项目 `.claude/skills`、用户 `~/.claude/skills`、P
 - [指令、rules、imports 与 AGENTS.md 兼容机制](https://code.claude.com/docs/en/memory)
 - [Skills](https://code.claude.com/docs/en/skills)
 - [设置来源与优先级](https://code.claude.com/docs/en/settings)
+
+## Kimi Code
+
+读取 [Kimi 来源与只读检查](kimi.md) 的“来源与加载证据”：确认实际数据根、项目指令链、standalone 与 Plugin Skill 路径，以及 receipt / manifest 的真实身份。根聚合和分类同时安装、同名 standalone 覆盖均作为来源重叠检查；托管副本不等于原目录，也不等于当前会话加载。
 
 ## Gemini CLI
 

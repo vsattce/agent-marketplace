@@ -80,6 +80,11 @@ class ConfigureProjectTests(unittest.TestCase):
         self.assertEqual(tomllib.loads(self.config.read_text()), {"plugins": {"alpha@fixture": {"enabled": True}}})
         self.assertEqual(list(self.config.parent.iterdir()), [self.config])
 
+    def test_kimi_project_switch_blocks_entire_batch_without_writing(self):
+        self.payload["agent"] = "kimi"
+        self.payload["requests"].append({"kind": "skill", "target": "vue", "enabled": False})
+        self.blocked("KIMI PROJECT-LEVEL CONFIGURATION NOT SUPPORTED")
+
     def test_disable_plugin_and_idempotence(self):
         self.write('[plugins."alpha@fixture"]\nenabled = true # preserve\n')
         self.payload["requests"][0]["enabled"] = False
@@ -147,7 +152,7 @@ class ConfigureProjectTests(unittest.TestCase):
                     self.blocked(editor.UNSUPPORTED_CONFIG)
 
     def test_unsupported_agents(self):
-        for agent in ("kimi", "antigravity", "other", ""):
+        for agent in ("antigravity", "other", ""):
             self.payload["agent"] = agent
             self.blocked("UNSUPPORTED AGENT")
 
@@ -342,7 +347,7 @@ class ConfigureProjectTests(unittest.TestCase):
                                 text=True, capture_output=True, timeout=15, cwd=self.project)
         self.assertEqual(result.returncode, 2)
         report = json.loads(result.stdout)
-        self.assertEqual(report["Reason"], "UNSUPPORTED AGENT")
+        self.assertEqual(report["Reason"], "KIMI PROJECT-LEVEL CONFIGURATION NOT SUPPORTED")
         self.assertEqual(report["Changes applied"], "NONE")
         self.assertEqual(report["Global files modified"], "NONE")
 

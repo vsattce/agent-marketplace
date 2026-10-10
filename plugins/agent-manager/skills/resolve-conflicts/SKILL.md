@@ -17,7 +17,7 @@ description: "Find conflicts and ambiguities between project and global Agent in
 ## 识别与扫描
 
 1. 固定调用时 cwd，以 Git 根或可信 workspace 元数据识别当前项目；非 Git 项目可用实际项目配置/构建文件确认。无法确定项目根时输出 `BLOCKED` 和原因，不猜测范围、不初始化项目。
-2. 由当前会话 Harness 身份确认 Agent，不以模型名、已安装 CLI 或项目里某个文件判断。Codex 读取 [Codex 来源与加载规则](../../references/codex.md) 的冲突查找部分；其他 Agent 读取 [其他 Agent 的来源发现](../../references/agent-sources.md) 中对应部分。Codex、Claude Code、Gemini CLI 是已记录示例，不是封闭名单：按当前 Agent 的有效配置、会话来源和官方机制识别真实指令文件、自定义文件名、Skills 与 Plugin/Extension。身份不明时报告 `BLOCKED`，不能套用 Codex 规则。
+2. 由当前会话 Harness 身份确认 Agent，不以模型名、已安装 CLI 或项目里某个文件判断。Codex 读取 [Codex 来源与加载规则](../../references/codex.md) 的冲突查找部分；其他 Agent 读取 [其他 Agent 的来源发现](../../references/agent-sources.md) 中对应部分。Codex、Claude Code、Kimi Code、Gemini CLI 是已记录示例，不是封闭名单：按当前 Agent 的有效配置、会话来源和官方机制识别真实指令文件、自定义文件名、Skills 与 Plugin/Extension。身份不明时报告 `BLOCKED`，不能套用 Codex 规则。
 3. 建立来源清单：全局指令、项目指令链、子目录规则及其适用路径；全局/项目 standalone Skills；Plugin/Extension 的身份、scope、启用配置、Skill 入口和相关 hooks / MCP / agents 等能力。路径从会话、有效配置、manifest 或已记录安装来源获取，限于当前项目与该 Agent 的相关全局来源，不扫描其他项目或整个用户目录。按需跟进规则引用的文件，记录引用关系与循环/缺失引用。
 4. 区分磁盘存在、安装、配置启用、当前会话可用和正文已加载。注册目录、源码仓库或缓存不等于生效入口；同一实际路径/同一来源的多份登记先去重。每个来源记录绝对路径、行号、类型、作用域、Agent、namespace / Plugin identity、启用与加载证据。无法核实的字段写 `UNKNOWN`；已禁用、其他 Agent 或不适用当前路径的来源单列，避免混入有效冲突。
 5. 当前项目的子目录指令和按路径生效的规则也检查，但标明其条件；不能把所有子目录当作当前会话已加载。Skill 先读 name / description / 调用策略以筛选相关能力，再读可能冲突入口的正文及必要引用；Skill 正文仅在调用时适用，手动专用 Skill 不等于常驻指令。

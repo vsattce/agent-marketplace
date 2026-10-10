@@ -1,8 +1,8 @@
 # agent-marketplace
 
-个人使用的 Skill / Plugin 集合，Codex 中显示为 **Agent Marketplace**。四个第三方聚合 Plugin（13 个已选定 Skills）加一个本仓库直接维护的 OWNED Plugin（3 个 Skills），共五个 Plugin、16 个 Skills。作者、GitHub 仓库和 upstream 只作为来源信息，不决定分类。
+个人使用的 Skill / Plugin 集合，显示为 **Agent Marketplace**。四个第三方聚合 Plugin（13 个已选定 Skills）加一个本仓库直接维护的 OWNED Plugin（3 个 Skills），共五个分类 Plugin、16 个 Skills。作者、GitHub 仓库和 upstream 只作为来源信息，不决定分类。
 
-支持 Codex 与 Claude Code：五个 Plugin 共享同一份 Skill 内容，分别提供各自的 Marketplace / manifest；agent-manager 的更新检查与项目 Plugin 开关也支持两种客户端。Kimi Code / Antigravity 尚未适配。
+支持 Codex、Claude Code 与 Kimi Code，共享同一份 Skill 内容与资源。Codex / Claude 提供五分类 Marketplace；Kimi 提供仓库根聚合安装入口和五分类本地 manifest。agent-manager 的只读更新检查支持三种客户端，项目 Plugin 开关支持 Codex / Claude；Kimi 项目开关暂不支持，整批 BLOCKED。Antigravity 尚未适配。
 
 ## Plugin
 
@@ -43,6 +43,8 @@
 
 Claude Code 使用 `/<plugin>:<skill>`，例如 `/common-workflow:handoff`、`/frontend-dev:vue`、`/agent-manager:configure-project`。handoff 原生 frontmatter 和三个自有 Skill 均设置 `disable-model-invocation: true`；其余按任务匹配或显式调用。两种客户端的调用策略独立声明，共享正文和资源。[Claude Skill 文档](https://code.claude.com/docs/en/skills)
 
+Kimi Code 使用 `/skill:<name>`，例如 `/skill:handoff`、`/skill:vue`、`/skill:check-updates`。Kimi 识别共享 frontmatter 的 `disable-model-invocation` 别名，handoff 和三个管理 Skill 继续仅手动；插件 Skill 的调用名称不加分类前缀。[Kimi Skill 文档](https://github.com/MoonshotAI/kimi-code/blob/main/docs/en/customization/skills.md)
+
 ## 目录与维护入口
 
 ```text
@@ -51,6 +53,7 @@ agent-marketplace/
 │   ├── plugins/marketplace.json
 │   └── skills/upgrade/SKILL.md     # 本项目第三方 Skill 升级入口
 ├── .claude-plugin/marketplace.json # Claude Code 市场入口
+├── kimi.plugin.json              # Kimi：整个仓库作为一个聚合插件
 ├── CLAUDE.md                     # 导入 AGENTS.md 项目规则
 ├── sources.yaml
 ├── sources.lock.json
@@ -64,8 +67,10 @@ agent-marketplace/
 │   └── agent-manager/             # OWNED，直接维护
 │       ├── plugin.json
 │       ├── .claude-plugin/plugin.json
+│       ├── kimi.plugin.json
 │       ├── references/codex.md
 │       ├── references/claude.md
+│       ├── references/kimi.md
 │       └── skills/
 │           ├── resolve-conflicts/ # 只读工作流 + agents/openai.yaml
 │           ├── check-updates/     # SKILL.md + agents/openai.yaml + scripts
@@ -74,6 +79,8 @@ agent-marketplace/
 ```
 
 每个 Plugin 包含 Codex 根目录 `plugin.json`、Claude `.claude-plugin/plugin.json` 和共享 `skills/<skill-name>/`；第三方 Plugin 另有 `licenses/<skill-name>/`。Codex 根使用便携 manifest，中文信息位于 `extensions.com.openai.interface`；两个 Marketplace 都指向 `./plugins/<plugin>`，原生目录发现读取同一组共享内容。Claude manifest / catalog 不写 version，GitHub 安装按 commit 跟踪更新，避免固定版本阻挡 Skill 快照更新；validator 的缺少 version 警告是有意保留的版本策略。[官方版本说明](https://code.claude.com/docs/en/plugins/host-marketplace)
+
+每个分类另有 Kimi `kimi.plugin.json`，显式声明 `./skills/`；仓库根 Kimi manifest 列出五个共享 Skill 目录，GitHub 整仓库安装发现全部 16 项。未复制或改写第三方快照。Kimi manifest 的 version 是显示 metadata；GitHub 来源按 receipt 的 ref / installedSha 比较内容，不能单凭版本字符串确认最新。
 
 `sources.yaml` 是第三方来源唯一人工维护入口，只记录 group / displayName 及各 Skill 的 `name`、`repo`、`path`、`ref`。新增、移除、换源、换路径、分组或 ref 只编辑该文件，然后同步。`sources.lock.json` 自动记录来源、分类、实际同步 commit 和 UTC 同步时间，不参与版本选择。OWNED Plugin 不进入这两个文件。
 
@@ -150,7 +157,7 @@ resolve-conflicts **只读查找并报告**项目级与全局指令、Skills、P
 
 项目与全局均只读，不改配置，不禁用/卸载/安装 Skill 或 Plugin，不刷新 Marketplace，也不创建临时探测环境或报告文件。旧项目配置编辑器与 filtering 探测 helper 已移除，冲突查找在对话中输出结果。
 
-check-updates 支持 Codex / Claude Code 的只读版本检查：比较第三方 sources/lock、自有 Plugin 对应 Git 分支、安装 metadata、Marketplace snapshot 和非系统 standalone Skills。Claude 从实际 CLAUDE_CONFIG_DIR 的现有 Marketplace / 安装 receipt 与有效 settings 取证，不启动客户端探测。按已记录 repo/path/ref 比较精确 commit，固定 SHA 不跟随 main；OWNED 比较当前 branch/tracking remote 的实时 SHA 与 ancestry。证据不足分别 UNKNOWN / UNKNOWN SOURCE / BLOCKED，不更新对象、不更换来源。
+check-updates 支持 Codex / Claude Code / Kimi Code 的只读版本检查：比较第三方 sources/lock、自有 Plugin 对应 Git 分支、安装 metadata、Marketplace snapshot 和非系统 standalone Skills。Claude 从实际 CLAUDE_CONFIG_DIR 的现有 Marketplace / 安装 receipt 与有效 settings 取证；Kimi 从实际 KIMI_CODE_HOME 的 `plugins/installed.json`、原生 manifest 和 originalSource / github provenance 取证，区分聚合安装与分类、本地原目录与托管副本。不启动客户端探测。按已记录 repo/path/ref 比较精确 commit，固定 SHA 不跟随 main；OWNED 比较当前 branch/tracking remote 的实时 SHA 与 ancestry。证据不足分别 UNKNOWN / UNKNOWN SOURCE / BLOCKED，不更新对象、不更换来源。
 
 configure-project 是独立的纯执行型配置编辑器：只执行用户逐项明确指定的已有目标开关，不按技术栈推荐、不解决冲突、不安装、不更新、不 commit / push 用户项目。只写 Git 确认的当前项目根：Codex `.codex/config.toml` 的目标 enabled，Claude `.claude/settings.json` 的目标 enabledPlugins；项目外及全局永远只读。先定位/验证完整批次再事务写入；目标歧义、缺失、配置损坏、路径逃逸或能力不支持均整批 BLOCKED。Codex 使用 tomlkit 0.13.3+（<1）保留注释与排版，Claude 使用标准库增量替换 JSON 值，保留无关字节并拒绝重复键和损坏配置；Agent 工具环境须已准备，运行 Skill 不安装依赖或写用户缓存。支持最小新配置、幂等、锁、原子替换、二次读取与失败恢复；Windows canonical 路径、symlink、junction、hardlink 均有拒绝测试。
 
@@ -158,7 +165,9 @@ configure-project 是独立的纯执行型配置编辑器：只执行用户逐�
 
 同日 `Claude Code 2.1.296` 真实隔离验证：项目 Plugin 开关可双向覆盖用户层；`.claude/settings.local.json` 高于共享项目设置，存在目标反向值就整批 BLOCKED，local 文件始终只读。Claude 的 `skillOverrides` 不支持 Plugin Skill，本版单个 Skill 请求均 BLOCKED，不写无效条目。未验证版本、managed / CLI 限制或项目层证据不足也 BLOCKED。两种客户端运行时都不启动探测 Harness；维护者换版本需先补充真实隔离证据。输入由显式调用的 Agent 从现有会话整理，编辑器核验 root/version/manifest，但不把磁盘缓存当安装证明。保存后需要重新加载项目，持久化验证不代表当前会话热重载。
 
-源码入口为 Skill 工作流、`references/codex.md`、`references/claude.md` 和 `references/agent-sources.md`；更新检查保留共享第三方 API 比较 helper。配置编辑器及能力/输入说明在 `plugins/agent-manager/skills/configure-project/`，属于 OWNED，未进入 sources/lock，现有同步白名单不变。Gemini 来源说明不代表其 Marketplace 安装已适配。
+Kimi Code Desktop 1.0.4 原生 Plugin 开关持久化到用户级 `plugins/installed.json`，影响所有项目；本版 Kimi Plugin / Skill 的项目开关请求整批 `BLOCKED / KIMI PROJECT-LEVEL CONFIGURATION NOT SUPPORTED`，零配置写入。不会硬写 `.kimi-code/local.toml` 或改全局开关兜底。[官方作用域说明](https://github.com/MoonshotAI/kimi-code/blob/main/docs/en/customization/plugins.md)
+
+源码入口为 Skill 工作流、`references/codex.md`、`references/claude.md`、`references/kimi.md` 和 `references/agent-sources.md`；更新检查保留共享第三方 API 比较 helper。配置编辑器及能力/输入说明在 `plugins/agent-manager/skills/configure-project/`，属于 OWNED，未进入 sources/lock，现有同步白名单不变。Gemini 来源说明不代表其 Marketplace 安装已适配。
 
 ## Codex 添加、安装与刷新
 
@@ -200,6 +209,22 @@ GitHub 来源刷新先运行 `claude plugin marketplace update agent-marketplace
 
 2026-10-10 在隔离配置中完成五个 Plugin 安装、16 个 Skills 发现、手动专用策略与项目配置覆盖验证；未改日常 Claude Code 安装、全局设置或运行真实模型，也未逐个执行 Skill 的业务流程。
 
+## Kimi Code 安装与刷新
+
+在桌面客户端的“设置 → 插件 → 安装自定义插件”中粘贴下面地址，点击安装即可加载全部 16 个 Skills：
+
+```text
+https://github.com/vsattce/agent-marketplace.git
+```
+
+也可指定当前 main 分支，避免未来 release 覆盖默认仓库 URL 的选择：`https://github.com/vsattce/agent-marketplace/tree/main`。CLI 的原生入口为 `/plugins install <地址或绝对路径>`；这是 Kimi 聊天命令，不是 PowerShell 命令。`git@github.com:...` SSH 地址会被当成本地路径，不受此安装入口支持。根目录现已提供 `kimi.plugin.json`，解决此前 `No manifest at kimi.plugin.json or .kimi-plugin/plugin.json` 报错。[官方安装说明](https://github.com/MoonshotAI/kimi-code/blob/main/docs/en/customization/plugins.md)
+
+本地开发可填 `E:\WorkSpace\agent-marketplace`；只需要某分类时填其绝对目录，例如 `E:\WorkSpace\agent-marketplace\plugins\frontend-dev`。另外四个分类同理。本机 1.0.4 不支持用 GitHub `/tree/main/plugins/<分类>` URL 安装子目录，会把 `main/plugins/<分类>` 解析为 ref。根聚合安装和分类安装二选一，避免重复提供相同 Skills。
+
+安装后保持插件启用，并新建会话；CLI 可 `/reload` 或 `/new`。用 `/skill:vue` 或 `/skill:check-updates` 显式调用。托管副本位于实际 `$KIMI_CODE_HOME/plugins/managed/<id>/`，本地源码更新后须重新安装；只重载不会复制新源码。用户级开关影响所有项目，configure-project 的 Kimi 项目请求会明确拒绝。
+
+2026-10-10 使用本机 Kimi Code Desktop 1.0.4 ASAR 中未经修改的安装器、manifest / YAML 解析、Skill 目录发现与 receipt 持久化函数，在临时目录验证根聚合与五分类安装、16 项发现、资源原样复制、四项手动策略和启停后的发现。未启动日常客户端、改日常安装/配置或运行模型；尚未通过桌面 UI 重试安装，也未逐个执行 Skill 业务流程。
+
 ## 第三方迁移验证与清理（前一轮）
 
 2026-10-10，使用 `codex-cli 0.162.0-alpha.2` 在日常配置安装并启用四个 Plugin。仓库外新进程的 `skills/list` 发现 5 / 4 / 1 / 3 个指定 Skills，全部文件与仓库快照字节一致，中文 metadata 正确。新 Plugin 验证成功后，已用 Codex 原生命令卸载旧八个细粒度 Plugin，再次发现恰好 13 个目标 Skills，没有重复加载。
@@ -231,5 +256,17 @@ loader 测试使用项目内隔离 CODEX_HOME、真实本机 Codex 和 localhost
 Claude JSON 编辑器测试为 `tests/test_configure_project_claude.py`。真实安装/加载器验收为 `tests/test_claude_loader.py`，设置 `$env:AGENT_MANAGER_CLAUDE_TESTS = "1"` 后运行上面的 unittest 命令，完成后移除该环境变量。使用独立 CLAUDE_CONFIG_DIR、临时 Git 项目及 localhost API 捕获请求后拒绝推理，覆盖五个插件安装与发现、仅手动策略、项目值覆盖用户值和 local 反向覆盖。当前维护验收版本为 Claude Code 2.1.296。
 
 开发完成并通过必要验证后，按项目 AGENTS.md 默认提交并推送；Skill 执行流程本身不 commit / push。
+
+Kimi 包装检查随 `tests/test_agent_manager.py` 运行。真实本机核心函数验收为 `tests/kimi_loader.cjs`，需要已准备的 mise Node（本轮 24.19.0）及 Kimi Desktop 1.0.4 ASAR：
+
+```powershell
+mise current
+node -v
+$env:KIMI_CODE_TEST_ASAR = "D:/Kimi Code/resources/app.asar"
+node --test tests/kimi_loader.cjs
+Remove-Item Env:KIMI_CODE_TEST_ASAR
+```
+
+ASAR 路径以本机实际安装为准；没有该环境变量时测试跳过，新客户端版本需要补充隔离证据。测试只执行指定核心函数，不启动 Electron、读取日常 Kimi 数据或联网推理。默认离线；额外设置 `$env:KIMI_CODE_TEST_GITHUB = "1"` 可验证已发布仓库的原生 GitHub 下载、解压与安装，需 GitHub 网络可达，完成后移除该变量。Node 辅助测试需要代理时仅给该进程使用已配置的代理，不修改系统设置。
 
 加载方式参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)。

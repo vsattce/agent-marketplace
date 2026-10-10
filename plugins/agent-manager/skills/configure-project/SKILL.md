@@ -1,18 +1,18 @@
 ---
 name: configure-project
 disable-model-invocation: true
-description: Execute explicit project Plugin enable/disable requests in Codex or Claude Code. Only use when explicitly invoked by the user. Unsupported capabilities are BLOCKED.
+description: Execute explicit project Plugin enable/disable requests in Codex or Claude Code; report unsupported Kimi Code project switches. Only use when explicitly invoked by the user. Unsupported capabilities are BLOCKED.
 ---
 
 # 配置当前项目的 Agent Skill / Plugin
 
-纯执行型配置编辑器。只有用户明确调用 Codex 的 `$agent-manager:configure-project`、Claude Code 的 `/agent-manager:configure-project`（或当前客户端支持的显式别名）后才执行。普通聊天、技术栈识别、配置问题或冲突发现均不能触发，也不能从 resolve-conflicts 自动转入本入口。
+纯执行型配置编辑器。只有用户明确调用 Codex 的 `$agent-manager:configure-project`、Claude Code 的 `/agent-manager:configure-project`、Kimi Code 的 `/skill:configure-project`（或当前客户端支持的显式别名）后才执行。普通聊天、技术栈识别、配置问题或冲突发现均不能触发，也不能从 resolve-conflicts 自动转入本入口。
 
 最高边界：**当前项目内可写；用户/全局及项目外永远只读**。只接受用户逐项指定的 Skill / Plugin 开关；不推荐组合、不按项目技术栈决定、不安装缺失目标、不刷新 Marketplace、不运行 sync.py。运行本 Skill 不 commit / push 用户项目。
 
 ## 执行
 
-1. 确认当前 Harness，而非模型品牌。本版支持 Codex 与 Claude Code；其他 Agent 输出 `BLOCKED / UNSUPPORTED AGENT`。通过 `git rev-parse --show-toplevel` 确认当前 worktree 根；失败输出 `BLOCKED / PROJECT ROOT NOT FOUND`。不 git init、不猜目录。当前项目由调用环境确定，不能切到另一个项目完成请求。
+1. 确认当前 Harness，而非模型品牌。Codex 与 Claude Code 继续下列执行；Kimi Code 读取 [Kimi 能力边界](../../references/kimi.md)，整批返回 `BLOCKED / KIMI PROJECT-LEVEL CONFIGURATION NOT SUPPORTED`，零配置写入；其他 Agent 输出 `BLOCKED / UNSUPPORTED AGENT`。通过 `git rev-parse --show-toplevel` 确认当前 worktree 根；失败输出 `BLOCKED / PROJECT ROOT NOT FOUND`。不 git init、不猜目录。当前项目由调用环境确定，不能切到另一个项目完成请求。
 2. 解析用户明确指定的全部 ENABLE / DISABLE 请求，保持完整批次。只接受项目范围；用户要求改全局、其他项目或 model / reasoning / MCP / sandbox / approval / profiles 等内容时整批 BLOCKED。说明具体不受支持项，不执行剩余项。
 3. 使用现有会话的权威清单、已存在的安装 receipt / 有效配置和真实路径，建立**完整的当前目标清单**，包括已禁用入口、同名不同来源和项目/用户/Plugin 的目标。只读取已知 Agent 来源目录，不遍历用户内容。按 Plugin 的 `plugin-name@marketplace-name`、Skill 的真实 `SKILL.md` 路径和所属 Plugin identity 标识；所有匹配候选保留，不能按层级、第一项或近似名称挑选。无匹配 `TARGET NOT FOUND`；多个匹配 `AMBIGUOUS TARGET`，列出候选并等待用户明确身份。
 4. 核对当前能力与项目配置层：Codex 读取 [Codex 能力与证据](references/codex-support.md)，Claude Code 读取 [Claude 能力与证据](references/claude-support.md)。必须证明当前项目配置会被加载，并且本地覆盖层、CLI override、profile 或 managed 限制不会阻止本次开关生效；项目不受信任、配置源被排除或证据不足就 BLOCKED。不改 trust 或其他配置来消除限制。不启动 Harness 探测，不调用可能写缓存的 plugin list / install / refresh。
@@ -28,6 +28,7 @@ description: Execute explicit project Plugin enable/disable requests in Codex or
 - 未验证的 Codex 版本：BLOCKED，维护者需先补充隔离加载器证据。本 Skill 执行时不能自行探测或升级客户端。
 - Claude Code 已安装 Marketplace Plugin：项目级 ENABLE / DISABLE，写 `.claude/settings.json`，支持批量事务与用户层覆盖；本地设置反向覆盖时整批 BLOCKED。
 - Claude Code 单个 Skill：本版 BLOCKED。`skillOverrides` 不作用于 Plugin Skill；standalone Skill 尚未完成编辑器与加载器验收，不写未经验证的条目。未验证的 Claude Code 版本同样 BLOCKED。
+- Kimi Code Plugin / 单个 Skill：项目级开关整批 BLOCKED。原生 Plugin 开关是用户级；不写无效的项目字段或改全局状态兜底。
 
 含一个不受支持目标的混合批次，整个操作为 BLOCKED，零配置写入。
 
