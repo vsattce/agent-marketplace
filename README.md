@@ -44,7 +44,9 @@ Plugin 的详情说明均列出所含 Skill 的用途与触发方式。**主动*
 
 ```text
 agent-marketplace/
-├── .agents/plugins/marketplace.json
+├── .agents/
+│   ├── plugins/marketplace.json
+│   └── skills/upgrade/SKILL.md     # 本项目第三方 Skill 升级入口
 ├── sources.yaml
 ├── sources.lock.json
 ├── scripts/sync.py
@@ -89,6 +91,16 @@ agent-marketplace/
 本仓库自有脚本和 metadata 使用 MIT License，第三方内容遵守各自附带的 upstream 许可证。
 
 ## 同步
+
+### 通过项目 Skill 升级
+
+在本仓库的 Codex 聊天中直接调用 `$upgrade`，即可由 Agent 核对环境并运行现有同步流程，无需手动输入命令。入口位于 [.agents/skills/upgrade/SKILL.md](.agents/skills/upgrade/SKILL.md)，属于项目 Skill，不计入上方五个 Plugin 的 15 个 Skills，也不进入第三方同步配置。
+
+升级遵循 `sources.yaml` 的既定来源与 ref：分支取最新内容，固定 commit 保持固定。Agent 检查差异、运行相关验证，并按 `AGENTS.md` 默认提交和推送当前分支；用户明确要求不提交或不推送时遵从该要求。环境或同步失败时停止，已有用户改动需保留。该入口升级仓库快照，Codex 安装缓存刷新另行处理。
+
+Codex 从仓库 `.agents/skills/` 发现项目 Skill，参见 [官方 Skill 文档](https://learn.chatgpt.com/docs/build-skills)。若当前聊天未显示 `$upgrade`，新建本项目聊天；仍未出现时重启 Codex。
+
+### 手动同步
 
 需要 Git、mise 管理的 Python 3.12+ 和 uv。使用 PyYAML 6.x 读取 YAML，依赖声明在脚本 PEP 723 metadata 中，通过 uv 隔离安装，不改全局环境。
 
