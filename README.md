@@ -57,4 +57,4 @@ Marketplace 第三方来源以 [sources.yaml](sources.yaml) 为准，同步 comm
 
 自有 Plugin 与项目 Skill 的双平台维护要求见 [AGENTS.md](AGENTS.md)。项目升级入口在 Codex 为 `$upgrade`、Claude Code 为 `/upgrade`，共用执行正文，见[维护指南](docs/maintenance.md#使用项目-skill)。
 
-本仓库通过 [.codex/config.toml](.codex/config.toml) 为 Codex 配置 Context7 官方远程 MCP，按 [AGENTS.md](AGENTS.md) 中的规则按需查阅库文档。该配置仅作用于当前项目，不属于 Marketplace Plugin；Claude Code 需有自己的 Context7 连接。新配置需在重新加载 MCP 或新会话中确认工具可用。
+本仓库通过 [.codex/config.toml](.codex/config.toml) 为 Codex 配置 Context7 与 OpenAI Docs 官方远程 MCP，按 [AGENTS.md](AGENTS.md) 中的规则按需查阅。该配置只作用于受信任项目的 Codex 会话，不属于 Marketplace Plugin；Claude Code 使用自己的项目 MCP 配置，不套用 Codex 配置。工具用途、查阅边界与加载方式见[维护指南](docs/maintenance.md#仓库开发工具)。配置变更后经 Codex MCP 重载或新会话确认工具可用。

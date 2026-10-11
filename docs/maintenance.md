@@ -6,6 +6,14 @@
 
 本仓库作为长期维护的 Plugin Marketplace，默认优先满足当前 Codex 与 Claude Code 的配置、使用和维护需求；其他客户端仅在用户明确要求时处理。项目规则、配置、能力、调用方式、支持范围或维护流程有变化时，同步检查并更新 README 与直接相关文档，维护要求以 [AGENTS.md](../AGENTS.md) 为准。
 
+## 仓库开发工具
+
+仓库开发工具（repository development tooling）包括 .agents/skills/ 中的 Superpowers、项目 upgrade 与未来项目级开发 Skill、项目 MCP 及 Codex / Claude 开发辅助配置。这些能力服务仓库维护，不进入 Marketplace 产品目录或数量；除明确要求，不注册到 .agents/plugins/marketplace.json、.claude-plugin/marketplace.json、kimi.plugin.json、sources.yaml 或对外安装目录。README 继续说明 Superpowers 不计入 Marketplace 数量。第三方快照与 OWNED 内容的维护方式见下文“第三方来源与维护边界”。
+
+Codex 项目配置 .codex/config.toml 提供 OpenAI Docs MCP 和 Context7：OpenAI Docs 用于按需核对 Codex / OpenAI 的 plugin、MCP、Skill 与配置行为；Context7 用于外部库、框架、SDK、CLI 的 API、配置格式和版本差异。稳定的本地修改不必每次查文档；复用已有结果，查询不提交凭据、私有源码或会话内容。连接不可用时，转查对应官方网页。配置格式与加载边界见 [Codex 配置文件官方说明](https://learn.chatgpt.com/docs/config-file/config-basic)及 [OpenAI Docs MCP](https://developers.openai.com/learn/docs-mcp)。
+
+这份 Codex 配置仅用于受信任项目的 Codex 会话。Claude Code 使用自己的项目 MCP 入口 .mcp.json；不得将 Codex 配置直接套用到 Claude。参见 [Claude Code MCP 官方说明](https://code.claude.com/docs/en/mcp)。根目录 CLAUDE.md 只导入 AGENTS.md。
+
 ## 目录与职责
 
 ```text

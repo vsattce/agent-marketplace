@@ -1,11 +1,21 @@
 # 项目级 Agent 规则
 
-本仓库是长期维护的 Plugin Marketplace 项目。
+本仓库是长期维护的个人 Skill / Plugin Marketplace。
 
-1. 修改并完成必要验证后，默认在同一收尾流程中连续执行 Git 提交和推送，将本次任务相关改动同步到 GitHub 当前分支，无需再次询问。提交遵循 Conventional Commits。用户在当前任务中明确要求不提交或不推送时，按该要求执行。以远端收到提交为完成条件，并报告分支和提交哈希；推送失败时说明原因，不声称已同步。
+1. **定位与客户端：** 优先兼容 Claude Code 和当前 Codex；Kimi 与其他客户端仅按用户明确要求适配或修改。业务流程和 Skill 正文可共享，manifest、Skill 发现、项目配置、工具调用及客户端行为按 Harness 实际能力区分；双端修改时检查双方入口、加载、手动调用策略、随包资源和直接受影响行为。
 
-2. 每次完成项目修改后，检查 `README.md` 及本次改动直接相关的文档与实际项目状态是否一致；项目规则、配置、能力、调用方式、支持范围或维护流程有变化时，同步更新对应文档，避免说明过时或缺失。
+2. **产品与开发工具边界（repository development tooling）：** .agents/skills/ 中的 Superpowers、项目 upgrade 与未来项目级开发 Skill、项目 MCP 及 Codex / Claude 开发辅助配置默认只服务本仓库维护，不属于 Marketplace 产品。除非用户明确要求，不把它们注册到 .agents/plugins/marketplace.json、.claude-plugin/marketplace.json、kimi.plugin.json、sources.yaml 或对外安装目录，也不计入 Plugin / Skill 数量；README 保留 Superpowers 不计数说明。
 
-3. 本仓库自定义 Plugin 与 Skill（包括 `agent-manager`、`personal-dev`、项目 `upgrade` 及后续新增自有能力）默认优先满足当前 Codex 与 Claude Code 的配置、使用和维护需求。共享业务流程，按真实 Harness 分离入口、加载规则、模型参数与工具适配；不得把一端的工具或配置约定直接套给另一端。新增或修改时同步核对两端的注册、发现、手动调用策略、随包资源和直接受影响行为，依据当前版本验证并如实记录未验证边界。其他客户端仅在用户明确要求时适配或修改，未提及则不主动处理；`sources.yaml` 管理的第三方快照及 `.agents/superpowers/` 记录的第三方项目 Skills 保持上游内容，不为跨平台适配手改。
+3. **来源与自有内容：** sources.yaml 管理第三方来源，scripts/sync.py 同步快照并把实际结果记录到 sources.lock.json；上游快照不顺手修改，内容变化通过来源、ref、upstream 或同步流程引入。agent-manager、personal-dev、项目 upgrade、manifests、自有脚本与测试由本仓库直接维护，不新增 ownership 系统。
 
-4. 按需配合调用 Context7：涉及第三方库、框架或 SDK 的 API 用法、配置、版本差异，或需要核对最新官方文档时，使用当前 Harness 可用的 Context7 工具辅助查证；纯 Git、文案及不依赖外部文档的局部修改无需调用。优先匹配项目实际使用版本；未知 library ID 时先调用 `resolve-library-id`，再用 `query-docs` 查询，已知准确 ID 时可直接查询。复用本任务已有结果，避免重复请求；不可用时说明并改查官方文档，不编造查询结果。不向查询提交凭据、私有源码或会话内容。
+4. **工作范围与环境：** 仅修改当前仓库和任务授权内容，先检查并保留用户已有改动。无明确授权不修改用户级 Codex / Claude / Kimi 配置、全局 Plugin / Skill / MCP、系统环境或全局运行时，也不操作其他项目；环境不满足时报告原因，不自行修复全局环境。
+
+5. **最小变更：** 只解决当前需求；直接相关问题可一并修复，无关问题仅报告，不顺手重构或扩建基础设施。
+
+6. **验证：** 复用现有 unittest，按变更运行 agent-manager、personal-dev、sync、Codex / Claude loader、项目配置或 manifest 对应测试；影响范围大或不明时再扩大验证。默认执行 git diff --check。真实客户端测试只用仓库已有显式开关和隔离 fixture，不改日常全局配置。
+
+7. **文档与入口：** 项目能力、配置、用法、支持范围或维护流程变化时，最小范围同步 README 和直接相关文档。不新建重复 Skill、modern-python Skill 或协作、发布、CI 基础设施。CLAUDE.md 只导入 @AGENTS.md；不复制第二份项目规则。
+
+8. **文档工具：** 近期变化、版本敏感或不确定的行为优先查当前官方资料或已有真实测试；稳定的本地小改动无需每次查文档。OpenAI Docs MCP 用于 Codex / OpenAI plugin、MCP、Skill 与配置行为；Context7 用于外部库、框架、SDK、CLI 的 API、配置格式或版本差异。两者均按需调用，复用本任务结果；不可用时查官方网页，查询不发送凭据、私有源码或会话内容。
+
+9. **Git 收尾：** 必要验证和 diff 检查后，仅暂存任务文件，以 Conventional Commits 提交并推送当前分支；用户明确要求不提交或不推送时遵从。禁止 force push。远端收到提交才算同步；失败如实报告，并汇报变更、测试、分支、提交哈希、推送状态及未验证的客户端。
