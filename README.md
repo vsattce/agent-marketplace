@@ -56,3 +56,5 @@ Marketplace 第三方来源以 [sources.yaml](sources.yaml) 为准，同步 comm
 安装快照固定在 `bb92a77741419a4ab5f06e711a283343f1ada0c3`，完整来源与清单见 [.agents/superpowers/source.json](.agents/superpowers/source.json)，上游 MIT 许可证见 [.agents/superpowers/LICENSE](.agents/superpowers/LICENSE)。这些项目 Skills 独立于 `sources.yaml`，不由 Marketplace 同步脚本更新。Codex 安装后可在下一轮对话使用，例如 `$using-superpowers` 或 `$brainstorming`。这些第三方项目 Skills 保持上游内容。
 
 自有 Plugin 与项目 Skill 的双平台维护要求见 [AGENTS.md](AGENTS.md)。项目升级入口在 Codex 为 `$upgrade`、Claude Code 为 `/upgrade`，共用执行正文，见[维护指南](docs/maintenance.md#使用项目-skill)。
+
+本仓库通过 [.codex/config.toml](.codex/config.toml) 为 Codex 配置 Context7 官方远程 MCP，按 [AGENTS.md](AGENTS.md) 中的规则按需查阅库文档。该配置仅作用于当前项目，不属于 Marketplace Plugin；Claude Code 需有自己的 Context7 连接。新配置需在重新加载 MCP 或新会话中确认工具可用。
