@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "engineering-tools",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "跨技术栈的构建、部署、脚本与工程辅助工具。",
   "extensions": {
     "com.openai": {
@@ -12,7 +12,9 @@
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://github.com/vsattce/agent-marketplace",
-        "brandColor": "#4B5563"
+        "brandColor": "#4B5563",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/icon.png"
       }
     }
   }

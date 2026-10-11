@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "software-dev",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "汇集第三方上游的前端设计、Web 规范、Vue、FastAPI 与 Java / Spring Boot Skills；保留原作者署名和上游许可证，仅供个人使用。",
   "extensions": {
     "com.openai": {
@@ -12,7 +12,9 @@
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://github.com/vsattce/agent-marketplace",
-        "brandColor": "#3F7667"
+        "brandColor": "#3F7667",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/icon.png"
       }
     }
   }

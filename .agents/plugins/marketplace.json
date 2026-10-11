@@ -47,7 +47,9 @@
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://github.com/vsattce/agent-marketplace",
-        "brandColor": "#3F7667"
+        "brandColor": "#3F7667",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/icon.png"
       }
     },
     {
@@ -121,7 +123,9 @@
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://github.com/vsattce/agent-marketplace",
-        "brandColor": "#4B5563"
+        "brandColor": "#4B5563",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/icon.png"
       }
     }
   ]
