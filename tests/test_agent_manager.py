@@ -86,30 +86,16 @@ class UpdateTests(unittest.TestCase):
 
 
 class PackagingTests(unittest.TestCase):
-    def test_kimi_manifests_share_all_catalog_skills_without_collisions(self):
+    def test_kimi_installable_entries_are_removed(self):
         catalog = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text(encoding="utf-8"))
-        aggregate = json.loads((ROOT / "kimi.plugin.json").read_text(encoding="utf-8"))
-        self.assertEqual(aggregate["version"], "1.1.0")
-        shared_plugins = [entry for entry in catalog["plugins"] if entry["name"] != "personal-dev"]
-        self.assertEqual(aggregate["name"], catalog["name"])
-        self.assertEqual(aggregate["interface"]["displayName"], "Agent Marketplace")
-        self.assertEqual(set(aggregate["skills"]), {entry["source"]["path"] + "/skills/" for entry in shared_plugins})
-        names = []
-        for entry in shared_plugins:
-            root = ROOT / entry["source"]["path"]
-            native = json.loads((root / "kimi.plugin.json").read_text(encoding="utf-8"))
-            self.assertEqual(native["name"], entry["name"])
-            if entry["name"] == "agent-manager":
-                self.assertEqual(native["version"], "0.6.0")
-            self.assertEqual(native["skills"], "./skills/")
-            self.assertEqual(native["interface"]["displayName"], entry["interface"]["displayName"])
-            for skill in (root / native["skills"]).glob("*/SKILL.md"):
-                frontmatter = yaml.safe_load(skill.read_text(encoding="utf-8").split("---", 2)[1])
-                names.append(frontmatter["name"].lower())
-        self.assertEqual(len(names), 16)
-        self.assertEqual(len(set(names)), 16)
-        for manifest in [aggregate] + [json.loads((ROOT / entry["source"]["path"] / "kimi.plugin.json").read_text(encoding="utf-8")) for entry in shared_plugins]:
-            self.assertFalse(set(manifest) & {"sessionStart", "hooks", "mcpServers", "systemPrompt", "commands"})
+        claude = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
+        self.assertEqual({entry["name"] for entry in catalog["plugins"]}, {entry["name"] for entry in claude["plugins"]})
+        self.assertFalse((ROOT / "kimi.plugin.json").exists())
+        for plugin in (ROOT / "plugins").iterdir():
+            self.assertFalse((plugin / "kimi.plugin.json").exists(), plugin.name)
+        self.assertFalse((PLUGIN / "references/kimi.md").exists())
+        self.assertFalse((ROOT / "plugins/agent-manager/references/agent-sources.md").exists())
+        self.assertFalse((ROOT / "tests/kimi_loader.cjs").exists())
 
     def test_manual_only_metadata_and_marketplace_registration(self):
         catalog = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text(encoding="utf-8"))

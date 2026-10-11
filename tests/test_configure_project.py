@@ -91,11 +91,6 @@ class ConfigureProjectTests(unittest.TestCase):
         with patch.object(editor, "codex_version", return_value="codex-cli 0.162.0-alpha.17.2"):
             self.blocked("CODEX PROJECT-LEVEL CONFIGURATION NOT SUPPORTED")
 
-    def test_kimi_project_switch_blocks_entire_batch_without_writing(self):
-        self.payload["agent"] = "kimi"
-        self.payload["requests"].append({"kind": "skill", "target": "vue", "enabled": False})
-        self.blocked("KIMI PROJECT-LEVEL CONFIGURATION NOT SUPPORTED")
-
     def test_disable_plugin_and_idempotence(self):
         self.write('[plugins."alpha@fixture"]\nenabled = true # preserve\n')
         self.payload["requests"][0]["enabled"] = False
@@ -163,7 +158,7 @@ class ConfigureProjectTests(unittest.TestCase):
                     self.blocked(editor.UNSUPPORTED_CONFIG)
 
     def test_unsupported_agents(self):
-        for agent in ("antigravity", "other", ""):
+        for agent in ("kimi", "gemini", "antigravity", "other", ""):
             self.payload["agent"] = agent
             self.blocked("UNSUPPORTED AGENT")
 
@@ -363,13 +358,13 @@ class ConfigureProjectTests(unittest.TestCase):
             editor.publish(self.project, self.config, None, planned, expected)
         self.assertEqual(self.config.read_text(), "# concurrent\n")
 
-    def test_cli_structured_blocked_report(self):
+    def test_cli_unsupported_harness_structured_blocked_report(self):
         result = subprocess.run([os.sys.executable, "-B", str(SCRIPT), "--cwd", str(self.project)],
                                 input=json.dumps({**self.payload, "agent": "kimi"}),
                                 text=True, capture_output=True, timeout=15, cwd=self.project)
         self.assertEqual(result.returncode, 2)
         report = json.loads(result.stdout)
-        self.assertEqual(report["Reason"], "KIMI PROJECT-LEVEL CONFIGURATION NOT SUPPORTED")
+        self.assertEqual(report["Reason"], "UNSUPPORTED AGENT")
         self.assertEqual(report["Changes applied"], "NONE")
         self.assertEqual(report["Global files modified"], "NONE")
 

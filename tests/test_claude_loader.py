@@ -133,7 +133,7 @@ class ClaudeLoaderTests(unittest.TestCase):
             shutil.copyfile(ROOT / filename, self.project / filename)
         init, context = self.context()
         self.assertEqual(init["slash_commands"].count("upgrade"), 1)
-        self.assertIn("优先兼容 Claude Code 和当前 Codex", context)
+        self.assertIn("当前仅支持 Claude Code 和 Codex", context)
         _, explicit = self.context("/upgrade 仅验证入口加载，不同步、不修改文件。")
         self.assertIn("../../../.agents/skills/upgrade/SKILL.md", explicit)
 

@@ -68,6 +68,17 @@ class SyncTests(unittest.TestCase):
         self.assertEqual((self.root / "plugins/common-workflow/licenses/alpha/LICENSE").read_bytes(), (self.upstream / "LICENSE").read_bytes())
         self.assertEqual(json.loads((self.root / "sources.lock.json").read_text())["skills"]["alpha"]["commit"], self.commit)
 
+    def test_sync_does_not_generate_kimi_installable_manifests(self):
+        self.run_sync()
+        self.assertTrue((self.root / "plugins/common-workflow/skills/alpha/SKILL.md").is_file())
+        for relative in (
+            "kimi.plugin.json",
+            ".agents/plugins/marketplace.json",
+            ".claude-plugin/marketplace.json",
+            "plugins/common-workflow/kimi.plugin.json",
+        ):
+            self.assertFalse((self.root / relative).exists(), relative)
+
     def test_same_commit_is_idempotent_and_repairs_local_snapshot(self):
         self.run_sync()
         before = self.snapshot()
@@ -175,7 +186,7 @@ class SyncTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=self.root) as staging:
             staged = Path(staging) / "replacement"
             staged.mkdir()
-            for relative in ("plugins/agent-manager/skills/am-conflict", "plugins/common-workflow/plugin.json", "plugins/common-workflow/skills", "plugins/common-workflow/.claude-plugin/plugin.json", ".claude-plugin/marketplace.json"):
+            for relative in ("plugins/agent-manager/skills/am-conflict", "plugins/common-workflow/plugin.json", "plugins/common-workflow/skills", "plugins/common-workflow/.claude-plugin/plugin.json", "plugins/common-workflow/kimi.plugin.json", "kimi.plugin.json", ".claude-plugin/marketplace.json"):
                 with self.subTest(target=relative), self.assertRaises(skill_sync.SyncError):
                     skill_sync.publish([(staged, self.root / relative)], Path(staging), self.root)
             self.assertTrue(staged.exists())

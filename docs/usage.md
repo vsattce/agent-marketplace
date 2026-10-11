@@ -4,6 +4,8 @@
 
 已经安装并启用 Marketplace 的用户，从日常调用开始；安装步骤用于首次安装、换电脑或更新副本。
 
+当前支持 Codex 与 Claude Code；其他客户端暂不适配或维护。
+
 ## 日常调用
 
 在聊天中写明 Skill 和要完成的任务：
@@ -12,9 +14,8 @@
 | --- | --- | --- |
 | Codex | `$<plugin>:<skill>` | `$frontend-dev:vue 帮我实现这个组件` |
 | Claude Code | `/<plugin>:<skill>` | `/frontend-dev:vue 帮我实现这个组件` |
-| Kimi Code | `/skill:<name>` | `/skill:vue 帮我实现这个组件` |
 
-Kimi 的 Skill 名称不带分类前缀。可用入口以当前会话实际显示的清单为准。Skill 改名发布后，刷新客户端安装副本并开启新会话或重载 Plugin；旧完整调用名不作为别名保留。
+可用入口以当前会话实际显示的清单为准。Skill 改名发布后，刷新客户端安装副本并开启新会话或重载 Plugin；旧完整调用名不作为别名保留。
 
 **仅手动调用**：`handoff`、`am-conflict`、`am-update`、`am-config`，以及 `personal-dev` 中的 Skills。其他 Skill 可在任务匹配时由 Agent 选用，也可手动指定；自动选用不保证每次发生，启用 Plugin 不会自行执行任务。
 
@@ -74,7 +75,7 @@ Codex 需要本轮可靠的主模型身份、当前派发工具允许名单和�
 
 Codex 随 Skill 提供的 Python 标准库检查器只校验主模型根据当前工具整理的模型信息，不连接服务、不验证输入来源、不修改配置，也不是原生派发工具的强制拦截器。使用已有且符合规则的 Agent 工具解释器；缺少环境时中断，不自动安装或切换。费用与 Codex 额度的实际节省需要实测，不按 API 标价推算固定比例。
 
-Codex / Claude 均注册此 Plugin，Kimi 暂不注册。安装后新建对应客户端会话加载；仓库有文件或已经推送，不代表当前会话已注入新 Skill。该 Skill 执行时按目标项目授权与规则处理 Git，不自动取得全局修改或发布权限。
+Codex / Claude 均注册此 Plugin。安装后新建对应客户端会话加载；仓库有文件或已经推送，不代表当前会话已注入新 Skill。该 Skill 执行时按目标项目授权与规则处理 Git，不自动取得全局修改或发布权限。
 
 ### 增强代码审查
 
@@ -88,13 +89,13 @@ Codex / Claude 均注册此 Plugin，Kimi 暂不注册。安装后新建对应�
 
 ### 查找冲突
 
-`am-conflict` 按当前 Agent 的实际加载规则检查项目与全局来源，在对话中报告双方原文、位置、触发条件、影响及最小建议。它区分冲突、歧义、能力重叠和已有覆盖规则消解的差异。
+`am-conflict` 仅支持 Codex 与 Claude Code；它按对应客户端的实际加载规则检查项目与全局来源，在对话中报告双方原文、位置、触发条件、影响及最小建议。它区分冲突、歧义、能力重叠和已有覆盖规则消解的差异。其他 Harness 输出 `BLOCKED / UNSUPPORTED AGENT`。
 
 全过程只读，不改配置、不禁用或卸载入口，也不创建报告文件。来源或加载状态不明时标记 `UNKNOWN`，扫描不完整时标记 `PARTIAL`。
 
 ### 检查更新
 
-`am-update` 支持 Codex、Claude Code 与 Kimi Code，只比较已记录的 repo / path / ref、精确 commit 和安装证据，不更新对象或更换来源。固定 commit 不跟随 main；版本字符串相同也不代表内容相同。
+`am-update` 支持 Codex 与 Claude Code，只比较已记录的 repo / path / ref、精确 commit 和安装证据，不更新对象或更换来源。其他 Harness 输出 `BLOCKED / UNSUPPORTED AGENT`。固定 commit 不跟随 main；版本字符串相同也不代表内容相同。
 
 源码快照、Marketplace 快照和客户端安装副本分别报告。来源无法确认时标记 `UNKNOWN SOURCE`，证据不足时标记 `UNKNOWN` 或 `BLOCKED`。
 
@@ -118,17 +119,16 @@ Claude 使用 `/agent-manager:am-config`。该入口只处理用户明确指定�
 | --- | --- | --- |
 | Codex `0.162.0-alpha.17.2`、`0.162.0-alpha.2` | 已安装的本地 Marketplace Plugin | `.codex/config.toml` |
 | Claude Code `2.1.291`、`2.1.296` | 已安装的 Marketplace Plugin | `.claude/settings.json` |
-| Kimi Code Desktop `1.0.4` | 暂不支持，整批 `BLOCKED` | 不写配置 |
 
-三个客户端的**单个 Skill 项目开关均不支持**。未验证的 Codex / Claude 版本、目标缺失或歧义、配置损坏、有效项目层证据不足，以及 Codex 未受信任项目或 workspace-managed Plugin，均拒绝整批操作。Claude 的 `.claude/settings.local.json` 若对目标存在反向覆盖，也会整批拒绝。
+Codex 与 Claude Code 的**单个 Skill 项目开关均不支持**。其他 Harness 输出 `BLOCKED / UNSUPPORTED AGENT`。未验证的 Codex / Claude 版本、目标缺失或歧义、配置损坏、有效项目层证据不足，以及 Codex 未受信任项目或 workspace-managed Plugin，均拒绝整批操作。Claude 的 `.claude/settings.local.json` 若对目标存在反向覆盖，也会整批拒绝。
 
-standalone Skill 的项目安装与 Skill 开关不同：用户须指定准确来源和项目内目标，并通过当前 Harness 的加载目录、来源、重复、冲突及路径检查。已确认的发现目录为 Codex `.agents/skills/`、Claude `.claude/skills/`、Kimi `.kimi-code/skills/` 或 `.agents/skills/`；实际版本、项目配置和会话证据优先。复制所需资源并记录来源，不运行来源脚本或可能写用户 cache 的安装器。
+standalone Skill 的项目安装与 Skill 开关不同：用户须指定准确来源和项目内目标，并通过当前 Harness 的加载目录、来源、重复、冲突及路径检查。已确认的发现目录为 Codex `.agents/skills/` 和 Claude Code `.claude/skills/`。复制所需资源并记录来源，不运行来源脚本或可能写用户 cache 的安装器。
 
-项目 Plugin 安装当前没有 Codex、Claude Code 或 Kimi Code 的全写入均留在项目内的已验证契约，因此整批 `BLOCKED`。项目 Plugin 开关能力不能替代安装能力。
+项目 Plugin 安装当前没有 Codex 或 Claude Code 的全写入均留在项目内的已验证契约，因此整批 `BLOCKED`。项目 Plugin 开关能力不能替代安装能力。
 
-`AGENTS.md` 默认编辑项目 Git/workspace 根文件；只有明确指定时才处理子目录。先核实当前 Harness 的真实指令链和遮蔽关系：Codex 同目录 `AGENTS.override.md` 优先；Claude Code v2.1.277+ 按祖先 `CLAUDE.md`、`.claude/CLAUDE.md`、`CLAUDE.local.md`、版本与 Project instructions 设置选择是否加载；Kimi 按实际项目来源判断。用户指定编辑文件时可以改文件本身，但不会自动添加引用或声称当前会话已加载。
+`AGENTS.md` 默认编辑项目 Git/workspace 根文件；只有明确指定时才处理子目录。先核实当前 Harness 的真实指令链和遮蔽关系：Codex 同目录 `AGENTS.override.md` 优先；Claude Code v2.1.277+ 按祖先 `CLAUDE.md`、`.claude/CLAUDE.md`、`CLAUDE.local.md`、版本与 Project instructions 设置选择是否加载。用户指定编辑文件时可以改文件本身，但不会自动添加引用或声称当前会话已加载。
 
-任何一个目标不受支持、冲突未解决或核心来源/加载证据缺失，整个混合批次都不写入。全局与项目外始终只读；保存后新会话或重新加载才能确认会话状态。详细边界见 [项目文件预检](../plugins/agent-manager/skills/am-config/references/project-edits.md)、[Codex](../plugins/agent-manager/skills/am-config/references/codex-support.md)、[Claude](../plugins/agent-manager/skills/am-config/references/claude-support.md) 与 [Kimi](../plugins/agent-manager/references/kimi.md)。
+任何一个目标不受支持、冲突未解决或核心来源/加载证据缺失，整个混合批次都不写入。全局与项目外始终只读；保存后新会话或重新加载才能确认会话状态。详细边界见 [项目文件预检](../plugins/agent-manager/skills/am-config/references/project-edits.md)、[Codex](../plugins/agent-manager/skills/am-config/references/codex-support.md) 与 [Claude](../plugins/agent-manager/skills/am-config/references/claude-support.md)。
 
 ## 安装与更新
 
@@ -181,20 +181,6 @@ claude plugin update frontend-dev@agent-marketplace
 
 其他分类同理，完成后新建会话。切换同名市场来源前先核对注册；移除 Marketplace 会同时卸载其插件。
 
-### Kimi Code
-
-桌面客户端进入「设置 → 插件 → 安装自定义插件」，粘贴以下地址可一次安装全部 16 个 Skills：
-
-```text
-https://github.com/vsattce/agent-marketplace/tree/main
-```
-
-也支持 `https://github.com/vsattce/agent-marketplace.git`；显式指定 main 可避免未来 release 改变默认 URL 的版本选择。CLI 的 `/plugins install <地址或绝对路径>` 是 Kimi 聊天命令，不是 PowerShell 命令；此入口不支持 `git@github.com:...` SSH 地址。
-
-本地安装可填 `E:\WorkSpace\agent-marketplace`；只需某分类时，填对应绝对目录，例如 `E:\WorkSpace\agent-marketplace\plugins\frontend-dev`。本机已验证的 1.0.4 不支持用 GitHub `/tree/main/plugins/<分类>` URL 安装子目录。整仓库聚合安装与分类安装二选一，避免重复提供 Skills。
-
-**刷新**：重新安装，保持插件启用，再新建会话；CLI 可用 `/reload` 或 `/new`。本地来源也会复制到托管目录，修改原目录后仅重载不会复制新内容。Kimi 的插件开关是用户级，影响所有项目。
-
 ## 常见问题
 
 | 情况 | 处理方式 |
@@ -203,7 +189,6 @@ https://github.com/vsattce/agent-marketplace/tree/main
 | 已安装，但当前聊天找不到入口 | 核对启用状态和当前会话清单，重新加载或新建聊天；磁盘存在不等于会话可用 |
 | 不知道 Skill 是否自动执行 | handoff、三个管理入口和 personal-dev 仅手动；其他入口按任务匹配，启用不会自行执行 |
 | 配置开关返回 BLOCKED | 查看具体原因及上方支持范围；安装成功不代表具备所有项目配置能力 |
-| Kimi 出现重复 Skill | 检查是否同时安装整仓库聚合插件和分类插件 |
 | 想升级仓库里的第三方内容 | 在本仓库 Codex 聊天调用 `$upgrade`，见[维护指南](maintenance.md#升级第三方-skill)；它不刷新安装副本 |
 
-客户端机制参考：[Codex Skills](https://learn.chatgpt.com/docs/build-skills)、[Claude Skills](https://code.claude.com/docs/en/skills)、[Claude Marketplace](https://code.claude.com/docs/en/plugin-marketplaces)、[Kimi Plugins](https://github.com/MoonshotAI/kimi-code/blob/main/docs/en/customization/plugins.md)、[Kimi Skills](https://github.com/MoonshotAI/kimi-code/blob/main/docs/en/customization/skills.md)。
+客户端机制参考：[Codex Skills](https://learn.chatgpt.com/docs/build-skills)、[Claude Skills](https://code.claude.com/docs/en/skills)、[Claude Marketplace](https://code.claude.com/docs/en/plugin-marketplaces)。

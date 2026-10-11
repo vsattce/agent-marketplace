@@ -106,7 +106,7 @@
       "interface": {
         "displayName": "Agent 管理工具",
         "shortDescription": "冲突查找、来源检查及明确的项目指令、Skill 和 Plugin 操作；仅手动调用。",
-        "longDescription": "本仓库直接维护的 OWNED Plugin。\n\nam-conflict：按当前 Agent 的加载规则，只读查找项目与全局指令、Skills、Plugins / Extensions 的冲突及歧义，输出原文、位置和建议。\nam-update：支持 Codex、Claude Code 与 Kimi Code，只读对比已记录 upstream、自有仓库、已安装 Plugin、standalone Skill 与 Marketplace 状态。\nam-config：只处理用户明确请求，先检查整批冲突与重复，再编辑项目 AGENTS.md、复制明确来源的 standalone Skill，或修改已支持的 Codex / Claude 项目 Plugin 开关。Plugin 项目安装仅在已证明所有写入都留在项目内时支持；当前 Codex / Claude / Kimi 均无此已验证契约。Kimi Plugin 项目开关、单个 Skill 开关及未支持目标整批 BLOCKED；全局始终只读。\n\n三个 Skill 均仅显式调用：Codex 为 $agent-manager:<skill>，Claude 为 /agent-manager:<skill>，Kimi 为 /skill:<name>。加载证据不足时标记 PARTIAL / UNKNOWN / BLOCKED。",
+        "longDescription": "本仓库直接维护的 OWNED Plugin。\n\nam-conflict：按 Codex 或 Claude Code 的加载规则，只读查找项目与全局指令、Skills、Plugins 的冲突及歧义，输出原文、位置和建议。\nam-update：支持 Codex 与 Claude Code，只读对比已记录 upstream、自有仓库、已安装 Plugin、standalone Skill 与 Marketplace 状态。\nam-config：只处理用户明确请求，先检查整批冲突与重复，再编辑项目 AGENTS.md、复制明确来源的 standalone Skill，或修改已支持的 Codex / Claude 项目 Plugin 开关。Plugin 项目安装在 Codex 与 Claude Code 下均暂不支持。单个 Skill 开关暂不支持，其他 Harness 整体 BLOCKED；全局始终只读。\n\nCodex 与 Claude Code 均仅显式调用：Codex 为 $agent-manager:<skill>，Claude Code 为 /agent-manager:<skill>。加载证据不足时标记 PARTIAL / UNKNOWN / BLOCKED。",
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://github.com/vsattce/agent-marketplace",
@@ -123,7 +123,7 @@
       "interface": {
         "displayName": "个人开发工具",
         "shortDescription": "个人开发任务与证据化代码审查；仅手动调用。",
-        "longDescription": "支持 Codex 与 Claude Code，所有 Skills 默认仅手动调用。\n\ndev-delegate：当前主模型规划；Codex 同代最新可用 Luna 默认 xhigh 编码、max 独立验收，可分别指定强度；Claude Code 沿用当前子代理模型与思考配置，指定值按原生能力核验。主模型最终整体检查。先显示模型策略与已确认的实际值，再直接执行。Codex 型号、代际或必需能力不明确时中断并解释；Claude 默认实际型号未知时如实标 UNKNOWN；最多两轮修复，升级由用户决定。\n\ndev-review：当前主模型先做一次性预检，再委派只读审查；必要时由独立代理复核 P0/P1。默认检查当前项目全部自有代码，即使没有 diff；明确范围则严格限定。代码层审查不要求生产凭证或运行环境，发现按证据和影响分级，结果写入 Markdown 报告。审查与复核型号/强度在派发前展示，必需条件缺失时集中 BLOCKED。\n\n显式调用：Codex 为 $personal-dev:dev-delegate / $personal-dev:dev-review；Claude 为 /personal-dev:dev-delegate / /personal-dev:dev-review。不会修改全局模型配置或自动安装依赖。按 Harness 使用原生委派接口；Kimi 暂未适配。",
+        "longDescription": "支持 Codex 与 Claude Code，所有 Skills 默认仅手动调用。\n\ndev-delegate：当前主模型规划；Codex 同代最新可用 Luna 默认 xhigh 编码、max 独立验收，可分别指定强度；Claude Code 沿用当前子代理模型与思考配置，指定值按原生能力核验。主模型最终整体检查。先显示模型策略与已确认的实际值，再直接执行。Codex 型号、代际或必需能力不明确时中断并解释；Claude 默认实际型号未知时如实标 UNKNOWN；最多两轮修复，升级由用户决定。\n\ndev-review：当前主模型先做一次性预检，再委派只读审查；必要时由独立代理复核 P0/P1。默认检查当前项目全部自有代码，即使没有 diff；明确范围则严格限定。代码层审查不要求生产凭证或运行环境，发现按证据和影响分级，结果写入 Markdown 报告。审查与复核型号/强度在派发前展示，必需条件缺失时集中 BLOCKED。\n\n显式调用：Codex 为 $personal-dev:dev-delegate / $personal-dev:dev-review；Claude 为 /personal-dev:dev-delegate / /personal-dev:dev-review。不会修改全局模型配置或自动安装依赖。按各自 Harness 使用原生委派接口；其他 Harness 暂不支持。",
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://github.com/vsattce/agent-marketplace",

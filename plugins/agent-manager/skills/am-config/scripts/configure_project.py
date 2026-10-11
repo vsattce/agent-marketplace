@@ -470,8 +470,6 @@ def publish(root: Path, config: Path, original: bytes | None, planned: bytes, ex
 def configure(payload: dict, cwd: Path) -> dict:
     if not isinstance(payload, dict) or payload.get("explicit_invocation") is not True:
         raise Blocked("USER EXPLICIT REQUEST REQUIRED")
-    if payload.get("agent") == "kimi":
-        raise Blocked("KIMI PROJECT-LEVEL CONFIGURATION NOT SUPPORTED")
     if payload.get("agent") not in {"codex", "claude"}:
         raise Blocked("UNSUPPORTED AGENT")
     if set(payload) != {"agent", "explicit_invocation", "scope", "requests", "inventory"} or payload["scope"] != "project":

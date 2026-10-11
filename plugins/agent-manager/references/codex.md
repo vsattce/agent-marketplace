@@ -5,7 +5,7 @@
 ## 冲突查找
 
 - 指令：实际 `CODEX_HOME`（未设置时通常 `~/.codex`）的全局指令，以及项目根到 cwd 的指令链。每层按 `AGENTS.override.md`、`AGENTS.md`、配置的 `project_doc_fallback_filenames` 查首个非空入口，不把同目录所有文件当作同时加载；注意 `project_doc_max_bytes` 截断与会话启动后文件变更。更深目录的规则仅对其作用域分析。
-- `CLAUDE.md`、`GEMINI.md` 等不是 Codex 的默认项目指令入口。只有已配置为 fallback、被有效规则引用或会话明确加载时才纳入；不能因为它在磁盘上存在就判为 Codex 冲突。
+- `CLAUDE.md` 不是 Codex 的默认项目指令入口。只有已配置为 fallback、被有效规则引用或会话明确加载时才纳入；不能因为它在磁盘上存在就判为 Codex 冲突。
 - Skills：以当前会话实际暴露的入口为准，结合项目根到 cwd 的 `.agents/skills`、用户 `.agents/skills`、会话列出的 `.codex/skills` 或自定义路径、系统入口及 Plugin 提供的 Skills 查来源。读取 frontmatter、正文和 `agents/openai.yaml`；`policy.allow_implicit_invocation: false` 表示仅手动。可用清单不表示每个 Skill 正文都已加载。
 - Plugins：读取实际 manifest、安装 receipt / metadata、项目/用户 Marketplace 与相关启用配置。源码路径、Marketplace 收录、安装缓存和会话启用分别记录。项目控制通常来自 `.codex/config.toml`，用户控制来自 `$CODEX_HOME/config.toml`，但还须核对 trust、profile、CLI override 和 managed requirements；配置存在不证明当前会话加载。
 - 优先级：全局到项目、由浅到深的指令链可对同一主题作更具体覆盖，仍受当前明确任务与上级规则约束。指令优先级与 Plugin/Skill 配置优先级分别核实，不能由文件所在层级推出所有入口的统一胜者。
@@ -22,7 +22,7 @@
 
 ## 更新检查
 
-此 adapter 只用于 Codex；Claude Code 使用 [独立 adapter](claude.md)，不因其他 Agent 的来源示例扩大更新检查范围。每次执行核对当前官方只读查询机制。可用命令与字段须经当前版本证实；无法证明 CLI / RPC 无安装、刷新、日志或缓存写入副作用时，读取现有 metadata，缺失项标 `UNKNOWN`。
+此 adapter 只用于 Codex；Claude Code 使用[独立 adapter](claude.md)。每次执行核对当前官方只读查询机制。可用命令与字段须经当前版本证实；无法证明 CLI / RPC 无安装、刷新、日志或缓存写入副作用时，读取现有 metadata，缺失项标 `UNKNOWN`。
 
 Codex Plugin 调用优先使用 `$agent-manager:am-conflict`、`$agent-manager:am-update`；裸别名是否可用以当前会话为准，不通过复制 standalone Skill 或修改配置补别名。
 

@@ -103,7 +103,7 @@ class PluginDevSnapshotTests(unittest.TestCase):
         self.assertEqual(modes, {path: "100755" for path in paths})
 
     def test_repository_development_tooling_stays_outside_marketplace_sources(self):
-        for manifest in (".agents/plugins/marketplace.json", ".claude-plugin/marketplace.json", "kimi.plugin.json"):
+        for manifest in (".agents/plugins/marketplace.json", ".claude-plugin/marketplace.json"):
             with self.subTest(manifest=manifest):
                 self.assertNotIn("claude-plugin-dev", (ROOT / manifest).read_text(encoding="utf-8"))
                 self.assertNotIn(".agents/plugin-dev", (ROOT / manifest).read_text(encoding="utf-8"))

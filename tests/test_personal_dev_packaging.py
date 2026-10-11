@@ -41,7 +41,6 @@ class PersonalDevPackagingTests(unittest.TestCase):
         self.assertIn("$personal-dev:dev-review", review_metadata["interface"]["default_prompt"])
 
         claude = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
-        kimi = json.loads((ROOT / "kimi.plugin.json").read_text(encoding="utf-8"))
         claude_entry = next(entry for entry in claude["plugins"] if entry["name"] == "personal-dev")
         self.assertEqual(claude_entry["source"], "./plugins/personal-dev")
         claude_manifest = json.loads((PLUGIN / ".claude-plugin/plugin.json").read_text(encoding="utf-8"))
@@ -49,8 +48,6 @@ class PersonalDevPackagingTests(unittest.TestCase):
         self.assertNotIn("version", claude_manifest)
         self.assertTrue((PLUGIN / "references/codex.md").is_file())
         self.assertTrue((PLUGIN / "references/claude.md").is_file())
-        self.assertNotIn("./plugins/personal-dev/skills/", kimi["skills"])
-        self.assertFalse((PLUGIN / "kimi.plugin.json").exists())
 
     def test_manual_only_policy_and_owned_source_boundary(self):
         frontmatter = yaml.safe_load((SKILL / "SKILL.md").read_text(encoding="utf-8").split("---", 2)[1])

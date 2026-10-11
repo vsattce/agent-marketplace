@@ -1,8 +1,8 @@
 # agent-marketplace
 
-长期维护的个人 Skill / Plugin Marketplace 项目，客户端显示为 **Agent Marketplace**。默认优先满足当前 Codex 与 Claude Code 的配置、使用和维护需求，共享同一份 Skill 内容与资源，并按客户端适配原生工具。其他客户端仅在明确要求时处理。Kimi Code 保留五个分类，Antigravity 尚未适配。
+长期维护的个人 Skill / Plugin Marketplace 项目，客户端显示为 **Agent Marketplace**。目前仅支持 Codex 与 Claude Code，共享同一份 Skill 内容与资源，并按客户端适配原生工具；其他客户端暂不适配或维护。
 
-目前 Codex / Claude Code 均包含 **6 个 Plugin、18 个 Skills**：四个第三方聚合 Plugin（13 项）、本仓库直接维护的 `agent-manager`（3 项）和 `personal-dev`（2 项）。Kimi 保持五个 Plugin、16 个 Skills。
+Codex / Claude Code 均包含 **6 个 Plugin、18 个 Skills**：四个第三方聚合 Plugin（13 项）、本仓库直接维护的 `agent-manager`（3 项）和 `personal-dev`（2 项）。
 
 ## 包含哪些能力
 
@@ -15,7 +15,7 @@
 | `agent-manager` | Agent 管理工具 | am-conflict、am-update、am-config |
 | `personal-dev` | 个人开发工具，Codex / Claude Code | dev-delegate、dev-review |
 
-Codex / Claude 按分类安装，完整身份为 `<plugin>@agent-marketplace`；Kimi 可一次安装整个仓库，也可按本地分类目录安装。
+Codex / Claude Code 按分类安装，完整身份为 `<plugin>@agent-marketplace`。
 
 ## 从哪里开始
 
@@ -29,13 +29,13 @@ Codex / Claude 按分类安装，完整身份为 `<plugin>@agent-marketplace`；
 
 ## 常用调用
 
-| 操作 | Codex | Claude Code | Kimi Code |
-| --- | --- | --- | --- |
-| 使用 Vue Skill | `$frontend-dev:vue` | `/frontend-dev:vue` | `/skill:vue` |
-| 交接当前任务 | `$common-workflow:handoff` | `/common-workflow:handoff` | `/skill:handoff` |
-| 只读检查更新 | `$agent-manager:am-update` | `/agent-manager:am-update` | `/skill:am-update` |
-| 委派开发与独立验收 | `$personal-dev:dev-delegate` | `/personal-dev:dev-delegate` | 暂不支持 |
-| 增强代码审查 | `$personal-dev:dev-review` | `/personal-dev:dev-review` | 暂不支持 |
+| 操作 | Codex | Claude Code |
+| --- | --- | --- |
+| 使用 Vue Skill | `$frontend-dev:vue` | `/frontend-dev:vue` |
+| 交接当前任务 | `$common-workflow:handoff` | `/common-workflow:handoff` |
+| 只读检查更新 | `$agent-manager:am-update` | `/agent-manager:am-update` |
+| 委派开发与独立验收 | `$personal-dev:dev-delegate` | `/personal-dev:dev-delegate` |
+| 增强代码审查 | `$personal-dev:dev-review` | `/personal-dev:dev-review` |
 
 `handoff`、三个 Agent 管理 Skill 和 `personal-dev` 中的 Skills **仅手动调用**；其余 Skill 可按任务匹配，也可显式调用。启用 Plugin 不会自行执行任务。
 
@@ -43,7 +43,7 @@ Codex / Claude 按分类安装，完整身份为 `<plugin>@agent-marketplace`；
 
 `dev-review` 仅在显式调用后审查，默认覆盖当前项目全部自有代码，即使没有 diff；指定范围时严格遵守。它只读源码与配置，先集中预检，再派发审查和必要的独立复核；没有生产证据时仍可完成代码层审查。问题按证据与影响分级，报告保存在项目的 `docs/reviews/`。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code)。
 
-`am-config` 仅手动处理明确的项目 `AGENTS.md` 编辑、指定来源的 standalone Skill 安装和已支持的 Codex / Claude Plugin 开关；Plugin 项目安装、单个 Skill 开关及 Kimi Plugin 项目开关暂不支持。所有操作先检查冲突、重复和 Harness 加载边界，见[使用手册](docs/usage.md#项目开关支持范围)。
+`am-config` 仅手动处理明确的项目 `AGENTS.md` 编辑、指定来源的 standalone Skill 安装和已支持的 Codex / Claude Plugin 开关；Plugin 项目安装及单个 Skill 开关暂不支持，其他 Harness 会拒绝。所有操作先检查冲突、重复和 Harness 加载边界，见[使用手册](docs/usage.md#项目开关支持范围)。
 
 Marketplace 第三方来源以 [sources.yaml](sources.yaml) 为准，同步 commit 记录在 [sources.lock.json](sources.lock.json)。本仓库自有脚本与 metadata 使用 [MIT License](LICENSE)，第三方内容遵守各自附带的许可证。
 

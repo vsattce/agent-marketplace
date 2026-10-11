@@ -4,7 +4,7 @@
 
 本文用于维护仓库源码、第三方快照与开发验证；客户端安装、调用和刷新见使用手册。
 
-本仓库作为长期维护的 Plugin Marketplace，默认优先满足当前 Codex 与 Claude Code 的配置、使用和维护需求；其他客户端仅在用户明确要求时处理。项目规则、配置、能力、调用方式、支持范围或维护流程有变化时，同步检查并更新 README 与直接相关文档，维护要求以 [AGENTS.md](../AGENTS.md) 为准。
+本仓库目前仅支持 Codex 与 Claude Code；其他客户端暂不适配或维护。项目规则、配置、能力、调用方式、支持范围或维护流程有变化时，同步检查并更新 README 与直接相关文档，维护要求以 [AGENTS.md](../AGENTS.md) 为准。
 
 ## Claude Code plugin 开发指导
 
@@ -14,7 +14,7 @@
 
 ## 仓库开发工具
 
-仓库开发工具（repository development tooling）包括 .agents/skills/ 中的 Superpowers、项目 upgrade、现有 Claude Code plugin 开发 Skill 与未来项目级开发 Skill，.agents/plugin-dev/ 中的官方参考快照，以及项目 MCP 与 Codex / Claude 开发辅助配置。这些能力服务仓库维护，不进入 Marketplace 产品目录或数量；除明确要求，不注册到 .agents/plugins/marketplace.json、.claude-plugin/marketplace.json、kimi.plugin.json、sources.yaml 或对外安装目录。README 继续说明 Superpowers 不计入 Marketplace 数量。第三方快照与 OWNED 内容的维护方式见下文“第三方来源与维护边界”。
+仓库开发工具（repository development tooling）包括 .agents/skills/ 中的 Superpowers、项目 upgrade、现有 Claude Code plugin 开发 Skill 与未来项目级开发 Skill，.agents/plugin-dev/ 中的官方参考快照，以及项目 MCP 与 Codex / Claude 开发辅助配置。这些能力服务仓库维护，不进入 Marketplace 产品目录或数量；除明确要求，不注册到 .agents/plugins/marketplace.json、.claude-plugin/marketplace.json、sources.yaml 或对外安装目录。README 继续说明 Superpowers 不计入 Marketplace 数量。第三方快照与 OWNED 内容的维护方式见下文“第三方来源与维护边界”。
 
 Codex 项目配置 .codex/config.toml 提供 OpenAI Docs MCP 和 Context7：OpenAI Docs 用于按需核对 Codex / OpenAI 的 plugin、MCP、Skill 与配置行为；Context7 用于外部库、框架、SDK、CLI 的 API、配置格式和版本差异。稳定的本地修改不必每次查文档；复用已有结果，查询不提交凭据、私有源码或会话内容。连接不可用时，转查对应官方网页。配置格式与加载边界见 [Codex 配置文件官方说明](https://learn.chatgpt.com/docs/config-file/config-basic)及 [OpenAI Docs MCP](https://developers.openai.com/learn/docs-mcp)。
 
@@ -32,7 +32,6 @@ agent-marketplace/
 │   └── plugin-dev/upstream/        # 官方 plugin-dev 固定快照
 ├── .claude/skills/upgrade/SKILL.md # Claude 入口，读取共享升级正文
 ├── .claude-plugin/marketplace.json # Claude Marketplace
-├── kimi.plugin.json               # Kimi 整仓库聚合入口
 ├── AGENTS.md                      # 项目规则
 ├── CLAUDE.md                      # 导入 AGENTS.md
 ├── sources.yaml                   # 第三方来源配置
@@ -52,9 +51,9 @@ agent-marketplace/
 └── README.md                      # 概览与文档入口
 ```
 
-原五个跨客户端分类共享 `skills/<name>/`，提供 Codex `plugin.json`、Claude `.claude-plugin/plugin.json` 与 Kimi `kimi.plugin.json`。第三方分类另存 `licenses/<name>/`。Codex / Claude Marketplace 均指向 `./plugins/<plugin>`；Kimi 根 manifest 列出五个共享 Skill 目录。`personal-dev` 在 Codex / Claude 注册，包含两个仅手动调用的 Skill，不加入 Kimi catalog；共享正文按 `references/codex.md` / `references/claude.md` 适配原生委派工具。
+六个分类共享 `skills/<name>/`，提供 Codex `plugin.json` 与 Claude Code `.claude-plugin/plugin.json`。第三方分类另存 `licenses/<name>/`。两个 Marketplace 均指向 `./plugins/<plugin>`。`personal-dev` 在 Codex / Claude 注册，包含两个仅手动调用的 Skill；共享正文按 `references/codex.md` / `references/claude.md` 适配原生委派工具。
 
-Codex 使用便携 manifest，中文信息位于 `extensions.com.openai.interface`。Claude manifest / catalog 有意不写 version，GitHub 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。Kimi 的 version 是显示 metadata，判断 GitHub 内容需比较 receipt 的 ref / installedSha。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
+Codex 使用便携 manifest，中文信息位于 `extensions.com.openai.interface`。Claude manifest / catalog 有意不写 version，GitHub 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
 
 ## 第三方来源与维护边界
 
@@ -78,7 +77,7 @@ lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，�
 
 ### 使用项目 Skill
 
-在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入 Codex / Claude 六个 Plugin 的 18 个 Skills，也不计入 Kimi 五个 Plugin 的 16 个 Skills。
+在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入六个 Plugin 的 18 个 Skills。
 
 Agent 核对目标、Git 状态与运行时后，按 sources 的既定来源 / ref 同步，保留用户改动，检查差异并运行相关验证。按 [AGENTS.md](../AGENTS.md) 默认提交、推送当前分支；当前任务明确不提交或不推送时遵从该要求。环境、同步或验证失败时停止，零差异不制造提交。
 
@@ -131,15 +130,14 @@ git diff --check
 | 冲突查找工作流 | [am-conflict](../plugins/agent-manager/skills/am-conflict/SKILL.md) |
 | 只读版本比较与共享 API helper | [am-update](../plugins/agent-manager/skills/am-update/SKILL.md) |
 | 项目指令、Skill 安装、开关工作流与编辑器 | [am-config](../plugins/agent-manager/skills/am-config/SKILL.md) |
-| Codex / Claude / Kimi 来源与加载机制 | [Codex](../plugins/agent-manager/references/codex.md)、[Claude](../plugins/agent-manager/references/claude.md)、[Kimi](../plugins/agent-manager/references/kimi.md) |
-| 其他 Agent 的只读来源发现 | [agent-sources.md](../plugins/agent-manager/references/agent-sources.md) |
+| Codex / Claude 来源与加载机制 | [Codex](../plugins/agent-manager/references/codex.md)、[Claude](../plugins/agent-manager/references/claude.md) |
 | 项目文件预检、开关能力与输入契约 | [project-edits.md](../plugins/agent-manager/skills/am-config/references/project-edits.md)、[Codex](../plugins/agent-manager/skills/am-config/references/codex-support.md)、[Claude](../plugins/agent-manager/skills/am-config/references/claude-support.md)、[editor-input.md](../plugins/agent-manager/skills/am-config/references/editor-input.md) |
 
 自有 Skill 命名规则：`personal-dev` 采用 `dev-{action}`，`agent-manager` 采用 `am-{action}`。插件身份和 `skills/` 发现目录保持现有结构；重命名后的入口使用新完整调用名。
 
 Plugin 开关编辑器的 Codex 分支使用 tomlkit 0.13.3+（<1）保留注释与排版；Claude 分支使用标准库增量替换 JSON 值，拒绝重复键和损坏配置。它只处理 Plugin 开关；AGENTS.md 与 standalone Skill 文件操作由 Skill 层完成，并在混合请求写入前统一预检。现有开关事务保留无关字节，具备幂等、锁、原子替换、二次读取和失败恢复；Windows 路径、symlink、junction 与 hardlink 的拒绝行为有测试覆盖。
 
-Skill 运行时使用已准备的 Agent 工具环境，不安装依赖、不启动客户端做能力探测，不用全局写入弥补项目能力缺失。客户端版本适配先补充真实隔离证据，再更新编辑器的精确版本集合及支持说明；inventory 版本必须等于实际客户端版本，不以范围匹配放行未知版本。Gemini 来源发现说明不代表其 Marketplace 安装已适配。
+Skill 运行时使用已准备的 Agent 工具环境，不安装依赖、不启动客户端做能力探测，不用全局写入弥补项目能力缺失。客户端版本适配先补充真实隔离证据，再更新编辑器的精确版本集合及支持说明；inventory 版本必须等于实际客户端版本，不以范围匹配放行未知版本。未适配的 Harness 必须返回 `BLOCKED / UNSUPPORTED AGENT`。
 
 ## 开发验证
 
@@ -173,7 +171,7 @@ uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,
 | 测试入口 | 覆盖内容 |
 | --- | --- |
 | `tests/test_sync.py` | 重复同步、快照恢复、upstream 更新、许可证、失败不写入、路径与重名拒绝、回滚和移出配置项保留 |
-| `tests/test_agent_manager.py` | Plugin 包装、手动策略、Kimi manifest 与只读来源比较 |
+| `tests/test_agent_manager.py` | Codex / Claude Plugin 包装、手动策略与只读来源比较 |
 | `tests/test_personal_dev.py` / `tests/test_personal_dev_review.py` / `tests/test_personal_dev_packaging.py` | 开发与审查模型选择、阻塞与安全 CLI 输出，以及 Codex / Claude 共享包装和手动策略 |
 | `tests/test_configure_project.py` | Codex 事务编辑、路径安全与不支持能力的拒绝 |
 | `tests/test_configure_project_claude.py` | Claude JSON 增量编辑、覆盖检查与失败恢复 |
@@ -205,20 +203,6 @@ Remove-Item Env:AGENT_MANAGER_CLAUDE_TESTS
 
 使用独立 CLAUDE_CONFIG_DIR、临时 Git 项目与 localhost 捕获请求后拒绝推理，不运行真实模型或修改日常配置。
 
-### Kimi 核心函数
-
-`tests/kimi_loader.cjs` 使用已安装 Kimi Desktop 的 ASAR；路径以本机实际安装为准。历史验收使用 mise Node 24.19.0、Kimi Desktop 1.0.4：
-
-```powershell
-mise current
-node -v
-$env:KIMI_CODE_TEST_ASAR = "D:/Kimi Code/resources/app.asar"
-node --test tests/kimi_loader.cjs
-Remove-Item Env:KIMI_CODE_TEST_ASAR
-```
-
-未设置 ASAR 环境变量时跳过。测试只执行指定核心函数，不启动 Electron、不读取日常 Kimi 数据或联网推理。默认离线；额外设置 `$env:KIMI_CODE_TEST_GITHUB = "1"` 可验证已发布仓库的原生 GitHub 下载、解压与安装，需要网络可达，完成后移除该变量。代理仅使用该进程已配置的代理，不改系统设置。
-
 ### 历史验收范围
 
 以下是原 README 中 2026-10-10 的工程验收记录，本次文档整理没有重新运行这些测试。
@@ -227,7 +211,6 @@ Remove-Item Env:KIMI_CODE_TEST_ASAR
 | --- | --- | --- |
 | Codex | `0.162.0-alpha.2` | 四个第三方 Plugin / 13 个 Skills 的安装、发现、字节与 metadata 核对及旧入口清理；管理工具的加载与项目配置能力另有隔离测试 |
 | Claude Code | `2.1.296` | 隔离安装五个 Plugin、发现 16 个 Skills、手动策略与项目配置覆盖 |
-| Kimi Code Desktop | `1.0.4` | 原生核心函数验证整仓库与五分类安装、16 项发现、资源复制、receipt、手动策略及启停 |
 
 这些工程检查覆盖包装、发现、内容与配置能力，未逐个执行全部 Skill 的业务流程。日常安装成功与隔离工程验收分别记录，不能由前者推断所有 Skill 内部流程都已验证。
 
