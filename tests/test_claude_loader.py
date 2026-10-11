@@ -106,13 +106,14 @@ class ClaudeLoaderTests(unittest.TestCase):
         self.assertIn("frontend-dev:vue", context)
         for name in ("common-workflow:handoff", "agent-manager:am-conflict",
                      "agent-manager:am-update", "agent-manager:am-config",
-                     "personal-dev:dev-delegate", "personal-dev:dev-review"):
+                     "personal-dev:dev-delegate", "personal-dev:dev-review",
+                     "personal-dev:dev-yagni", "personal-dev:dev-simplify"):
             self.assertNotIn(name, context)
 
     def test_personal_dev_explicit_invocation_and_native_agent_schema(self):
         self.install("personal-dev")
         init, context = self.context(tools="Agent,Skill")
-        for name in ("dev-delegate", "dev-review"):
+        for name in ("dev-delegate", "dev-review", "dev-yagni", "dev-simplify"):
             self.assertIn(f"personal-dev:{name}", init["slash_commands"])
             self.assertNotIn(f"personal-dev:{name}", context)
         agent = next(tool for payload in json.loads(context) for tool in payload.get("tools", [])
@@ -125,6 +126,21 @@ class ClaudeLoaderTests(unittest.TestCase):
             _, explicit = self.context(f"/personal-dev:{name} 仅验证加载，不执行正文、不派发、不修改文件。")
             self.assertIn(marker, explicit)
             self.assertIn("Claude adapter", explicit)
+
+        for name, marker in (("dev-yagni", "# 按需实现"), ("dev-simplify", "# 精简当前改动")):
+            _, explicit = self.context(f"/personal-dev:{name} 仅验证加载，不执行建议、不修改文件。")
+            self.assertIn(marker, explicit)
+
+        _, combined = self.context(
+            "/personal-dev:dev-yagni 与 /personal-dev:dev-simplify 仅验证组合加载，不执行建议、不修改文件。"
+        )
+        self.assertIn("# 按需实现", combined)
+        print(
+            "Claude combined slash commands loaded:",
+            f"dev-yagni={'# 按需实现' in combined},",
+            f"dev-simplify={'# 精简当前改动' in combined}",
+            flush=True,
+        )
 
     def test_project_upgrade_entry_and_shared_rules_load(self):
         for directory in (".claude/skills/upgrade", ".agents/skills/upgrade"):

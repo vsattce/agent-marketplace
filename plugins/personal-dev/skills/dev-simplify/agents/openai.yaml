@@ -1,0 +1,6 @@
+interface:
+  display_name: "精简当前改动"
+  short_description: "仅手动调用；默认只读提出等价精简建议，等待确认后编辑。"
+  default_prompt: "使用 $personal-dev:dev-simplify 检查当前项目已变更代码，先只读提出行为等价的精简建议并等待确认；用户明确要求执行或确认后再编辑。"
+policy:
+  allow_implicit_invocation: false

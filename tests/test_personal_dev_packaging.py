@@ -20,13 +20,13 @@ class PersonalDevPackagingTests(unittest.TestCase):
         self.assertEqual(entries[0]["source"], {"source": "local", "path": "./plugins/personal-dev"})
         self.assertEqual(entries[0]["skills"], "./skills/")
         manifest = json.loads((PLUGIN / "plugin.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifest["name"], entries[0]["name"])
-        self.assertEqual(manifest["version"], "0.4.0")
-        self.assertEqual(manifest["extensions"]["com.openai"]["interface"], entries[0]["interface"])
         self.assertEqual(
             {path.name for path in (PLUGIN / "skills").iterdir()},
-            {"dev-delegate", "dev-review"},
+            {"dev-delegate", "dev-review", "dev-yagni", "dev-simplify"},
         )
+        self.assertEqual(manifest["name"], entries[0]["name"])
+        self.assertEqual(manifest["version"], "0.5.0")
+        self.assertEqual(manifest["extensions"]["com.openai"]["interface"], entries[0]["interface"])
         self.assertTrue((SKILL / "scripts/select_models.py").is_file())
         self.assertTrue((SKILL / "references/roles.md").is_file())
         self.assertTrue((REVIEW / "scripts/select_models.py").is_file())
@@ -39,6 +39,19 @@ class PersonalDevPackagingTests(unittest.TestCase):
         self.assertIs(review_frontmatter["disable-model-invocation"], True)
         self.assertIs(review_metadata["policy"]["allow_implicit_invocation"], False)
         self.assertIn("$personal-dev:dev-review", review_metadata["interface"]["default_prompt"])
+
+        for skill_name in ("dev-yagni", "dev-simplify"):
+            skill_dir = PLUGIN / "skills" / skill_name
+            frontmatter = yaml.safe_load((skill_dir / "SKILL.md").read_text(encoding="utf-8").split("---", 2)[1])
+            metadata = yaml.safe_load((skill_dir / "agents/openai.yaml").read_text(encoding="utf-8"))
+            self.assertEqual(frontmatter["name"], skill_name)
+            self.assertIs(frontmatter["disable-model-invocation"], True)
+            self.assertIs(metadata["policy"]["allow_implicit_invocation"], False)
+            self.assertIn(f"$personal-dev:{skill_name}", metadata["interface"]["default_prompt"])
+            self.assertEqual(
+                {path.relative_to(skill_dir).as_posix() for path in skill_dir.rglob("*") if path.is_file()},
+                {"SKILL.md", "agents/openai.yaml"},
+            )
 
         claude = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
         claude_entry = next(entry for entry in claude["plugins"] if entry["name"] == "personal-dev")

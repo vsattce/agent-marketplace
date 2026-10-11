@@ -51,7 +51,7 @@ agent-marketplace/
 └── README.md                      # 概览与文档入口
 ```
 
-六个分类共享 `skills/<name>/`，提供 Codex `plugin.json` 与 Claude Code `.claude-plugin/plugin.json`。第三方分类另存 `licenses/<name>/`。两个 Marketplace 均指向 `./plugins/<plugin>`。`personal-dev` 在 Codex / Claude 注册，包含两个仅手动调用的 Skill；共享正文按 `references/codex.md` / `references/claude.md` 适配原生委派工具。
+六个分类共享 `skills/<name>/`，提供 Codex `plugin.json` 与 Claude Code `.claude-plugin/plugin.json`。第三方分类另存 `licenses/<name>/`。两个 Marketplace 均指向 `./plugins/<plugin>`。`personal-dev` 在 Codex / Claude 注册，包含四个仅手动调用的 Skill；`dev-delegate` / `dev-review` 使用 `references/codex.md` / `references/claude.md` 适配原生委派工具。
 
 Codex 使用便携 manifest，中文信息位于 `extensions.com.openai.interface`。Claude manifest / catalog 有意不写 version，GitHub 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
 
@@ -77,7 +77,7 @@ lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，�
 
 ### 使用项目 Skill
 
-在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入六个 Plugin 的 18 个 Skills。
+在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入六个 Plugin 的 20 个 Skills。
 
 Agent 核对目标、Git 状态与运行时后，按 sources 的既定来源 / ref 同步，保留用户改动，检查差异并运行相关验证。按 [AGENTS.md](../AGENTS.md) 默认提交、推送当前分支；当前任务明确不提交或不推送时遵从该要求。环境、同步或验证失败时停止，零差异不制造提交。
 
@@ -172,7 +172,7 @@ uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,
 | --- | --- |
 | `tests/test_sync.py` | 重复同步、快照恢复、upstream 更新、许可证、失败不写入、路径与重名拒绝、回滚和移出配置项保留 |
 | `tests/test_agent_manager.py` | Codex / Claude Plugin 包装、手动策略与只读来源比较 |
-| `tests/test_personal_dev.py` / `tests/test_personal_dev_review.py` / `tests/test_personal_dev_packaging.py` | 开发与审查模型选择、阻塞与安全 CLI 输出，以及 Codex / Claude 共享包装和手动策略 |
+| `tests/test_personal_dev.py` / `tests/test_personal_dev_review.py` / `tests/test_personal_dev_packaging.py` | 开发与审查模型选择、阻塞与安全 CLI 输出，以及四个 Skill 的 Codex / Claude 包装和手动策略 |
 | `tests/test_configure_project.py` | Codex 事务编辑、路径安全与不支持能力的拒绝 |
 | `tests/test_configure_project_claude.py` | Claude JSON 增量编辑、覆盖检查与失败恢复 |
 
@@ -188,12 +188,12 @@ Remove-Item Env:AGENT_MANAGER_CODEX_TESTS
 
 使用项目内隔离 CODEX_HOME、临时项目、安装 fixture 与 localhost 请求捕获器，不调用真实模型、不执行 Skill 正文，也不更新日常全局配置或安装缓存。
 
-`tests/test_personal_dev_loader.py` 复用同一隔离方式，检查新 Plugin 的发现、普通提示不注入以及显式调用注入。模型选择检查器与 Skill 流程独立维护，当前系列识别不代表已经验证任意未来命名或实际额度折算。
+`tests/test_personal_dev_loader.py` 复用同一隔离方式，检查四个 Skill 的发现、普通提示不注入新 Skill 正文以及显式调用注入。模型选择检查器与 Skill 流程独立维护，当前系列识别不代表已经验证任意未来命名或实际额度折算。
 该加载用例已在 Codex CLI 0.160.1 与 0.162.0-alpha.17.2 上通过；这是实际验证版本记录，不定义版本支持范围。隔离 fixture 显式让 localhost 绕过代理，并关闭远端 Plugin 同步和系统代理回退，避免工作站网络配置干扰加载证据；失败时保留 fixture 内的退出诊断。
 
 ### Claude 隔离加载器
 
-`tests/test_claude_loader.py` 覆盖六个 Plugin 安装与发现、手动策略、personal-dev 显式加载与原生 Agent schema、项目 upgrade 入口、CLAUDE.md 导入 AGENTS.md、项目值覆盖用户值及 local 反向覆盖：
+`tests/test_claude_loader.py` 覆盖六个 Plugin 安装与发现、手动策略、四个 personal-dev Skill 显式加载与原生 Agent schema、项目 upgrade 入口、CLAUDE.md 导入 AGENTS.md、项目值覆盖用户值及 local 反向覆盖：
 
 ```powershell
 $env:AGENT_MANAGER_CLAUDE_TESTS = "1"
@@ -202,6 +202,10 @@ Remove-Item Env:AGENT_MANAGER_CLAUDE_TESTS
 ```
 
 使用独立 CLAUDE_CONFIG_DIR、临时 Git 项目与 localhost 捕获请求后拒绝推理，不运行真实模型或修改日常配置。
+
+2026-10-11 personal-dev 新入口组合实测：Codex CLI `0.162.0-alpha.17.2` 在同一消息中显式调用 `dev-yagni` 与 `dev-simplify`，捕获到两个正文均已注入。Claude Code `2.1.296` 同一消息显式调用两个入口时仅直接注入首个入口；测试断言首个正文已加载，并输出第二个入口是否加载的诊断。组合使用时应分开、先后显式调用。该检查捕获原生上下文后拒绝推理，不代表真实模型行为验收。
+
+本轮主模型在原项目检出亲自运行完整 unittest，启用 `AGENT_MANAGER_CODEX_TESTS=1` 与 `AGENT_MANAGER_CLAUDE_TESTS=1`：**147 项全部通过，无跳过**。运行环境为 mise Python `3.12.13`、uv `0.12.3`；UTF-8、TMP / TEMP 和客户端隔离开关仅设置在本次进程。覆盖六个 Plugin / 20 个 Skills 的包装、personal-dev 四入口加载及项目配置回归，未修改日常客户端配置。原生工作树位于受保护的 `.codex` 路径，项目配置写入测试需在普通项目检出运行，不能放宽路径保护来绕过。
 
 ### 历史验收范围
 

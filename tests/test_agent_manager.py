@@ -250,7 +250,7 @@ class PackagingTests(unittest.TestCase):
             self.assertNotIn("version", entry)
             self.assertNotIn("skills", manifest)  # Default directory discovery, one shared copy.
             count += len(list((root / "skills").glob("*/SKILL.md")))
-        self.assertEqual(count, 18)
+        self.assertEqual(count, 20)
         handoff = (ROOT / "plugins/common-workflow/skills/handoff/SKILL.md").read_text(encoding="utf-8")
         self.assertIs(yaml.safe_load(handoff.split("---", 2)[1])["disable-model-invocation"], True)
 

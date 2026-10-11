@@ -1,6 +1,6 @@
 {
   "name": "personal-dev",
-  "description": "仅手动调用的个人开发委派、独立验收与增强代码审查，支持 Claude Code 和 Codex。",
+  "description": "仅手动调用的个人开发、精简建议、委派与增强代码审查，支持 Claude Code 和 Codex。",
   "author": {"name": "hjy"},
   "homepage": "https://github.com/vsattce/agent-marketplace",
   "repository": "https://github.com/vsattce/agent-marketplace",
