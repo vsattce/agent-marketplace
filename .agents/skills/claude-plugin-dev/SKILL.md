@@ -1,6 +1,6 @@
 ---
 name: claude-plugin-dev
-description: Use when developing, repairing, or checking this repository's Claude Code plugin manifests and discovery, commands, agents, hooks, MCP servers, settings, or Skills. Applies only to Claude Code plugin behavior in this repository.
+description: 开发 Claude Code Plugin：用于开发、修复或检查本仓库的 Claude Code Plugin manifest、发现机制、命令、Agent、Hook、MCP server、设置与 Skill；仅适用于本仓库的 Claude Code Plugin 行为。
 ---
 
 # Claude Code Plugin Development

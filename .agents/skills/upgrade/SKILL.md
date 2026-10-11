@@ -1,6 +1,6 @@
 ---
 name: upgrade
-description: 升级 agent-marketplace 仓库中 sources.yaml 配置的第三方 Skills，复用现有同步脚本并完成验证、提交和推送。适用于本项目的第三方 Skill 升级或同步请求；只读版本检查、其他项目依赖升级和 Codex 安装缓存刷新另行处理。
+description: 升级第三方 Skills：用于升级或同步 agent-marketplace 仓库中 sources.yaml 配置的第三方 Skills，复用现有同步脚本并完成验证、提交和推送；只读版本检查、其他项目依赖升级和 Codex 安装缓存刷新另行处理。
 ---
 
 # 升级本项目第三方 Skills

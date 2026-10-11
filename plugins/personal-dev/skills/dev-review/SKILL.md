@@ -1,6 +1,6 @@
 ---
 name: dev-review
-description: Use when the user explicitly invokes this skill in Codex or Claude Code for an evidence-led project code review.
+description: 增强代码审查：仅在用户明确调用时，基于证据审查当前项目代码，适用于 Codex 和 Claude Code。
 disable-model-invocation: true
 ---
 

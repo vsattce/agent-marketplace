@@ -1,7 +1,7 @@
 ---
 name: am-config
 disable-model-invocation: true
-description: Use when explicitly called to edit project AGENTS.md files, install user-specified project Skills or Plugins, or change a supported project Plugin switch. Only use when explicitly invoked by the user.
+description: 配置项目 Agent：仅在用户明确调用时，编辑项目 AGENTS.md、安装用户指定的项目 Skill 或 Plugin，或修改受支持的项目 Plugin 开关。
 ---
 
 # 配置当前项目的 Agent 指令 / Skill / Plugin

@@ -1,6 +1,6 @@
 ---
 name: dev-simplify
-description: Review in-scope code for safe behavior-equivalent simplifications when explicitly invoked by the user.
+description: 精简当前改动：仅在用户明确调用时，检查范围内代码并提出行为等价的精简建议；默认只读，确认或明确要求执行后再编辑。
 disable-model-invocation: true
 ---
 

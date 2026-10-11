@@ -1,6 +1,6 @@
 ---
 name: dev-delegate
-description: Use when the user explicitly invokes this skill in Codex or Claude Code for a development task with delegated implementation and independent acceptance.
+description: 委派开发与独立验收：仅在用户明确调用时，由当前主模型安排开发任务，委派实现并独立验收，适用于 Codex 和 Claude Code。
 disable-model-invocation: true
 ---
 

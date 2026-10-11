@@ -1,7 +1,7 @@
 ---
 name: am-conflict
 disable-model-invocation: true
-description: "Find conflicts and ambiguities between project and global Agent instructions, Skills and Plugins. Read-only. Only use when explicitly invoked by the user."
+description: "查找 Agent 冲突：仅在用户明确调用时，只读检查项目级与全局 Agent 指令、Skill 和 Plugin 之间的冲突及歧义。"
 ---
 
 # 查找项目级与全局的 Agent 冲突

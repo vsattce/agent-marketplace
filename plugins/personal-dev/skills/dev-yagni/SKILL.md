@@ -1,6 +1,6 @@
 ---
 name: dev-yagni
-description: Apply minimum-complete changes to a clear current development task when the user explicitly invokes this skill.
+description: 按需实现：仅在用户明确调用且当前开发目标清楚时，完成最小但完整的实现；只读讨论或暂缓修改时遵循用户要求。
 disable-model-invocation: true
 ---
 

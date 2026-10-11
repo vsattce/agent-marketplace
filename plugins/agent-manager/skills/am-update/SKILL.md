@@ -1,7 +1,7 @@
 ---
 name: am-update
 disable-model-invocation: true
-description: "Read-only version checks for recorded Agent Plugin / Skill upstreams and marketplaces. Only use when explicitly invoked by the user."
+description: "检查 Agent 更新：仅在用户明确调用时，只读检查已记录的 Agent Plugin、Skill 上游与 Marketplace 版本。"
 ---
 
 # 只读检查 Agent 更新
