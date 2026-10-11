@@ -32,6 +32,53 @@ class SyncError(Exception):
 MANAGED_PLUGINS = frozenset({"common-workflow", "frontend-dev", "backend-dev", "testing-automation"})
 
 
+class UniqueKeyLoader(yaml.SafeLoader):
+    """Reject duplicate YAML keys while preserving SafeLoader merge behavior."""
+
+    def flatten_mapping(self, node):
+        if isinstance(node, yaml.nodes.MappingNode):
+            checked = getattr(self, "_checked_mapping_nodes", None)
+            if checked is None:
+                checked = self._checked_mapping_nodes = set()
+            if id(node) not in checked:
+                checked.add(id(node))
+                seen = set()
+                merge_seen = False
+                for key_node, _ in node.value:
+                    if key_node.tag == "tag:yaml.org,2002:merge":
+                        if merge_seen:
+                            raise yaml.constructor.ConstructorError(
+                                "while constructing a mapping", node.start_mark,
+                                "duplicate key", key_node.start_mark,
+                            )
+                        merge_seen = True
+                        continue
+                    key = self.construct_object(key_node, deep=True)
+                    try:
+                        duplicate = key in seen
+                        seen.add(key)
+                    except TypeError as error:
+                        raise yaml.constructor.ConstructorError(
+                            "while constructing a mapping", node.start_mark,
+                            "unhashable key", key_node.start_mark,
+                        ) from error
+                    if duplicate:
+                        raise yaml.constructor.ConstructorError(
+                            "while constructing a mapping", node.start_mark,
+                            "duplicate key", key_node.start_mark,
+                        )
+        return super().flatten_mapping(node)
+
+
+def unique_json_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise SyncError("Invalid sources.lock.json: duplicate object key")
+        result[key] = value
+    return result
+
+
 def managed_target(path: Path, root: Path) -> None:
     """Enforce the write boundary independently of sources and the lock."""
     contained(path, root)
@@ -47,7 +94,10 @@ def managed_target(path: Path, root: Path) -> None:
 
 
 def read_sources(root: Path) -> list[dict[str, str]]:
-    document = yaml.safe_load((root / "sources.yaml").read_text(encoding="utf-8"))
+    try:
+        document = yaml.load((root / "sources.yaml").read_text(encoding="utf-8"), Loader=UniqueKeyLoader)
+    except yaml.YAMLError as error:
+        raise SyncError("Invalid sources.yaml: malformed or duplicate mapping key") from error
     if not isinstance(document, dict) or set(document) != {"groups"}:
         raise SyncError("sources.yaml must contain only a groups mapping")
     groups = document["groups"]
@@ -195,7 +245,10 @@ def sync(root: Path) -> None:
     sources = read_sources(root)
     lock_path = root / "sources.lock.json"
     contained(lock_path, root)
-    previous = json.loads(lock_path.read_text(encoding="utf-8")) if lock_path.exists() else {"skills": {}}
+    try:
+        previous = json.loads(lock_path.read_text(encoding="utf-8"), object_pairs_hook=unique_json_object) if lock_path.exists() else {"skills": {}}
+    except json.JSONDecodeError as error:
+        raise SyncError("Invalid sources.lock.json: malformed JSON") from error
     if not isinstance(previous, dict) or not isinstance(previous.get("skills"), dict):
         raise SyncError("Invalid sources.lock.json: expected a skills mapping")
     records = dict(previous["skills"])

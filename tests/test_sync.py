@@ -130,6 +130,130 @@ class SyncTests(unittest.TestCase):
                 self.sources[0][field] = original
         self.assertEqual(self.mock_fetch.call_count, 0)
 
+    def test_duplicate_source_mapping_keys_fail_before_fetch_or_publish(self):
+        cases = {
+            "repeated group": """groups:
+  common-workflow:
+    displayName: First
+    skills:
+      - name: alpha
+        repo: owner/repo
+        path: skills/alpha
+        ref: main
+  common-workflow:
+    displayName: Second
+    skills:
+      - name: alpha
+        repo: owner/repo
+        path: skills/alpha
+        ref: main
+""",
+            "nested source key": """groups:
+  common-workflow:
+    displayName: Test
+    skills:
+      - name: alpha
+        repo: private-source-value/repo
+        repo: owner/repo
+        path: skills/alpha
+        ref: main
+""",
+        }
+        for label, text in cases.items():
+            with self.subTest(label=label):
+                (self.root / "sources.yaml").write_text(text, encoding="utf-8")
+                before = self.snapshot()
+                with patch.object(skill_sync, "publish", wraps=skill_sync.publish) as publish:
+                    with self.assertRaises(skill_sync.SyncError) as caught:
+                        self.run_sync()
+                self.assertNotIn("private-source-value", str(caught.exception))
+                self.assertEqual(self.mock_fetch.call_count, 0)
+                publish.assert_not_called()
+                self.assertEqual(before, self.snapshot())
+
+    def test_yaml_merge_override_remains_valid(self):
+        (self.root / "sources.yaml").write_text("""groups:
+  common-workflow:
+    <<: &defaults
+      displayName: &default_name Default name
+      skills:
+        - name: beta
+          repo: owner/repo
+          path: skills/beta
+          ref: main
+    displayName: *default_name
+    skills:
+      - name: alpha
+        repo: example/skills
+        path: skills/alpha
+        ref: main
+""", encoding="utf-8")
+        self.run_sync()
+        self.assertTrue((self.root / "plugins/common-workflow/skills/alpha/SKILL.md").is_file())
+        self.assertFalse((self.root / "plugins/common-workflow/skills/beta").exists())
+        self.assertEqual(self.mock_fetch.call_count, 1)
+
+    def test_yaml_merge_sequence_keeps_first_mapping_precedence(self):
+        self.write_skill("beta")
+        (self.root / "sources.yaml").write_text("""groups:
+  common-workflow:
+    <<: [
+      {displayName: Selected, skills: [{name: beta, repo: owner/repo, path: skills/beta, ref: main}]},
+      {displayName: '', skills: [{name: alpha, repo: owner/repo, path: skills/alpha, ref: main}]}
+    ]
+""", encoding="utf-8")
+        self.run_sync()
+        self.assertTrue((self.root / "plugins/common-workflow/skills/beta/SKILL.md").is_file())
+        self.assertFalse((self.root / "plugins/common-workflow/skills/alpha").exists())
+
+    def test_duplicate_keys_inside_merge_source_fail_before_fetch_or_publish(self):
+        cases = {
+            "duplicate key in merge source": """groups:
+  common-workflow:
+    <<: {displayName: First, displayName: private-source-value}
+    skills:
+      - name: alpha
+        repo: owner/repo
+        path: skills/alpha
+        ref: main
+""",
+            "repeated merge key": """groups:
+  common-workflow:
+    <<: {displayName: First, skills: [{name: alpha, repo: owner/repo, path: skills/alpha, ref: main}]}
+    <<: {displayName: Second, skills: [{name: alpha, repo: owner/repo, path: skills/alpha, ref: main}]}
+""",
+        }
+        for label, text in cases.items():
+            with self.subTest(label=label):
+                self.mock_fetch.reset_mock()
+                (self.root / "sources.yaml").write_text(text, encoding="utf-8")
+                before = self.snapshot()
+                with patch.object(skill_sync, "publish", wraps=skill_sync.publish) as publish:
+                    with self.assertRaises(skill_sync.SyncError) as caught:
+                        self.run_sync()
+                self.assertNotIn("private-source-value", str(caught.exception))
+                self.assertEqual(self.mock_fetch.call_count, 0)
+                publish.assert_not_called()
+                self.assertEqual(before, self.snapshot())
+
+    def test_duplicate_lock_object_keys_fail_before_fetch_or_publish(self):
+        cases = {
+            "nested record key": '{"skills":{"alpha":{"group":"private-lock-value","group":"common-workflow"}}}',
+            "skill identity key": '{"skills":{"alpha":{"group":"common-workflow"},"alpha":{"group":"common-workflow"}}}',
+        }
+        for label, text in cases.items():
+            with self.subTest(label=label):
+                self.mock_fetch.reset_mock()
+                (self.root / "sources.lock.json").write_text(text, encoding="utf-8")
+                before = self.snapshot()
+                with patch.object(skill_sync, "publish", wraps=skill_sync.publish) as publish:
+                    with self.assertRaises(skill_sync.SyncError) as caught:
+                        self.run_sync()
+                self.assertNotIn("private-lock-value", str(caught.exception))
+                self.assertEqual(self.mock_fetch.call_count, 0)
+                publish.assert_not_called()
+                self.assertEqual(before, self.snapshot())
+
     def test_duplicate_skill_is_rejected(self):
         self.sources.append(dict(self.sources[0]))
         self.write_sources()

@@ -1,13 +1,17 @@
 """Transactional project editing, with real Windows path and rollback checks."""
 from copy import deepcopy
+import io
 import importlib.util
 import json
 import os
 from pathlib import Path
 import subprocess
+import stat
+import sys
 import tempfile
 import tomllib
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -205,6 +209,21 @@ class ConfigureProjectTests(unittest.TestCase):
             with self.subTest(path=path), self.assertRaisesRegex(editor.Blocked, "PATH ESCAPES PROJECT ROOT"):
                 editor.safe_path(path, self.project)
 
+    def test_safe_path_allows_directory_preflight_and_rejects_special_target(self):
+        self.config.parent.mkdir()
+        self.assertEqual(editor.safe_path(self.config.parent, self.project), self.config.parent.resolve())
+        if os.name == "nt":
+            # Windows cannot create a FIFO; feed its explicit mode through the real guard.
+            self.config.write_bytes(b"fixture")
+            attributes = SimpleNamespace(st_mode=stat.S_IFIFO, st_nlink=1, st_file_attributes=0)
+            with patch.object(type(self.config), "lstat", return_value=attributes):
+                with self.assertRaisesRegex(editor.Blocked, "CONFIG CANNOT BE SAFELY MODIFIED"):
+                    editor.safe_path(self.config, self.project)
+        else:
+            os.mkfifo(self.config)
+            with self.assertRaisesRegex(editor.Blocked, "CONFIG CANNOT BE SAFELY MODIFIED"):
+                editor.safe_path(self.config, self.project)
+
     def test_symlink_file_outside_and_inside_project_block(self):
         self.config.parent.mkdir()
         for target in (self.global_home / "config.toml", self.project / "local.toml"):
@@ -317,6 +336,38 @@ class ConfigureProjectTests(unittest.TestCase):
             with self.assertRaises(OSError):
                 self.config.parent.rename(self.project / "redirected")
         self.assertTrue(self.config.parent.is_dir())
+
+    def test_configure_entry_blocks_non_windows_before_project_probe(self):
+        original = "PLUGIN SWITCH CONFIGURATION REQUIRES WINDOWS"
+        with patch.object(editor.os, "name", "posix"), patch.object(
+                editor, "project_root", side_effect=AssertionError("project probe reached")):
+            with self.assertRaisesRegex(editor.Blocked, original):
+                self.run_editor()
+        self.assertFalse(self.config.exists())
+
+    def test_cli_reports_non_windows_block_before_project_probe(self):
+        output = io.StringIO()
+        with patch.object(editor.os, "name", "posix"), patch.object(
+                editor, "project_root", side_effect=AssertionError("project probe reached")), patch.object(
+                editor.Path, "cwd", return_value=self.project), patch.object(
+                sys, "stdin", io.StringIO("{}")), patch.object(sys, "stdout", output), patch.object(
+                sys, "argv", [str(SCRIPT)]):
+            result = editor.main()
+        self.assertEqual(result, 2)
+        report = json.loads(output.getvalue())
+        self.assertEqual(report["Status"], "BLOCKED")
+        self.assertEqual(report["Reason"], "PLUGIN SWITCH CONFIGURATION REQUIRES WINDOWS")
+        self.assertEqual(report["Changes applied"], "NONE")
+        self.assertEqual(report["Global files modified"], "NONE")
+        self.assertFalse(self.config.exists())
+
+    def test_publish_fails_closed_on_non_windows_before_creating_config(self):
+        target = {**self.payload["inventory"]["targets"][0], "enabled": True}
+        planned, expected = editor.CodexAdapter().plan(b"", [target])
+        with patch.object(editor.os, "name", "posix"):
+            with self.assertRaisesRegex(editor.Blocked, "PLUGIN SWITCH CONFIGURATION REQUIRES WINDOWS"):
+                editor.publish(self.project, self.config, None, planned, expected)
+        self.assertFalse(self.config.parent.exists())
 
     def test_cli_refuses_to_switch_to_another_project(self):
         result = subprocess.run([os.sys.executable, "-B", str(SCRIPT), "--cwd", str(self.project)],

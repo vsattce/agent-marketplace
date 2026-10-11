@@ -21,7 +21,7 @@ description: Use when explicitly called to edit project AGENTS.md files, install
 
 ## 支持边界
 
-- **Plugin 项目开关**：Codex `0.162.0-alpha.17.2` / `0.162.0-alpha.2` 的已安装本地 Marketplace Plugin 写 `.codex/config.toml`；Claude Code `2.1.291` / `2.1.296` 写 `.claude/settings.json`。更高覆盖、managed 限制、信任或有效层证据不足时整批拒绝。Codex / Claude 的单个 Skill 项目开关仍为 `BLOCKED`。
+- **Plugin 项目开关**：编辑器仅在 Windows 运行；其他平台返回 `BLOCKED / PLUGIN SWITCH CONFIGURATION REQUIRES WINDOWS`。此限制只适用于 Plugin 开关，不影响 `AGENTS.md` 编辑或 standalone Skill 安装。Codex `0.162.0-alpha.17.2` / `0.162.0-alpha.2` 的已安装本地 Marketplace Plugin 写 `.codex/config.toml`；Claude Code `2.1.291` / `2.1.296` 写 `.claude/settings.json`。更高覆盖、managed 限制、信任或有效层证据不足时整批拒绝。Codex / Claude 的单个 Skill 项目开关仍为 `BLOCKED`。
 - **项目 standalone Skill 安装**：仅按 Codex `.agents/skills/` 或 Claude Code `.claude/skills/` 的已确认发现目录处理，且来源和目标由用户明确指定。安装不等于启用 Plugin。
 - **项目 Plugin 安装**：当前 Codex 与 Claude Code 均无全写入限于项目内的已验证安装契约，故 `BLOCKED / PROJECT-LOCAL PLUGIN INSTALL NOT VERIFIED`。其他 Harness 为 `BLOCKED / UNSUPPORTED AGENT`。项目 Plugin 开关证据不构成安装证据。
 - **项目 `AGENTS.md`**：按 Codex 或 Claude Code 的真实指令链检查目标文件是否生效。Codex 同目录 `AGENTS.override.md` 会遮蔽 `AGENTS.md`；Claude 按版本、祖先 `CLAUDE.md` / `CLAUDE.local.md` 与 Project instructions 设置判断。可按用户明确要求编辑目标文件，但不自动改名、加引用或声称当前 Harness 会加载它。

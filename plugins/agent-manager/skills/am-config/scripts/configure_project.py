@@ -41,6 +41,12 @@ VERIFIED_CODEX_VERSIONS = {VERIFIED_CODEX, "codex-cli 0.162.0-alpha.2"}
 VERIFIED_CLAUDE_VERSIONS = {VERIFIED_CLAUDE, "2.1.296 (Claude Code)"}
 UNSUPPORTED_CONFIG = "CODEX PROJECT-LEVEL CONFIGURATION NOT SUPPORTED"
 UNSUPPORTED_CLAUDE = "CLAUDE PROJECT-LEVEL CONFIGURATION NOT SUPPORTED"
+WINDOWS_ONLY = "PLUGIN SWITCH CONFIGURATION REQUIRES WINDOWS"
+
+
+def require_windows_configuration() -> None:
+    if os.name != "nt":
+        raise Blocked(WINDOWS_ONLY)
 
 
 def project_root(cwd: Path) -> Path:
@@ -88,8 +94,11 @@ def safe_path(path: Path, root: Path) -> Path:
                 attributes = component.lstat()
                 if getattr(attributes, "st_file_attributes", 0) & stat.FILE_ATTRIBUTE_REPARSE_POINT:
                     raise Blocked("PATH ESCAPES PROJECT ROOT")
-                if component == path and stat.S_ISREG(attributes.st_mode) and attributes.st_nlink != 1:
-                    raise Blocked("CONFIG CANNOT BE SAFELY MODIFIED")
+                if component == path:
+                    if not (stat.S_ISREG(attributes.st_mode) or stat.S_ISDIR(attributes.st_mode)):
+                        raise Blocked("CONFIG CANNOT BE SAFELY MODIFIED")
+                    if stat.S_ISREG(attributes.st_mode) and attributes.st_nlink != 1:
+                        raise Blocked("CONFIG CANNOT BE SAFELY MODIFIED")
         return real
     except (OSError, RuntimeError, ValueError) as error:
         if isinstance(error, Blocked):
@@ -379,7 +388,7 @@ def hold_directories(parent: Path):
             for handle in reversed(handles):
                 close(handle)
     else:
-        yield
+        require_windows_configuration()
 
 
 def verify_config(path: Path, planned: bytes, expected: dict) -> None:
@@ -468,6 +477,7 @@ def publish(root: Path, config: Path, original: bytes | None, planned: bytes, ex
 
 
 def configure(payload: dict, cwd: Path) -> dict:
+    require_windows_configuration()
     if not isinstance(payload, dict) or payload.get("explicit_invocation") is not True:
         raise Blocked("USER EXPLICIT REQUEST REQUIRED")
     if payload.get("agent") not in {"codex", "claude"}:
@@ -511,6 +521,7 @@ def main() -> int:
     parser.add_argument("--cwd", type=Path, default=Path.cwd())
     args = parser.parse_args()
     try:
+        require_windows_configuration()
         payload = json.load(sys.stdin)
         if project_root(args.cwd) != project_root(Path.cwd()):
             raise Blocked("PATH ESCAPES PROJECT ROOT")

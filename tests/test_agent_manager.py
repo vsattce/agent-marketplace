@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import yaml
 
@@ -84,6 +85,119 @@ class UpdateTests(unittest.TestCase):
         self.assertEqual(rows[0]["Status"], "UNKNOWN")
         self.assertIn("identity", rows[0]["Reason"])
 
+    def test_duplicate_source_mapping_keys_block_before_query(self):
+        cases = {
+            "repeated group": """groups:
+  common-workflow:
+    skills:
+      - name: alpha
+        repo: owner/repo
+        path: skills/alpha
+        ref: main
+  common-workflow:
+    skills:
+      - name: alpha
+        repo: owner/repo
+        path: skills/alpha
+        ref: main
+""",
+            "nested source key": """groups:
+  common-workflow:
+    skills:
+      - name: alpha
+        repo: private-source-value/repo
+        repo: owner/repo
+        path: skills/alpha
+        ref: main
+""",
+        }
+        for label, text in cases.items():
+            with self.subTest(label=label):
+                (self.root / "sources.yaml").write_text(text, encoding="utf-8")
+                before = {path.name: path.read_bytes() for path in self.root.iterdir()}
+                self.calls.clear()
+                with self.assertRaises(updates.Unknown) as caught:
+                    updates.check_sources(self.root, self.query)
+                self.assertNotIn("private-source-value", str(caught.exception))
+                self.assertEqual(self.calls, [])
+                self.assertEqual(before, {path.name: path.read_bytes() for path in self.root.iterdir()})
+
+    def test_yaml_merge_override_remains_valid(self):
+        (self.root / "sources.yaml").write_text("""groups:
+  common-workflow:
+    <<: &defaults
+      displayName: &default_name Default name
+      skills:
+        - name: beta
+          repo: owner/repo
+          path: skills/beta
+          ref: main
+    displayName: *default_name
+    skills:
+      - name: alpha
+        repo: owner/repo
+        path: skills/alpha
+        ref: main
+""", encoding="utf-8")
+        rows = updates.check_sources(self.root, self.query)
+        self.assertEqual([row["Name"] for row in rows], ["alpha"])
+        self.assertEqual(len(self.calls), 2)
+
+    def test_yaml_merge_sequence_keeps_first_mapping_precedence(self):
+        (self.root / "sources.yaml").write_text("""groups:
+  common-workflow:
+    <<: [
+      {displayName: Selected, skills: [{name: beta, repo: owner/repo, path: skills/beta, ref: main}]},
+      {displayName: '', skills: [{name: alpha, repo: owner/repo, path: skills/alpha, ref: main}]}
+    ]
+""", encoding="utf-8")
+        rows = updates.check_sources(self.root, self.query)
+        self.assertEqual([row["Name"] for row in rows], ["beta"])
+
+    def test_duplicate_keys_inside_merge_source_block_before_query(self):
+        cases = {
+            "duplicate key in merge source": """groups:
+  common-workflow:
+    <<: {displayName: First, displayName: private-source-value}
+    skills:
+      - name: alpha
+        repo: owner/repo
+        path: skills/alpha
+        ref: main
+""",
+            "repeated merge key": """groups:
+  common-workflow:
+    <<: {displayName: First, skills: [{name: alpha, repo: owner/repo, path: skills/alpha, ref: main}]}
+    <<: {displayName: Second, skills: [{name: alpha, repo: owner/repo, path: skills/alpha, ref: main}]}
+""",
+        }
+        for label, text in cases.items():
+            with self.subTest(label=label):
+                (self.root / "sources.yaml").write_text(text, encoding="utf-8")
+                before = {path.name: path.read_bytes() for path in self.root.iterdir()}
+                self.calls.clear()
+                with self.assertRaises(updates.Unknown) as caught:
+                    updates.check_sources(self.root, self.query)
+                self.assertNotIn("private-source-value", str(caught.exception))
+                self.assertEqual(self.calls, [])
+                self.assertEqual(before, {path.name: path.read_bytes() for path in self.root.iterdir()})
+
+    def test_duplicate_lock_object_keys_block_before_query(self):
+        cases = {
+            "nested record key": '{"skills":{"alpha":{"group":"private-lock-value","group":"common-workflow"}}}',
+            "skill identity key": '{"skills":{"alpha":{},"alpha":{}}}',
+        }
+        for label, text in cases.items():
+            with self.subTest(label=label):
+                (self.root / "sources.lock.json").write_text(text, encoding="utf-8")
+                before = {path.name: path.read_bytes() for path in self.root.iterdir()}
+                self.calls.clear()
+                with self.assertRaises(updates.Unknown) as caught:
+                    updates.check_sources(self.root, self.query)
+                self.assertNotIn("private-lock-value", str(caught.exception))
+                self.assertEqual(self.calls, [])
+                self.assertEqual(before, {path.name: path.read_bytes() for path in self.root.iterdir()})
+
 
 class PackagingTests(unittest.TestCase):
     def test_kimi_installable_entries_are_removed(self):
@@ -103,7 +217,7 @@ class PackagingTests(unittest.TestCase):
         self.assertEqual(len(entries), 1)
         self.assertEqual(entries[0]["source"]["path"], "./plugins/agent-manager")
         manifest = json.loads((PLUGIN / "plugin.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifest["version"], "0.6.0")
+        self.assertEqual(manifest["version"], "0.6.1")
         skills = list((PLUGIN / "skills").iterdir())
         self.assertEqual({skill.name for skill in skills}, {"am-conflict", "am-update", "am-config"})
         for skill in skills:

@@ -115,12 +115,12 @@ Claude 使用 `/agent-manager:am-config`。该入口只处理用户明确指定�
 
 以下版本范围仅针对 `am-config` 的配置执行能力：
 
-| 客户端与已验证版本 | 项目 Plugin 开关 | 写入位置 |
-| --- | --- | --- |
-| Codex `0.162.0-alpha.17.2`、`0.162.0-alpha.2` | 已安装的本地 Marketplace Plugin | `.codex/config.toml` |
-| Claude Code `2.1.291`、`2.1.296` | 已安装的 Marketplace Plugin | `.claude/settings.json` |
+| 客户端与已验证版本 | 平台 | 项目 Plugin 开关 | 写入位置 |
+| --- | --- | --- | --- |
+| Codex `0.162.0-alpha.17.2`、`0.162.0-alpha.2` | Windows | 已安装的本地 Marketplace Plugin | `.codex/config.toml` |
+| Claude Code `2.1.291`、`2.1.296` | Windows | 已安装的 Marketplace Plugin | `.claude/settings.json` |
 
-Codex 与 Claude Code 的**单个 Skill 项目开关均不支持**。其他 Harness 输出 `BLOCKED / UNSUPPORTED AGENT`。未验证的 Codex / Claude 版本、目标缺失或歧义、配置损坏、有效项目层证据不足，以及 Codex 未受信任项目或 workspace-managed Plugin，均拒绝整批操作。Claude 的 `.claude/settings.local.json` 若对目标存在反向覆盖，也会整批拒绝。
+Plugin 开关编辑器在其他操作系统返回 `BLOCKED / PLUGIN SWITCH CONFIGURATION REQUIRES WINDOWS`；这不限制 `AGENTS.md` 编辑或 standalone Skill 安装。Codex 与 Claude Code 的**单个 Skill 项目开关均不支持**。其他 Harness 输出 `BLOCKED / UNSUPPORTED AGENT`。未验证的 Codex / Claude 版本、目标缺失或歧义、配置损坏、有效项目层证据不足，以及 Codex 未受信任项目或 workspace-managed Plugin，均拒绝整批操作。Claude 的 `.claude/settings.local.json` 若对目标存在反向覆盖，也会整批拒绝。
 
 standalone Skill 的项目安装与 Skill 开关不同：用户须指定准确来源和项目内目标，并通过当前 Harness 的加载目录、来源、重复、冲突及路径检查。已确认的发现目录为 Codex `.agents/skills/` 和 Claude Code `.claude/skills/`。复制所需资源并记录来源，不运行来源脚本或可能写用户 cache 的安装器。
 

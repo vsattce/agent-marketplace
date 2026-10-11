@@ -21,6 +21,53 @@ class Unknown(ValueError):
     """Upstream evidence unavailable or malformed."""
 
 
+class UniqueKeyLoader(yaml.SafeLoader):
+    """Reject duplicate YAML keys while preserving SafeLoader merge behavior."""
+
+    def flatten_mapping(self, node):
+        if isinstance(node, yaml.nodes.MappingNode):
+            checked = getattr(self, "_checked_mapping_nodes", None)
+            if checked is None:
+                checked = self._checked_mapping_nodes = set()
+            if id(node) not in checked:
+                checked.add(id(node))
+                seen = set()
+                merge_seen = False
+                for key_node, _ in node.value:
+                    if key_node.tag == "tag:yaml.org,2002:merge":
+                        if merge_seen:
+                            raise yaml.constructor.ConstructorError(
+                                "while constructing a mapping", node.start_mark,
+                                "duplicate key", key_node.start_mark,
+                            )
+                        merge_seen = True
+                        continue
+                    key = self.construct_object(key_node, deep=True)
+                    try:
+                        duplicate = key in seen
+                        seen.add(key)
+                    except TypeError as error:
+                        raise yaml.constructor.ConstructorError(
+                            "while constructing a mapping", node.start_mark,
+                            "unhashable key", key_node.start_mark,
+                        ) from error
+                    if duplicate:
+                        raise yaml.constructor.ConstructorError(
+                            "while constructing a mapping", node.start_mark,
+                            "duplicate key", key_node.start_mark,
+                        )
+        return super().flatten_mapping(node)
+
+
+def unique_json_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("Duplicate JSON key")
+        result[key] = value
+    return result
+
+
 def query_json(url: str):
     request = Request(url, headers={"Accept": "application/vnd.github+json", "User-Agent": "agent-manager-am-update"})
     try:
@@ -37,8 +84,14 @@ def query_json(url: str):
 
 
 def check_sources(root: Path, query=query_json) -> list[dict[str, str]]:
-    sources = yaml.safe_load((root / "sources.yaml").read_text(encoding="utf-8"))
-    lock = json.loads((root / "sources.lock.json").read_text(encoding="utf-8"))
+    try:
+        sources = yaml.load((root / "sources.yaml").read_text(encoding="utf-8"), Loader=UniqueKeyLoader)
+    except yaml.YAMLError as error:
+        raise Unknown("Cannot safely parse sources / lock mappings") from error
+    try:
+        lock = json.loads((root / "sources.lock.json").read_text(encoding="utf-8"), object_pairs_hook=unique_json_object)
+    except ValueError as error:
+        raise Unknown("Cannot safely parse sources / lock mappings") from error
     if not isinstance(sources, dict) or not isinstance(sources.get("groups"), dict) or not isinstance(lock, dict) or not isinstance(lock.get("skills"), dict):
         raise Unknown("Cannot safely parse sources / lock mappings")
     commits = {}

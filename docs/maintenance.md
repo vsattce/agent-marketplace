@@ -57,7 +57,7 @@ Codex 使用便携 manifest，中文信息位于 `extensions.com.openai.interfac
 
 ## 第三方来源与维护边界
 
-[sources.yaml](../sources.yaml) 是第三方来源的唯一人工维护入口，记录 group / displayName 及各 Skill 的 name、repo、path、ref。新增、移除、换源、路径、分组或 ref 先改该文件，再同步；作者与 upstream 只表示来源，不决定分类。
+[sources.yaml](../sources.yaml) 是第三方来源的唯一人工维护入口，记录 group / displayName 及各 Skill 的 name、repo、path、ref。新增、移除、换源、路径、分组或 ref 先改该文件，再同步；作者与 upstream 只表示来源，不决定分类。`sync.py` 与 `am-update` 会在 fetch、query 或发布前拒绝来源 YAML 与 lock JSON 中的重复映射键，同时保留合法 YAML merge 覆盖。
 
 准确 repo / path / ref 查看配置，实际完整 commit 查看 [sources.lock.json](../sources.lock.json)。当前 Anthropic 与 Vue 来源固定在 commit，其余配置跟随 main；分支同步到当前内容，固定 commit 保持固定，改变固定版本需明确修改 ref。
 
@@ -135,7 +135,7 @@ git diff --check
 
 自有 Skill 命名规则：`personal-dev` 采用 `dev-{action}`，`agent-manager` 采用 `am-{action}`。插件身份和 `skills/` 发现目录保持现有结构；重命名后的入口使用新完整调用名。
 
-Plugin 开关编辑器的 Codex 分支使用 tomlkit 0.13.3+（<1）保留注释与排版；Claude 分支使用标准库增量替换 JSON 值，拒绝重复键和损坏配置。它只处理 Plugin 开关；AGENTS.md 与 standalone Skill 文件操作由 Skill 层完成，并在混合请求写入前统一预检。现有开关事务保留无关字节，具备幂等、锁、原子替换、二次读取和失败恢复；Windows 路径、symlink、junction 与 hardlink 的拒绝行为有测试覆盖。
+Plugin 开关编辑器仅在 Windows 运行；其他平台在配置读写前返回 `BLOCKED / PLUGIN SWITCH CONFIGURATION REQUIRES WINDOWS`，该限制不影响 AGENTS.md 与 standalone Skill 操作。Codex 分支使用 tomlkit 0.13.3+（<1）保留注释与排版；Claude 分支使用标准库增量替换 JSON 值，拒绝重复键和损坏配置。编辑器只处理 Plugin 开关；AGENTS.md 与 standalone Skill 文件操作由 Skill 层完成，并在混合请求写入前统一预检。现有开关事务保留无关字节，具备幂等、锁、原子替换、二次读取和失败恢复；Windows 路径、symlink、junction、hardlink 与非普通目标文件的拒绝行为有测试覆盖。
 
 Skill 运行时使用已准备的 Agent 工具环境，不安装依赖、不启动客户端做能力探测，不用全局写入弥补项目能力缺失。客户端版本适配先补充真实隔离证据，再更新编辑器的精确版本集合及支持说明；inventory 版本必须等于实际客户端版本，不以范围匹配放行未知版本。未适配的 Harness 必须返回 `BLOCKED / UNSUPPORTED AGENT`。
 

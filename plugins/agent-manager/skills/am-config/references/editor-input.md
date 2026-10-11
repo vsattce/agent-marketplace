@@ -1,6 +1,6 @@
 # 编辑器输入
 
-编辑器只处理 Codex 与 Claude Code 已支持的 Plugin 项目开关，不处理 AGENTS.md 编辑、Skill / Plugin 安装或一般配置。其他 Harness 整批 `BLOCKED / UNSUPPORTED AGENT`。其他文件操作不通过本编辑器。
+编辑器只处理 Codex 与 Claude Code 已支持的 Plugin 项目开关，不处理 AGENTS.md 编辑、Skill / Plugin 安装或一般配置。编辑器仅在 Windows 运行；其他平台返回 `BLOCKED / PLUGIN SWITCH CONFIGURATION REQUIRES WINDOWS`。其他 Harness 整批 `BLOCKED / UNSUPPORTED AGENT`。其他文件操作不通过本编辑器。
 
 Codex 使用下方示例。Claude Code 保持相同请求结构，改为 `agent: "claude"`、`inventory.claude_version: "2.1.296 (Claude Code)"`，Plugin targets 使用 `configuration: "marketplace"`，path 为含 `.claude-plugin/plugin.json` 的真实已安装目录。无需 codex_version。能力与高层覆盖证据见 [Claude 支持边界](claude-support.md)。发给此编辑器的 `requests` 只接受 Plugin 开关；单个 Skill 开关或其他文件动作不能放入输入。混合用户批次由 Skill 层先完整预检，再单独传递其受支持的 Plugin 开关子集。
 
