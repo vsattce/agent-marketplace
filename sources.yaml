@@ -24,8 +24,8 @@ groups:
         path: skills/find-skills
         ref: main
 
-  frontend-dev:
-    displayName: 前端开发
+  software-dev:
+    displayName: 软件开发
     skills:
       - name: frontend-design
         repo: anthropics/skills
@@ -35,26 +35,18 @@ groups:
         repo: vercel-labs/agent-skills
         path: skills/web-design-guidelines
         ref: main
-      - name: vue
-        repo: antfu/skills
-        path: skills/vue
-        ref: a74f281a27dadc02397bc1a174b0f2c97531b6ae
       - name: vue-best-practices
         repo: antfu/skills
         path: skills/vue-best-practices
         ref: a74f281a27dadc02397bc1a174b0f2c97531b6ae
-
-  backend-dev:
-    displayName: 后端开发
-    skills:
-      - name: java-spring-boot
-        repo: pluginagentmarketplace/custom-plugin-java
-        path: skills/java-spring-boot
-        ref: main
       - name: fastapi
         repo: fastapi/fastapi
         path: fastapi/.agents/skills/fastapi
         ref: master
+      - name: java-spring-boot
+        repo: pluginagentmarketplace/custom-plugin-java
+        path: skills/java-spring-boot
+        ref: main
 
   engineering-tools:
     displayName: 工程工具

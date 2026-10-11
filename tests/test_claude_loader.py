@@ -121,8 +121,16 @@ class ClaudeLoaderTests(unittest.TestCase):
         for entry in catalog["plugins"]:
             for skill_entry in (ROOT / entry["source"] / "skills").glob("*/SKILL.md"):
                 self.assertIn(f'{entry["name"]}:{skill_entry.parent.name}', commands)
-        self.assertIn("frontend-dev:vue", context)
-        for plugin, skill in (("backend-dev", "fastapi"),
+        self.assertNotIn("software-dev:vue", commands)
+        self.assertEqual(
+            {name for name in commands if name.startswith("software-dev:")},
+            {f"software-dev:{name}" for name in (
+                "frontend-design", "web-design-guidelines", "vue-best-practices", "fastapi", "java-spring-boot",
+            )},
+        )
+        self.assertIn("software-dev:vue-best-practices", context)
+        for plugin, skill in (("software-dev", "fastapi"),
+                              ("software-dev", "vue-best-practices"),
                               ("engineering-tools", "docker-build-strategies")):
             with self.subTest(invocation=f"{plugin}:{skill}"):
                 _, explicit = self.context(
@@ -185,40 +193,40 @@ class ClaudeLoaderTests(unittest.TestCase):
         self.assertIn("../../../.agents/skills/upgrade/SKILL.md", explicit)
 
     def test_project_switches_override_user_and_local_overrides_project(self):
-        self.install("frontend-dev")
+        self.install("software-dev")
         config = self.project / ".claude/settings.json"
         config.parent.mkdir(exist_ok=True)
         installed = json.loads((self.home / "plugins/installed_plugins.json").read_text(encoding="utf-8"))
-        record = installed["plugins"]["frontend-dev@agent-marketplace"][0]
+        record = installed["plugins"]["software-dev@agent-marketplace"][0]
         payload = {"agent": "claude", "explicit_invocation": True, "scope": "project",
-                   "requests": [{"kind": "plugin", "target": "frontend-dev@agent-marketplace", "enabled": False}],
+                   "requests": [{"kind": "plugin", "target": "software-dev@agent-marketplace", "enabled": False}],
                    "inventory": {"complete": True, "claude_version": self.claude_version,
                                  "project_root": str(self.project), "project_config_active": True,
                                  "project_overrides_effective": True, "targets": [{"kind": "plugin",
-                                 "id": "frontend-dev@agent-marketplace", "name": "frontend-dev",
+                                 "id": "software-dev@agent-marketplace", "name": "software-dev",
                                  "path": record["installPath"], "installed": True, "configuration": "marketplace"}]}}
         user_config = self.home / "settings.json"
         before = user_config.read_bytes()
         editor.configure(payload, self.project)
         init, context = self.context()
-        self.assertNotIn("frontend-dev:vue", init["slash_commands"])
-        self.assertNotIn("frontend-dev:vue", context)
+        self.assertNotIn("software-dev:vue-best-practices", init["slash_commands"])
+        self.assertNotIn("software-dev:vue-best-practices", context)
         self.assertEqual(user_config.read_bytes(), before)
         user = json.loads(before)
-        user["enabledPlugins"]["frontend-dev@agent-marketplace"] = False
+        user["enabledPlugins"]["software-dev@agent-marketplace"] = False
         user_config.write_text(json.dumps(user))
         payload["requests"][0]["enabled"] = True
         editor.configure(payload, self.project)
         init, context = self.context()
-        self.assertIn("frontend-dev:vue", init["slash_commands"])
-        self.assertIn("frontend-dev:vue", context)
+        self.assertIn("software-dev:vue-best-practices", init["slash_commands"])
+        self.assertIn("software-dev:vue-best-practices", context)
         local = config.parent / "settings.local.json"
-        local.write_text('{"enabledPlugins":{"frontend-dev@agent-marketplace":false}}')
+        local.write_text('{"enabledPlugins":{"software-dev@agent-marketplace":false}}')
         with self.assertRaisesRegex(editor.Blocked, "LOCAL SETTINGS OVERRIDE"):
             editor.configure(payload, self.project)
         init, context = self.context()
-        self.assertNotIn("frontend-dev:vue", init["slash_commands"])
-        self.assertNotIn("frontend-dev:vue", context)
+        self.assertNotIn("software-dev:vue-best-practices", init["slash_commands"])
+        self.assertNotIn("software-dev:vue-best-practices", context)
 
 
 if __name__ == "__main__":

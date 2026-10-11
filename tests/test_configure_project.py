@@ -48,7 +48,7 @@ class ConfigureProjectTests(unittest.TestCase):
             (plugin / "plugin.json").write_text(json.dumps({"name": name}), encoding="utf-8")
             targets.append({"kind": "plugin", "id": f"{name}@fixture", "name": name,
                             "path": str(plugin), "installed": True, "configuration": "local-marketplace"})
-        self.skill = self.project / ".agents/skills/vue/SKILL.md"
+        self.skill = self.project / ".agents/skills/sample-skill/SKILL.md"
         self.skill.parent.mkdir(parents=True)
         self.skill.write_text("---\nname: vue\ndescription: fixture\n---\n", encoding="utf-8")
         targets.append({"kind": "skill", "id": str(self.skill), "name": "vue", "path": str(self.skill)})

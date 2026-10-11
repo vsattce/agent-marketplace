@@ -1,0 +1,9 @@
+{
+  "name": "software-dev",
+  "description": "本仓库仅汇集整理第三方上游前端与后端 Skills，供个人使用；内容不由本仓库创作，并保留原作者署名及上游许可证。",
+  "author": {
+    "name": "hjy"
+  },
+  "homepage": "https://github.com/vsattce/agent-marketplace",
+  "repository": "https://github.com/vsattce/agent-marketplace"
+}

@@ -50,7 +50,7 @@
       "repo": "anthropics/skills",
       "path": "skills/frontend-design",
       "ref": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
-      "group": "frontend-dev",
+      "group": "software-dev",
       "commit": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
       "syncedAt": "2026-10-10T04:02:16+00:00"
     },
@@ -59,25 +59,16 @@
       "repo": "vercel-labs/agent-skills",
       "path": "skills/web-design-guidelines",
       "ref": "main",
-      "group": "frontend-dev",
+      "group": "software-dev",
       "commit": "063bee94c3f4df8453406c830b0a7df0f2860278",
       "syncedAt": "2026-10-10T04:02:19+00:00"
-    },
-    "vue": {
-      "name": "vue",
-      "repo": "antfu/skills",
-      "path": "skills/vue",
-      "ref": "a74f281a27dadc02397bc1a174b0f2c97531b6ae",
-      "group": "frontend-dev",
-      "commit": "a74f281a27dadc02397bc1a174b0f2c97531b6ae",
-      "syncedAt": "2026-10-10T04:02:23+00:00"
     },
     "vue-best-practices": {
       "name": "vue-best-practices",
       "repo": "antfu/skills",
       "path": "skills/vue-best-practices",
       "ref": "a74f281a27dadc02397bc1a174b0f2c97531b6ae",
-      "group": "frontend-dev",
+      "group": "software-dev",
       "commit": "a74f281a27dadc02397bc1a174b0f2c97531b6ae",
       "syncedAt": "2026-10-10T04:02:23+00:00"
     },
@@ -86,7 +77,7 @@
       "repo": "pluginagentmarketplace/custom-plugin-java",
       "path": "skills/java-spring-boot",
       "ref": "main",
-      "group": "backend-dev",
+      "group": "software-dev",
       "commit": "51aa571c25436e667618e27b8ac8c1d500d62aa2",
       "syncedAt": "2026-10-10T04:02:25+00:00"
     },
@@ -122,7 +113,7 @@
       "repo": "fastapi/fastapi",
       "path": "fastapi/.agents/skills/fastapi",
       "ref": "master",
-      "group": "backend-dev",
+      "group": "software-dev",
       "commit": "f5c6e9b4f9cadc1bf0f9a1fd672e621206b63007",
       "syncedAt": "2026-10-11T12:24:48+00:00"
     },

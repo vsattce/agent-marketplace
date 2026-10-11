@@ -241,7 +241,10 @@ class PackagingTests(unittest.TestCase):
         claude = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
         self.assertEqual(claude["name"], codex["name"])
         self.assertEqual({entry["name"] for entry in claude["plugins"]}, {entry["name"] for entry in codex["plugins"]})
-        self.assertEqual(len(claude["plugins"]), 7)
+        self.assertEqual(len(claude["plugins"]), 6)
+        self.assertEqual({entry["name"] for entry in claude["plugins"]}, {
+            "common-workflow", "software-dev", "engineering-tools", "testing-automation", "agent-manager", "personal-dev",
+        })
         count = 0
         for entry in claude["plugins"]:
             counterpart = next(item for item in codex["plugins"] if item["name"] == entry["name"])
@@ -253,7 +256,24 @@ class PackagingTests(unittest.TestCase):
             self.assertNotIn("version", entry)
             self.assertNotIn("skills", manifest)  # Default directory discovery, one shared copy.
             count += len(list((root / "skills").glob("*/SKILL.md")))
-        self.assertEqual(count, 23)
+        self.assertEqual(count, 22)
+        software = next(entry for entry in claude["plugins"] if entry["name"] == "software-dev")
+        software_manifest = json.loads((ROOT / "plugins/software-dev/.claude-plugin/plugin.json").read_text(encoding="utf-8"))
+        codex_software = next(entry for entry in codex["plugins"] if entry["name"] == "software-dev")
+        codex_manifest = json.loads((ROOT / "plugins/software-dev/plugin.json").read_text(encoding="utf-8"))
+        self.assertIn("第三方上游", software["description"])
+        self.assertIn("许可证", software_manifest["description"])
+        self.assertEqual(codex_manifest["extensions"]["com.openai"]["interface"]["displayName"], "软件开发")
+        self.assertIn("第三方上游", codex_software["description"])
+        self.assertIn("OWNED Plugin", codex_manifest["extensions"]["com.openai"]["interface"]["longDescription"])
+        self.assertEqual(
+            {path.parent.name for path in (ROOT / "plugins/software-dev/skills").glob("*/SKILL.md")},
+            {"frontend-design", "web-design-guidelines", "vue-best-practices", "fastapi", "java-spring-boot"},
+        )
+        for obsolete in ("frontend-dev", "backend-dev"):
+            obsolete_root = ROOT / "plugins" / obsolete
+            self.assertFalse((obsolete_root / "plugin.json").exists())
+            self.assertEqual(list(obsolete_root.rglob("SKILL.md")), [])
         handoff = (ROOT / "plugins/common-workflow/skills/handoff/SKILL.md").read_text(encoding="utf-8")
         self.assertIs(yaml.safe_load(handoff.split("---", 2)[1])["disable-model-invocation"], True)
 

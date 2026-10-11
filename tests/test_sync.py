@@ -125,6 +125,28 @@ class SyncTests(unittest.TestCase):
         updated_lock = json.loads((self.root / "sources.lock.json").read_text(encoding="utf-8"))
         self.assertEqual(updated_lock["skills"]["docker-build-strategies"]["commit"], self.commit)
 
+    def test_software_dev_is_managed_and_legacy_groups_are_rejected(self):
+        plugin = self.root / "plugins" / "software-dev"
+        plugin.mkdir(parents=True)
+        (plugin / "plugin.json").write_text('{"name":"software-dev"}', encoding="utf-8")
+        source_document = {"groups": {"software-dev": {"displayName": "软件开发", "skills": self.sources}}}
+        (self.root / "sources.yaml").write_text(yaml.safe_dump(source_document, allow_unicode=True), encoding="utf-8")
+
+        self.run_sync()
+        target = plugin / "skills" / "alpha" / "SKILL.md"
+        self.assertTrue(target.is_file())
+        self.assertEqual(json.loads((self.root / "sources.lock.json").read_text(encoding="utf-8"))["skills"]["alpha"]["group"], "software-dev")
+        self.assertEqual(skill_sync.MANAGED_PLUGINS, frozenset({"common-workflow", "software-dev", "testing-automation", "engineering-tools"}))
+
+        for obsolete in ("frontend-dev", "backend-dev"):
+            with self.subTest(obsolete=obsolete):
+                invalid_sources = {"groups": {obsolete: {"displayName": obsolete, "skills": self.sources}}}
+                (self.root / "sources.yaml").write_text(yaml.safe_dump(invalid_sources), encoding="utf-8")
+                before = self.snapshot()
+                with self.assertRaises(skill_sync.SyncError):
+                    self.run_sync()
+                self.assertEqual(before, self.snapshot())
+
     def test_sync_does_not_generate_kimi_installable_manifests(self):
         self.run_sync()
         self.assertTrue((self.root / "plugins/common-workflow/skills/alpha/SKILL.md").is_file())

@@ -2,15 +2,16 @@
 
 长期维护的个人 Skill / Plugin Marketplace 项目，客户端显示为 **Agent Marketplace**。目前仅支持 Codex 与 Claude Code，共享同一份 Skill 内容与资源，并按客户端适配原生工具；其他客户端暂不适配或维护。
 
-Codex / Claude Code 均包含 **7 个 Plugin、23 个 Skills**：五个第三方聚合 Plugin（15 项）、本仓库直接维护的 `agent-manager`（3 项）和 `personal-dev`（5 项）。
+Codex / Claude Code 均包含 **6 个 Plugin、22 个 Skills**：四个第三方聚合 Plugin（14 项）、本仓库直接维护的 `agent-manager`（3 项）和 `personal-dev`（5 项）。
+
+`software-dev` 收录第三方上游项目的 Skills，仅供个人使用与整理；原作者署名、上游内容及许可证均按原样保留。该说明只适用于 `software-dev`；`agent-manager` 和 `personal-dev` 是本仓库自有并直接维护的 Plugin。
 
 ## 包含哪些能力
 
 | Plugin | 用途 | Skills |
 | --- | --- | --- |
 | `common-workflow` | 通用工作流 | handoff、diagnosing-bugs、research、writing-for-agents、find-skills |
-| `frontend-dev` | 前端开发 | frontend-design、web-design-guidelines、vue、vue-best-practices |
-| `backend-dev` | 后端开发 | fastapi、java-spring-boot |
+| `software-dev` | 软件开发 | frontend-design、web-design-guidelines、vue-best-practices、fastapi、java-spring-boot |
 | `engineering-tools` | 跨技术栈工程工具 | docker-build-strategies |
 | `testing-automation` | 测试与自动化 | webapp-testing、playwright-cli、playwright-best-practices |
 | `agent-manager` | Agent 管理工具 | am-conflict、am-update、am-config |
@@ -32,8 +33,8 @@ Codex / Claude Code 按分类安装，完整身份为 `<plugin>@agent-marketplac
 
 | 操作 | Codex | Claude Code |
 | --- | --- | --- |
-| 使用 Vue Skill | `$frontend-dev:vue` | `/frontend-dev:vue` |
-| 使用 FastAPI Skill | `$backend-dev:fastapi` | `/backend-dev:fastapi` |
+| 使用 Vue 开发规范 | `$software-dev:vue-best-practices` | `/software-dev:vue-best-practices` |
+| 使用 FastAPI Skill | `$software-dev:fastapi` | `/software-dev:fastapi` |
 | 使用 Docker 构建策略 | `$engineering-tools:docker-build-strategies` | `/engineering-tools:docker-build-strategies` |
 | 交接当前任务 | `$common-workflow:handoff` | `/common-workflow:handoff` |
 | 只读检查更新 | `$agent-manager:am-update` | `/agent-manager:am-update` |

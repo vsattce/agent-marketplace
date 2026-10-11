@@ -233,22 +233,31 @@ class CodexLoaderTests(unittest.TestCase):
                 self.assertTrue(marker in context, "Namespaced explicit invocation did not inject Skill instructions")
 
     def test_new_third_party_plugins_discover_and_inject_skills(self):
-        run(["codex", "plugin", "add", "backend-dev@agent-marketplace", "--json"], self.env, self.project)
+        run(["codex", "plugin", "add", "software-dev@agent-marketplace", "--json"], self.env, self.project)
         run(["codex", "plugin", "add", "engineering-tools@agent-marketplace", "--json"], self.env, self.project)
         inventory, _ = rpc_skills(self.project, self.env)
         by_name = {item["name"]: item for item in inventory}
-        expected = {
-            "backend-dev:fastapi": "FastAPI",
-            "engineering-tools:docker-build-strategies": "Docker",
-        }
-        for name, description_term in expected.items():
+        expected = (
+            "software-dev:frontend-design",
+            "software-dev:web-design-guidelines",
+            "software-dev:vue-best-practices",
+            "software-dev:fastapi",
+            "software-dev:java-spring-boot",
+            "engineering-tools:docker-build-strategies",
+        )
+        self.assertNotIn("software-dev:vue", by_name)
+        for name in expected:
             with self.subTest(skill=name):
                 entry = by_name.get(name)
                 self.assertIsNotNone(entry, f"Codex did not discover {name}")
-                self.assertIn(description_term, entry.get("description", ""))
+                self.assertTrue(entry.get("description"), f"Codex did not provide a description for {name}")
 
         ordinary = json.loads(self.capture("请用两句话说明当前目录用途，不调用任何 Skill，也不运行命令。"))
-        for plugin, skill in (("backend-dev", "fastapi"),
+        for plugin, skill in (("software-dev", "frontend-design"),
+                              ("software-dev", "web-design-guidelines"),
+                              ("software-dev", "vue-best-practices"),
+                              ("software-dev", "fastapi"),
+                              ("software-dev", "java-spring-boot"),
                               ("engineering-tools", "docker-build-strategies")):
             name = f"{plugin}:{skill}"
             self.assertIsNone(captured_skill_source(ordinary, name),
@@ -256,7 +265,11 @@ class CodexLoaderTests(unittest.TestCase):
             self.assertTrue(contains_text(ordinary, by_name[f"{plugin}:{skill}"].get("description", "")),
                             f"Codex automatic Skill context omitted the discovery description for {plugin}:{skill}")
 
-        for plugin, skill in (("backend-dev", "fastapi"),
+        for plugin, skill in (("software-dev", "frontend-design"),
+                              ("software-dev", "web-design-guidelines"),
+                              ("software-dev", "vue-best-practices"),
+                              ("software-dev", "fastapi"),
+                              ("software-dev", "java-spring-boot"),
                               ("engineering-tools", "docker-build-strategies")):
             with self.subTest(invocation=f"{plugin}:{skill}"):
                 name = f"{plugin}:{skill}"

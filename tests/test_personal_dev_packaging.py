@@ -65,11 +65,16 @@ class PersonalDevPackagingTests(unittest.TestCase):
 
         sources = yaml.safe_load((ROOT / "sources.yaml").read_text(encoding="utf-8"))["groups"]
         lock = json.loads((ROOT / "sources.lock.json").read_text(encoding="utf-8"))["skills"]
-        self.assertEqual(sum(len(group["skills"]) for group in sources.values()), 15)
-        self.assertEqual(len(lock), 15)
-        self.assertIn("fastapi", {item["name"] for item in sources["backend-dev"]["skills"]})
+        self.assertEqual(set(sources), {"common-workflow", "software-dev", "engineering-tools", "testing-automation"})
+        self.assertEqual(sum(len(group["skills"]) for group in sources.values()), 14)
+        self.assertEqual(len(lock), 14)
+        self.assertNotIn("vue", lock)
+        self.assertEqual(
+            {item["name"] for item in sources["software-dev"]["skills"]},
+            {"frontend-design", "web-design-guidelines", "vue-best-practices", "fastapi", "java-spring-boot"},
+        )
         self.assertIn("docker-build-strategies", {item["name"] for item in sources["engineering-tools"]["skills"]})
-        self.assertEqual(lock["fastapi"]["group"], "backend-dev")
+        self.assertEqual(lock["fastapi"]["group"], "software-dev")
         self.assertEqual(lock["docker-build-strategies"]["group"], "engineering-tools")
 
     def test_runtime_diagnostics_skill_has_chinese_manual_only_metadata(self):

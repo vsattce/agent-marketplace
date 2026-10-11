@@ -12,7 +12,7 @@ Codex 使用下方示例。Claude Code 保持相同请求结构，改为 `agent:
   "explicit_invocation": true,
   "scope": "project",
   "requests": [
-    {"kind": "plugin", "target": "frontend-dev@agent-marketplace", "enabled": true},
+    {"kind": "plugin", "target": "software-dev@agent-marketplace", "enabled": true},
     {"kind": "plugin", "target": "common-workflow@agent-marketplace", "enabled": false}
   ],
   "inventory": {
@@ -24,9 +24,9 @@ Codex 使用下方示例。Claude Code 保持相同请求结构，改为 `agent:
     "targets": [
       {
         "kind": "plugin",
-        "id": "frontend-dev@agent-marketplace",
-        "name": "frontend-dev",
-        "path": "E:\\example\\read-only-installed-cache\\frontend-dev\\1.0.0",
+        "id": "software-dev@agent-marketplace",
+        "name": "software-dev",
+        "path": "E:\\example\\read-only-installed-cache\\software-dev\\1.0.0",
         "installed": true,
         "configuration": "local-marketplace"
       },
@@ -40,9 +40,9 @@ Codex 使用下方示例。Claude Code 保持相同请求结构，改为 `agent:
       },
       {
         "kind": "skill",
-        "id": "frontend-dev@agent-marketplace:vue",
-        "name": "vue",
-        "path": "E:\\example\\read-only-installed-cache\\frontend-dev\\1.0.0\\skills\\vue\\SKILL.md"
+        "id": "software-dev@agent-marketplace:vue-best-practices",
+        "name": "vue-best-practices",
+        "path": "E:\\example\\read-only-installed-cache\\software-dev\\1.0.0\\skills\\vue-best-practices\\SKILL.md"
       }
     ]
   }

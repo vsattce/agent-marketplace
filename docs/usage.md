@@ -6,14 +6,16 @@
 
 当前支持 Codex 与 Claude Code；其他客户端暂不适配或维护。
 
+当前共 **6 个 Plugin、22 个 Skills**：四个第三方聚合 Plugin 收录 14 个 Skills；本仓库自有的 `agent-manager` 与 `personal-dev` 分别包含 3 个和 5 个 Skills。第三方来源、作者与许可证边界见 [README](../README.md)。
+
 ## 日常调用
 
 在聊天中写明 Skill 和要完成的任务：
 
 | 客户端 | 调用格式 | 示例 |
 | --- | --- | --- |
-| Codex | `$<plugin>:<skill>` | `$frontend-dev:vue 帮我实现这个组件` |
-| Claude Code | `/<plugin>:<skill>` | `/frontend-dev:vue 帮我实现这个组件` |
+| Codex | `$<plugin>:<skill>` | `$software-dev:vue-best-practices 帮我实现这个组件` |
+| Claude Code | `/<plugin>:<skill>` | `/software-dev:vue-best-practices 帮我实现这个组件` |
 
 可用入口以当前会话实际显示的清单为准。Skill 改名发布后，刷新客户端安装副本并开启新会话或重载 Plugin；旧完整调用名不作为别名保留。
 
@@ -36,12 +38,11 @@ $agent-manager:am-update 检查已记录来源和安装副本是否有更新
 | common-workflow | research | 从可信来源收集资料和 API 文档，形成研究记录 | 任务匹配 / 手动 |
 | common-workflow | writing-for-agents | 编写 Skill、AGENTS.md、CLAUDE.md 等 Agent 文档 | 任务匹配 / 手动 |
 | common-workflow | find-skills | 按需求查找 Skill，了解能力与安装方式 | 任务匹配 / 手动 |
-| frontend-dev | frontend-design | 指导新页面或改版的视觉风格、排版和细节 | 任务匹配 / 手动 |
-| frontend-dev | web-design-guidelines | 审查 Web 界面、可访问性和交互规范 | 任务匹配 / 手动 |
-| frontend-dev | vue | 指导 Vue 3 组件、Composition API 与响应式逻辑 | 任务匹配 / 手动 |
-| frontend-dev | vue-best-practices | 指导 Vue、Vue Router、Pinia 和 Vite 开发实践 | 任务匹配 / 手动 |
-| backend-dev | java-spring-boot | 指导 REST API、安全认证、数据访问与 Actuator | 任务匹配 / 手动 |
-| backend-dev | fastapi | 指导 FastAPI 应用与 API 开发实践 | 任务匹配 / 手动 |
+| software-dev | frontend-design | 指导新页面或改版的视觉风格、排版和细节 | 任务匹配 / 手动 |
+| software-dev | web-design-guidelines | 审查 Web 界面、可访问性和交互规范 | 任务匹配 / 手动 |
+| software-dev | vue-best-practices | 指导 Vue、Vue Router、Pinia 和 Vite 开发实践 | 任务匹配 / 手动 |
+| software-dev | fastapi | 指导 FastAPI 应用与 API 开发实践 | 任务匹配 / 手动 |
+| software-dev | java-spring-boot | 指导 REST API、安全认证、数据访问与 Actuator | 任务匹配 / 手动 |
 | engineering-tools | docker-build-strategies | 指导 Docker 镜像构建与缓存策略 | 任务匹配 / 手动 |
 | testing-automation | webapp-testing | 验证本地网页交互，查看截图与控制台日志 | 任务匹配 / 手动 |
 | testing-automation | playwright-cli | 通过 Playwright CLI 操作浏览器并验证交互 | 任务匹配 / 手动 |
@@ -132,7 +133,7 @@ Codex 使用其原生终端能力，Claude Code 使用原生 Bash 工具。诊�
 修改 Plugin 开关时，逐项指定完整 Plugin 身份及启用 / 禁用状态，例如：
 
 ```text
-$agent-manager:am-config 在当前项目禁用 frontend-dev@agent-marketplace，启用 testing-automation@agent-marketplace
+$agent-manager:am-config 在当前项目禁用 software-dev@agent-marketplace，启用 testing-automation@agent-marketplace
 ```
 
 Claude 使用 `/agent-manager:am-config`。该入口只处理用户明确指定的项目操作：编辑 `AGENTS.md`、从准确来源安装 standalone Skill，或执行受支持的 Plugin 开关。它不推荐组合、不提交或推送用户项目。
@@ -162,13 +163,12 @@ Plugin 提供 Skill 内容，不代装 Playwright、Java、Vue 等运行依赖�
 
 ### Codex
 
-从 GitHub 添加 Marketplace，再安装需要的分类；下面列出 Codex 的全部七类，可按需选择：
+从 GitHub 添加 Marketplace，再安装需要的分类；下面列出 Marketplace 中的六个 Plugin，可按需选择：
 
 ```powershell
 codex plugin marketplace add vsattce/agent-marketplace --ref main
 codex plugin add common-workflow@agent-marketplace --json
-codex plugin add frontend-dev@agent-marketplace --json
-codex plugin add backend-dev@agent-marketplace --json
+codex plugin add software-dev@agent-marketplace --json
 codex plugin add engineering-tools@agent-marketplace --json
 codex plugin add testing-automation@agent-marketplace --json
 codex plugin add agent-manager@agent-marketplace --json
@@ -188,8 +188,7 @@ codex plugin add personal-dev@agent-marketplace --json
 ```powershell
 claude plugin marketplace add vsattce/agent-marketplace
 claude plugin install common-workflow@agent-marketplace
-claude plugin install frontend-dev@agent-marketplace
-claude plugin install backend-dev@agent-marketplace
+claude plugin install software-dev@agent-marketplace
 claude plugin install engineering-tools@agent-marketplace
 claude plugin install testing-automation@agent-marketplace
 claude plugin install agent-manager@agent-marketplace
@@ -204,10 +203,12 @@ claude plugin install personal-dev@agent-marketplace
 
 ```powershell
 claude plugin marketplace update agent-marketplace
-claude plugin update frontend-dev@agent-marketplace
+claude plugin update software-dev@agent-marketplace
 ```
 
 其他分类同理，完成后新建会话。切换同名市场来源前先核对注册；移除 Marketplace 会同时卸载其插件。
+
+**从旧开发 Plugin 迁移**：刷新 Marketplace 本身不会移除已安装的 `frontend-dev` 或 `backend-dev` 副本。先安装 `software-dev@agent-marketplace`，确认新入口可用后，再用客户端原生流程分别禁用或卸载旧 Plugin；不要手动编辑全局配置或安装缓存。Codex 可运行 `codex plugin remove frontend-dev@agent-marketplace` 与 `codex plugin remove backend-dev@agent-marketplace`；Claude Code 可运行 `claude plugin uninstall frontend-dev@agent-marketplace` 与 `claude plugin uninstall backend-dev@agent-marketplace`。新入口示例：Codex `$software-dev:fastapi`、Claude Code `/software-dev:fastapi`。
 
 ## 常见问题
 

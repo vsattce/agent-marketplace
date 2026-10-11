@@ -29,7 +29,7 @@ class SyncError(Exception):
 
 # Only these explicitly generated Plugins belong to the third-party pipeline.
 # Adding an owned Plugin or a sources.yaml group never grants write access.
-MANAGED_PLUGINS = frozenset({"common-workflow", "frontend-dev", "backend-dev", "testing-automation", "engineering-tools"})
+MANAGED_PLUGINS = frozenset({"common-workflow", "software-dev", "testing-automation", "engineering-tools"})
 
 
 class UniqueKeyLoader(yaml.SafeLoader):
