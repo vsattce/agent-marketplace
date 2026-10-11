@@ -1,6 +1,6 @@
 # agent-marketplace
 
-个人使用的 Skill / Plugin 集合，客户端显示为 **Agent Marketplace**。优先支持当前 Codex 与 Claude Code，共享同一份 Skill 内容与资源，并按客户端适配原生工具。Kimi Code 保留五个分类，Antigravity 尚未适配。
+长期维护的个人 Skill / Plugin Marketplace 项目，客户端显示为 **Agent Marketplace**。默认优先满足当前 Codex 与 Claude Code 的配置、使用和维护需求，共享同一份 Skill 内容与资源，并按客户端适配原生工具。其他客户端仅在明确要求时处理。Kimi Code 保留五个分类，Antigravity 尚未适配。
 
 目前 Codex / Claude Code 均包含 **6 个 Plugin、18 个 Skills**：四个第三方聚合 Plugin（13 项）、本仓库直接维护的 `agent-manager`（3 项）和 `personal-dev`（2 项）。Kimi 保持五个 Plugin、16 个 Skills。
 
