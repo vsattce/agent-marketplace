@@ -6,9 +6,15 @@
 
 本仓库作为长期维护的 Plugin Marketplace，默认优先满足当前 Codex 与 Claude Code 的配置、使用和维护需求；其他客户端仅在用户明确要求时处理。项目规则、配置、能力、调用方式、支持范围或维护流程有变化时，同步检查并更新 README 与直接相关文档，维护要求以 [AGENTS.md](../AGENTS.md) 为准。
 
+## Claude Code plugin 开发指导
+
+`.agents/plugin-dev/upstream/` 保留 Anthropic 官方 `claude-plugins-official/plugins/plugin-dev` 的完整快照，来源 commit、仓库和路径记录在 [.agents/plugin-dev/source.json](../.agents/plugin-dev/source.json)。它随项目分发，独立于 `sources.yaml` / `sources.lock.json`，不注册到 Marketplace。Codex 从工作目录到仓库根目录发现 `.agents/skills/` 项目 Skill，支持显式 `$claude-plugin-dev` 调用并按描述匹配相关任务，加载规则见 [Codex Skills 官方说明](https://learn.chatgpt.com/docs/build-skills)。项目 Skill 按 manifests/discovery、commands、agents、hooks、MCP、settings、Skills 七个主题指向快照中的对应内容；仅按需读取相关指南与资源。
+
+刷新时从官方仓库选择并记录明确 commit，完整替换 `upstream/` 子树并保留上游 LICENSE、文件字节及可执行标记，再更新 `source.json`、Skill 路径引用和测试中的来源 commit、摘要与 mode 基线。此项目 Skill 只为仓库开发提供 Claude Code plugin 指导；不安装 Claude 原生 `plugin-dev` bundle、不把 Claude 专用命令或字段解释为 Codex 能力，也不代表已验证 Claude 客户端加载。版本敏感行为应再核对当前 Claude Code 官方文档。
+
 ## 仓库开发工具
 
-仓库开发工具（repository development tooling）包括 .agents/skills/ 中的 Superpowers、项目 upgrade 与未来项目级开发 Skill、项目 MCP 及 Codex / Claude 开发辅助配置。这些能力服务仓库维护，不进入 Marketplace 产品目录或数量；除明确要求，不注册到 .agents/plugins/marketplace.json、.claude-plugin/marketplace.json、kimi.plugin.json、sources.yaml 或对外安装目录。README 继续说明 Superpowers 不计入 Marketplace 数量。第三方快照与 OWNED 内容的维护方式见下文“第三方来源与维护边界”。
+仓库开发工具（repository development tooling）包括 .agents/skills/ 中的 Superpowers、项目 upgrade、现有 Claude Code plugin 开发 Skill 与未来项目级开发 Skill，.agents/plugin-dev/ 中的官方参考快照，以及项目 MCP 与 Codex / Claude 开发辅助配置。这些能力服务仓库维护，不进入 Marketplace 产品目录或数量；除明确要求，不注册到 .agents/plugins/marketplace.json、.claude-plugin/marketplace.json、kimi.plugin.json、sources.yaml 或对外安装目录。README 继续说明 Superpowers 不计入 Marketplace 数量。第三方快照与 OWNED 内容的维护方式见下文“第三方来源与维护边界”。
 
 Codex 项目配置 .codex/config.toml 提供 OpenAI Docs MCP 和 Context7：OpenAI Docs 用于按需核对 Codex / OpenAI 的 plugin、MCP、Skill 与配置行为；Context7 用于外部库、框架、SDK、CLI 的 API、配置格式和版本差异。稳定的本地修改不必每次查文档；复用已有结果，查询不提交凭据、私有源码或会话内容。连接不可用时，转查对应官方网页。配置格式与加载边界见 [Codex 配置文件官方说明](https://learn.chatgpt.com/docs/config-file/config-basic)及 [OpenAI Docs MCP](https://developers.openai.com/learn/docs-mcp)。
 
@@ -20,7 +26,10 @@ Codex 项目配置 .codex/config.toml 提供 OpenAI Docs MCP 和 Context7：Open
 agent-marketplace/
 ├── .agents/
 │   ├── plugins/marketplace.json    # Codex Marketplace
-│   └── skills/upgrade/SKILL.md     # 项目升级入口
+│   ├── skills/
+│   │   ├── upgrade/SKILL.md        # 项目升级入口
+│   │   └── claude-plugin-dev/      # Claude Code plugin 开发指导
+│   └── plugin-dev/upstream/        # 官方 plugin-dev 固定快照
 ├── .claude/skills/upgrade/SKILL.md # Claude 入口，读取共享升级正文
 ├── .claude-plugin/marketplace.json # Claude Marketplace
 ├── kimi.plugin.json               # Kimi 整仓库聚合入口

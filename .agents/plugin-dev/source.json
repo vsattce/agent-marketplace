@@ -1,0 +1,6 @@
+{
+  "repository": "https://github.com/anthropics/claude-plugins-official",
+  "commit": "a9fd21643fc10eb9c8c8b581902f6259937fa1a4",
+  "path": "plugins/plugin-dev",
+  "scope": "project-development-tooling"
+}
