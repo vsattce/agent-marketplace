@@ -68,6 +68,63 @@ class SyncTests(unittest.TestCase):
         self.assertEqual((self.root / "plugins/common-workflow/licenses/alpha/LICENSE").read_bytes(), (self.upstream / "LICENSE").read_bytes())
         self.assertEqual(json.loads((self.root / "sources.lock.json").read_text())["skills"]["alpha"]["commit"], self.commit)
 
+    def test_engineering_tools_updates_idempotently_and_restores_failed_publish(self):
+        plugin = self.root / "plugins" / "engineering-tools"
+        plugin.mkdir(parents=True)
+        (plugin / "plugin.json").write_text('{"name":"engineering-tools"}', encoding="utf-8")
+        self.write_skill("docker-build-strategies")
+        asset = self.upstream / "skills" / "docker-build-strategies" / "references" / "build.bin"
+        asset.parent.mkdir(parents=True)
+        asset.write_bytes(b"\x00\xff\r\n")
+        notice = self.upstream / "NOTICE"
+        notice.write_bytes(b"Copyright\r\n\x00")
+        document = {
+            "groups": {
+                "common-workflow": {"displayName": "通用工作流", "skills": self.sources},
+                "engineering-tools": {
+                    "displayName": "工程工具",
+                    "skills": [{
+                        "name": "docker-build-strategies",
+                        "repo": "docker/skills",
+                        "path": "skills/docker-build-strategies",
+                        "ref": "main",
+                    }],
+                },
+            },
+        }
+        (self.root / "sources.yaml").write_text(yaml.safe_dump(document, allow_unicode=True), encoding="utf-8")
+
+        self.run_sync()
+        skill_target = plugin / "skills" / "docker-build-strategies"
+        license_target = plugin / "licenses" / "docker-build-strategies"
+        self.assertEqual((skill_target / "references/build.bin").read_bytes(), asset.read_bytes())
+        self.assertEqual((license_target / "LICENSE").read_bytes(), (self.upstream / "LICENSE").read_bytes())
+        self.assertEqual((license_target / "NOTICE").read_bytes(), notice.read_bytes())
+        lock_before = json.loads((self.root / "sources.lock.json").read_text(encoding="utf-8"))
+        self.assertEqual(lock_before["skills"]["docker-build-strategies"]["group"], "engineering-tools")
+        before = self.snapshot()
+        self.run_sync()
+        self.assertEqual(before, self.snapshot())
+
+        entry = self.upstream / "skills" / "docker-build-strategies" / "SKILL.md"
+        entry.write_bytes(entry.read_bytes() + b"Updated upstream\n")
+        self.commit = "b" * 40
+        original_replace = Path.replace
+
+        def fail_lock_replace(path, target):
+            if path.name == "sources.lock.json" and path.parent.name.startswith(".skill-sync-"):
+                raise OSError("simulated write failure")
+            return original_replace(path, target)
+
+        with patch.object(Path, "replace", fail_lock_replace), self.assertRaises(OSError):
+            self.run_sync()
+        self.assertEqual(before, self.snapshot())
+
+        self.run_sync()
+        self.assertEqual((skill_target / "SKILL.md").read_bytes(), entry.read_bytes())
+        updated_lock = json.loads((self.root / "sources.lock.json").read_text(encoding="utf-8"))
+        self.assertEqual(updated_lock["skills"]["docker-build-strategies"]["commit"], self.commit)
+
     def test_sync_does_not_generate_kimi_installable_manifests(self):
         self.run_sync()
         self.assertTrue((self.root / "plugins/common-workflow/skills/alpha/SKILL.md").is_file())
@@ -310,7 +367,7 @@ class SyncTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=self.root) as staging:
             staged = Path(staging) / "replacement"
             staged.mkdir()
-            for relative in ("plugins/agent-manager/skills/am-conflict", "plugins/common-workflow/plugin.json", "plugins/common-workflow/skills", "plugins/common-workflow/.claude-plugin/plugin.json", "plugins/common-workflow/kimi.plugin.json", "kimi.plugin.json", ".claude-plugin/marketplace.json"):
+            for relative in ("plugins/agent-manager/skills/am-conflict", "plugins/common-workflow/plugin.json", "plugins/common-workflow/skills", "plugins/common-workflow/.claude-plugin/plugin.json", "plugins/common-workflow/kimi.plugin.json", "plugins/engineering-tools/plugin.json", "kimi.plugin.json", ".claude-plugin/marketplace.json"):
                 with self.subTest(target=relative), self.assertRaises(skill_sync.SyncError):
                     skill_sync.publish([(staged, self.root / relative)], Path(staging), self.root)
             self.assertTrue(staged.exists())

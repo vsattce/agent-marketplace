@@ -1,6 +1,6 @@
 {
   "name": "backend-dev",
-  "description": "Java / Spring Boot 开发与工程实践。",
+  "description": "FastAPI 与 Java / Spring Boot 开发与工程实践。",
   "author": {
     "name": "hjy"
   },

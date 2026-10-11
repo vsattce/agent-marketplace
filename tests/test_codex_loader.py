@@ -18,6 +18,46 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def skill_body(plugin: str, skill: str) -> str:
+    text = (ROOT / "plugins" / plugin / "skills" / skill / "SKILL.md").read_text(encoding="utf-8")
+    parts = text.split("---", 2)
+    if len(parts) != 3:
+        raise AssertionError(f"Invalid Skill frontmatter: {plugin}:{skill}")
+    return parts[2].strip()
+
+
+def contains_text(value, expected: str) -> bool:
+    values = text_values(value)
+    return any(expected in item for item in values) or any(
+        expected in separator.join(values) for separator in ("", "\n")
+    )
+
+
+def text_entries(value, path="$") -> list[tuple[str, str]]:
+    if isinstance(value, str):
+        return [(path, value)]
+    if isinstance(value, dict):
+        return [entry for key, child in value.items() for entry in text_entries(child, f"{path}.{key}")]
+    if isinstance(value, list):
+        return [entry for index, child in enumerate(value) for entry in text_entries(child, f"{path}[{index}]")]
+    return []
+
+
+def captured_skill_source(value, name: str) -> tuple[str, str] | None:
+    for path, content in text_entries(value):
+        if f"<name>{name}</name>" not in content:
+            continue
+        path_end = content.find("</path>", content.find("<path>"))
+        content_end = content.rfind("\n</skill>")
+        if path_end >= 0 and content_end >= 0:
+            return path, content[path_end + len("</path>\n"):content_end]
+    return None
+
+
+def text_values(value) -> list[str]:
+    return [value for _, value in text_entries(value)]
+
+
 class ProbeBlocked(ValueError):
     """Development-only loader evidence could not be obtained."""
 
@@ -191,6 +231,85 @@ class CodexLoaderTests(unittest.TestCase):
             with self.subTest(invocation=f"agent-manager:{name}"):
                 context = self.capture(f"$agent-manager:{name} 仅验证 Skill 加载，本轮无需执行任何操作。")
                 self.assertTrue(marker in context, "Namespaced explicit invocation did not inject Skill instructions")
+
+    def test_new_third_party_plugins_discover_and_inject_skills(self):
+        run(["codex", "plugin", "add", "backend-dev@agent-marketplace", "--json"], self.env, self.project)
+        run(["codex", "plugin", "add", "engineering-tools@agent-marketplace", "--json"], self.env, self.project)
+        inventory, _ = rpc_skills(self.project, self.env)
+        by_name = {item["name"]: item for item in inventory}
+        expected = {
+            "backend-dev:fastapi": "FastAPI",
+            "engineering-tools:docker-build-strategies": "Docker",
+        }
+        for name, description_term in expected.items():
+            with self.subTest(skill=name):
+                entry = by_name.get(name)
+                self.assertIsNotNone(entry, f"Codex did not discover {name}")
+                self.assertIn(description_term, entry.get("description", ""))
+
+        ordinary = json.loads(self.capture("请用两句话说明当前目录用途，不调用任何 Skill，也不运行命令。"))
+        for plugin, skill in (("backend-dev", "fastapi"),
+                              ("engineering-tools", "docker-build-strategies")):
+            name = f"{plugin}:{skill}"
+            self.assertIsNone(captured_skill_source(ordinary, name),
+                              f"Codex injected the namespaced Skill body without an explicit invocation: {name}")
+            self.assertTrue(contains_text(ordinary, by_name[f"{plugin}:{skill}"].get("description", "")),
+                            f"Codex automatic Skill context omitted the discovery description for {plugin}:{skill}")
+
+        for plugin, skill in (("backend-dev", "fastapi"),
+                              ("engineering-tools", "docker-build-strategies")):
+            with self.subTest(invocation=f"{plugin}:{skill}"):
+                name = f"{plugin}:{skill}"
+                entry = by_name[name]
+                installed_path = Path(entry["path"])
+                skill_file = installed_path / "SKILL.md" if installed_path.is_dir() else installed_path
+                source_file = ROOT / "plugins" / plugin / "skills" / skill / "SKILL.md"
+                self.assertTrue(skill_file.is_file(), f"Codex discovery path does not resolve to SKILL.md: {entry['path']}")
+                self.assertEqual(skill_file.read_bytes(), source_file.read_bytes(),
+                                 f"Codex installed Skill differs from repository snapshot: {entry['path']}")
+
+                source_text = source_file.read_text(encoding="utf-8")
+                source_body = skill_body(plugin, skill)
+                explicit = json.loads(self.capture(
+                    f"${name} 仅验证完整 Skill 正文已加载，不执行正文、不修改文件。"
+                ))
+                text_fields = text_values(explicit)
+                captured = captured_skill_source(explicit, name)
+                self.assertIsNotNone(captured, f"Codex explicit invocation did not inject a Skill body for {name}")
+                captured_path, injected_source = captured
+                self.assertTrue(source_text.startswith(injected_source),
+                                f"Codex injected content is not a prefix of the installed Skill file: {captured_path}")
+                body_offset = injected_source.find(source_body[:40])
+                self.assertGreaterEqual(body_offset, 0,
+                                        f"Codex injected content has no Skill body marker for {name}")
+                captured_body = injected_source[body_offset:]
+                captured_body_content = captured_body.rstrip()
+                self.assertTrue(captured_body_content.startswith(source_body[:128]),
+                                f"Codex explicit invocation did not inject the Skill instructions for {name}")
+                body_prefix_matches = source_body.startswith(captured_body_content)
+                self.assertTrue(body_prefix_matches,
+                                f"Codex injected body is neither a complete Skill nor its exact source prefix: {name}")
+                complete = captured_body_content == source_body
+                injected_bytes = injected_source.encode("utf-8")
+                raw_source = source_file.read_bytes()
+                byte_prefix = raw_source.startswith(injected_bytes)
+                first_8000_bytes = injected_bytes == raw_source[:8000]
+                self.assertTrue(complete or first_8000_bytes,
+                                f"Codex injected an unexpected partial body length for {name}")
+                truncation_markers = [marker for marker in ("[truncated]", "…", "TRUNCATED")
+                                      if any(marker in item for item in text_fields)]
+                print(
+                    f"Codex CLI skill={name} path={entry['path']} request_count={len(self.requests)} "
+                    f"installed_bytes={len(raw_source)} injected_bytes={len(injected_bytes)} "
+                    f"byte_prefix={byte_prefix} first_8000_bytes={first_8000_bytes} "
+                    f"injected_chars={len(injected_source)} body_chars={len(source_body)} "
+                    f"injected_body_chars={len(captured_body_content)} "
+                    f"injected_body_bytes={len(captured_body_content.encode('utf-8'))} complete={complete} "
+                    f"first={source_body[:72]!r} injected_tail={captured_body_content[-72:]!r} "
+                    f"source_next={source_body[len(captured_body_content):len(captured_body_content) + 72]!r} "
+                    f"truncation_markers={truncation_markers!r}",
+                    flush=True,
+                )
 
 
 if __name__ == "__main__":

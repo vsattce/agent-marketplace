@@ -218,15 +218,17 @@ class PackagingTests(unittest.TestCase):
         self.assertEqual(entries[0]["source"]["path"], "./plugins/agent-manager")
         manifest = json.loads((PLUGIN / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["version"], "0.6.1")
-        skills = list((PLUGIN / "skills").iterdir())
-        self.assertEqual({skill.name for skill in skills}, {"am-conflict", "am-update", "am-config"})
-        for skill in skills:
-            policy = yaml.safe_load((skill / "agents/openai.yaml").read_text(encoding="utf-8"))
+        skill_entries = list((PLUGIN / "skills").glob("*/SKILL.md"))
+        self.assertEqual({skill.parent.name for skill in skill_entries}, {"am-conflict", "am-update", "am-config"})
+        for entry in skill_entries:
+            skill_name = entry.parent.name
+            policy = yaml.safe_load((entry.parent / "agents/openai.yaml").read_text(encoding="utf-8"))
             self.assertIs(policy["policy"]["allow_implicit_invocation"], False)
-            text = (skill / "SKILL.md").read_text(encoding="utf-8")
-            self.assertIn("Only use when explicitly invoked by the user.", text)
+            text = entry.read_text(encoding="utf-8")
             frontmatter = yaml.safe_load(text.split("---", 2)[1])
+            self.assertEqual(frontmatter["name"], skill_name)
             self.assertIs(frontmatter["disable-model-invocation"], True)
+            self.assertIn(f"$agent-manager:{skill_name}", policy["interface"]["default_prompt"])
         sources = yaml.safe_load((ROOT / "sources.yaml").read_text(encoding="utf-8"))
         self.assertNotIn("agent-manager", sources["groups"])
         lock = json.loads((ROOT / "sources.lock.json").read_text(encoding="utf-8"))
@@ -239,6 +241,7 @@ class PackagingTests(unittest.TestCase):
         claude = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
         self.assertEqual(claude["name"], codex["name"])
         self.assertEqual({entry["name"] for entry in claude["plugins"]}, {entry["name"] for entry in codex["plugins"]})
+        self.assertEqual(len(claude["plugins"]), 7)
         count = 0
         for entry in claude["plugins"]:
             counterpart = next(item for item in codex["plugins"] if item["name"] == entry["name"])
@@ -250,7 +253,7 @@ class PackagingTests(unittest.TestCase):
             self.assertNotIn("version", entry)
             self.assertNotIn("skills", manifest)  # Default directory discovery, one shared copy.
             count += len(list((root / "skills").glob("*/SKILL.md")))
-        self.assertEqual(count, 20)
+        self.assertEqual(count, 23)
         handoff = (ROOT / "plugins/common-workflow/skills/handoff/SKILL.md").read_text(encoding="utf-8")
         self.assertIs(yaml.safe_load(handoff.split("---", 2)[1])["disable-model-invocation"], True)
 

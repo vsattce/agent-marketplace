@@ -10,3 +10,5 @@ plugins/backend-dev/skills/** -text
 plugins/backend-dev/licenses/** -text
 plugins/testing-automation/skills/** -text
 plugins/testing-automation/licenses/** -text
+plugins/engineering-tools/skills/** -text
+plugins/engineering-tools/licenses/** -text

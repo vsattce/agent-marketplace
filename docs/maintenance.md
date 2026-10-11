@@ -42,6 +42,7 @@ agent-marketplace/
 │   ├── common-workflow/           # 第三方快照
 │   ├── frontend-dev/              # 第三方快照
 │   ├── backend-dev/               # 第三方快照
+│   ├── engineering-tools/          # 第三方快照
 │   ├── testing-automation/        # 第三方快照
 │   ├── agent-manager/             # OWNED，直接维护
 │   └── personal-dev/              # OWNED，Codex / Claude、仅手动
@@ -51,7 +52,7 @@ agent-marketplace/
 └── README.md                      # 概览与文档入口
 ```
 
-六个分类共享 `skills/<name>/`，提供 Codex `plugin.json` 与 Claude Code `.claude-plugin/plugin.json`。第三方分类另存 `licenses/<name>/`。两个 Marketplace 均指向 `./plugins/<plugin>`。`personal-dev` 在 Codex / Claude 注册，包含四个仅手动调用的 Skill；`dev-delegate` / `dev-review` 使用 `references/codex.md` / `references/claude.md` 适配原生委派工具。
+七个分类共享 `skills/<name>/`，提供 Codex `plugin.json` 与 Claude Code `.claude-plugin/plugin.json`。第三方分类另存 `licenses/<name>/`。两个 Marketplace 均指向 `./plugins/<plugin>`。`personal-dev` 在 Codex / Claude 注册，包含五个仅手动调用的 Skill；`dev-delegate` / `dev-review` 使用 `references/codex.md` / `references/claude.md` 适配原生委派工具。
 
 Codex 使用便携 manifest，中文信息位于 `extensions.com.openai.interface`。Claude manifest / catalog 有意不写 version，GitHub 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
 
@@ -63,13 +64,15 @@ Codex 使用便携 manifest，中文信息位于 `extensions.com.openai.interfac
 
 lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，不参与版本选择，不手工维护。
 
+当前来源包含五个分类、15 个第三方 Skill；新增 `backend-dev/fastapi` 与 `engineering-tools/docker-build-strategies` 后，旧 13 项快照与 lock 记录继续保留。
+
 第三方 `skills/` 原样同步，不手工修改快照；[.gitattributes](../.gitattributes) 禁止 Git 转换这些文件的换行。Skill 内许可证保留原样，upstream 根 LICENSE / NOTICE 等另存到 `licenses/<skill-name>/`。快照随仓库发布，换电脑通过 Plugin 安装恢复。
 
-`agent-manager`、`personal-dev`、项目 `upgrade` Skill 和各 manifest 直接维护，不进入 sources / lock。新增第三方 Skill 优先归入现有四类；只有新的领域才考虑增加分类。自有 Plugin 不走第三方同步。第三方 `resolving-merge-conflicts`、standalone `pdf` 和 Legacy 入口不保留。
+`agent-manager`、`personal-dev`、项目 `upgrade` Skill 和各 manifest 直接维护，不进入 sources / lock。新增第三方 Skill 优先归入现有五类；只有新的领域才考虑增加分类。自有 Plugin 不走第三方同步。第三方 `resolving-merge-conflicts`、standalone `pdf` 和 Legacy 入口不保留。
 
 ### 同步工具写入边界
 
-`scripts/sync.py` 的 `MANAGED_PLUGINS` 只允许四个第三方分类。新增 sources 分组不能授予其他目录写入权限；未知分组、混入非 Generated 项的 lock、Owned 目标、manifest 目标或重定向目录均在写入前拒绝。
+`scripts/sync.py` 的 `MANAGED_PLUGINS` 只允许五个第三方分类。新增 sources 分组不能授予其他目录写入权限；未知分组、混入非 Generated 项的 lock、Owned 目标、manifest 目标或重定向目录均在写入前拒绝。
 
 发布与回滚只允许写 `plugins/<managed>/skills/<name>`、`plugins/<managed>/licenses/<name>` 和根 lock。脚本不遍历 Owned 目录清理，新建自有 Plugin 不修改该白名单。
 
@@ -77,7 +80,7 @@ lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，�
 
 ### 使用项目 Skill
 
-在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入六个 Plugin 的 20 个 Skills。
+在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入七个 Plugin 的 23 个 Skills。
 
 Agent 核对目标、Git 状态与运行时后，按 sources 的既定来源 / ref 同步，保留用户改动，检查差异并运行相关验证。按 [AGENTS.md](../AGENTS.md) 默认提交、推送当前分支；当前任务明确不提交或不推送时遵从该要求。环境、同步或验证失败时停止，零差异不制造提交。
 
@@ -172,7 +175,7 @@ uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,
 | --- | --- |
 | `tests/test_sync.py` | 重复同步、快照恢复、upstream 更新、许可证、失败不写入、路径与重名拒绝、回滚和移出配置项保留 |
 | `tests/test_agent_manager.py` | Codex / Claude Plugin 包装、手动策略与只读来源比较 |
-| `tests/test_personal_dev.py` / `tests/test_personal_dev_review.py` / `tests/test_personal_dev_packaging.py` | 开发与审查模型选择、阻塞与安全 CLI 输出，以及四个 Skill 的 Codex / Claude 包装和手动策略 |
+| `tests/test_personal_dev.py` / `tests/test_personal_dev_review.py` / `tests/test_personal_dev_packaging.py` | 开发与审查模型选择、阻塞与安全 CLI 输出，以及五个 Skill 的 Codex / Claude 包装和手动策略 |
 | `tests/test_configure_project.py` | Codex 事务编辑、路径安全与不支持能力的拒绝 |
 | `tests/test_configure_project_claude.py` | Claude JSON 增量编辑、覆盖检查与失败恢复 |
 
@@ -188,12 +191,12 @@ Remove-Item Env:AGENT_MANAGER_CODEX_TESTS
 
 使用项目内隔离 CODEX_HOME、临时项目、安装 fixture 与 localhost 请求捕获器，不调用真实模型、不执行 Skill 正文，也不更新日常全局配置或安装缓存。
 
-`tests/test_personal_dev_loader.py` 复用同一隔离方式，检查四个 Skill 的发现、普通提示不注入新 Skill 正文以及显式调用注入。模型选择检查器与 Skill 流程独立维护，当前系列识别不代表已经验证任意未来命名或实际额度折算。
+`tests/test_personal_dev_loader.py` 复用同一隔离方式，检查五个 Skill 的发现、普通提示不注入新 Skill 正文以及显式调用注入。模型选择检查器与 Skill 流程独立维护，当前系列识别不代表已经验证任意未来命名或实际额度折算。
 该加载用例已在 Codex CLI 0.160.1 与 0.162.0-alpha.17.2 上通过；这是实际验证版本记录，不定义版本支持范围。隔离 fixture 显式让 localhost 绕过代理，并关闭远端 Plugin 同步和系统代理回退，避免工作站网络配置干扰加载证据；失败时保留 fixture 内的退出诊断。
 
 ### Claude 隔离加载器
 
-`tests/test_claude_loader.py` 覆盖六个 Plugin 安装与发现、手动策略、四个 personal-dev Skill 显式加载与原生 Agent schema、项目 upgrade 入口、CLAUDE.md 导入 AGENTS.md、项目值覆盖用户值及 local 反向覆盖：
+`tests/test_claude_loader.py` 覆盖七个 Plugin 安装与发现、手动策略、五个 personal-dev Skill 显式加载与原生 Agent schema、项目 upgrade 入口、CLAUDE.md 导入 AGENTS.md、项目值覆盖用户值及 local 反向覆盖：
 
 ```powershell
 $env:AGENT_MANAGER_CLAUDE_TESTS = "1"

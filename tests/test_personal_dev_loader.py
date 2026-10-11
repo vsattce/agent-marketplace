@@ -20,12 +20,14 @@ class PersonalDevLoaderTests(codex_loader.CodexLoaderTests):
                 "personal-dev:dev-review",
                 "personal-dev:dev-yagni",
                 "personal-dev:dev-simplify",
+                "personal-dev:dev-runtime-check",
             },
         )
         self.assertTrue(all(item.get("enabled", True) for item in skills))
-        ordinary = self.capture("讨论使用便宜模型编码和独立验收的方案，本轮不调用 Skill。")
+        ordinary = self.capture("远端 Linux 服务最近负载升高，请讨论可能原因，但本轮不调用 Skill。")
         self.assertNotIn("# 委派开发与独立验收", ordinary)
         self.assertNotIn("# 增强代码审查", ordinary)
+        self.assertNotIn("# 远端运行诊断", ordinary)
         for marker in ("# 按需实现", "# 精简当前改动"):
             self.assertNotIn(marker, ordinary)
         explicit = self.capture("$personal-dev:dev-delegate 仅验证加载，本轮不执行正文、不派发模型、不修改文件。")
@@ -49,6 +51,10 @@ class PersonalDevLoaderTests(codex_loader.CodexLoaderTests):
         )
         self.assertIn("# 按需实现", combined)
         self.assertIn("# 精简当前改动", combined)
+        runtime_check = self.capture(
+            "$personal-dev:dev-runtime-check 仅验证加载，不连接主机、不执行诊断。"
+        )
+        self.assertIn("# 远端运行诊断", runtime_check)
 
 
 if __name__ == "__main__":

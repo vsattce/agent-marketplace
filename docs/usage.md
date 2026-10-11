@@ -41,6 +41,8 @@ $agent-manager:am-update 检查已记录来源和安装副本是否有更新
 | frontend-dev | vue | 指导 Vue 3 组件、Composition API 与响应式逻辑 | 任务匹配 / 手动 |
 | frontend-dev | vue-best-practices | 指导 Vue、Vue Router、Pinia 和 Vite 开发实践 | 任务匹配 / 手动 |
 | backend-dev | java-spring-boot | 指导 REST API、安全认证、数据访问与 Actuator | 任务匹配 / 手动 |
+| backend-dev | fastapi | 指导 FastAPI 应用与 API 开发实践 | 任务匹配 / 手动 |
+| engineering-tools | docker-build-strategies | 指导 Docker 镜像构建与缓存策略 | 任务匹配 / 手动 |
 | testing-automation | webapp-testing | 验证本地网页交互，查看截图与控制台日志 | 任务匹配 / 手动 |
 | testing-automation | playwright-cli | 通过 Playwright CLI 操作浏览器并验证交互 | 任务匹配 / 手动 |
 | testing-automation | playwright-best-practices | 指导 Playwright 测试、模拟、认证、调试与 CI | 任务匹配 / 手动 |
@@ -51,6 +53,7 @@ $agent-manager:am-update 检查已记录来源和安装副本是否有更新
 | personal-dev | dev-review | 只读审查当前项目或明确范围，独立复核高等级发现并生成报告；Codex / Claude Code | 仅手动 |
 | personal-dev | dev-yagni | 按当前明确目标完成最小但完整的开发任务；只要求方案时等待确认 | 仅手动 |
 | personal-dev | dev-simplify | 默认只读提出行为等价的精简建议，确认后再编辑 | 仅手动 |
+| personal-dev | dev-runtime-check | 使用当前 Harness 原生 Shell / SSH 对指定远端主机、容器或服务取证；默认只读 | 仅手动 |
 
 ## 个人开发工具（Codex / Claude Code）
 
@@ -60,6 +63,7 @@ $personal-dev:dev-delegate 实现当前需求，编码 medium，验收 xhigh
 $personal-dev:dev-review 检查当前项目的性能、资源、请求、磁盘和长期运行风险
 $personal-dev:dev-yagni 按当前明确需求实现最小完整结果
 $personal-dev:dev-simplify 检查当前 diff，先提出行为等价的精简建议
+$personal-dev:dev-runtime-check 检查用户指定的远端主机和服务；默认只读
 ```
 
 Claude Code 使用 `/personal-dev:dev-delegate` 与 `/personal-dev:dev-review`，未指定时沿用当前子代理模型与思考配置，省略 `model` / `effort`；用户明确指定时按本轮原生工具能力核验，也不要求 Codex 的 Luna、`reasoning_effort` 或 Python 检查器。派发前显示模型策略；实际 ID 或强度无法确认时标 `UNKNOWN`，不冒充已验证值。独立验收、两轮修复上限与主模型终审流程和 Codex 相同。
@@ -100,6 +104,12 @@ Codex / Claude 均注册此 Plugin。安装后新建对应客户端会话加载�
 主模型在正式派发前一次性核对项目规则、范围、源码可读性、改动基线、报告位置与当前 Harness adapter。Codex 另核对可靠模型身份、当前派发工具名单与强度及解释器；Claude 核对原生 Agent 与非 fork 子代理能力。缺少必需项时集中输出 `BLOCKED`；生产权限、凭证、配额或实时运行数据属于可选证据，缺少时仍可进行代码层审查，并把相关量化结论列为待运行验证。审查和复核的实际型号/强度会在派发前展示；必要的独立复核只针对 P0/P1 或实质争议。
 
 默认报告写到项目 `docs/reviews/`，代码、配置和 Git 状态只读，审查过程不自动修复或提交。报告区分 `COMPLETE`、`PARTIAL`、`BLOCKED` 执行状态与 P0–P3 风险等级；发现问题不会让执行状态自动变成 `BLOCKED`。没有高等级发现也不代表项目绝对安全。
+
+### 远端运行诊断
+
+`$personal-dev:dev-runtime-check` / `/personal-dev:dev-runtime-check` 仅在用户显式调用时运行。需要目标主机、SSH 连接方式、诊断对象和相关时间范围；信息足够时直接开始取证。默认只读，明确要求修复后才执行授权范围内的必要操作，并遵守当前 Harness 的权限与审批。
+
+Codex 使用其原生终端能力，Claude Code 使用原生 Bash 工具。诊断直接连接用户指定目标，先确认主机与进程、服务或容器身份；连接或命令失败时停止远端结论，不改查当前工作站。连接和每条远端命令都设置有限超时，仅对适用的暂时性错误有限重试。按症状有限采样，比较速率时记录两次计数、单位和真实间隔，并区分宿主机、容器与应用。排查请求量时区分浏览器到自有后端和后端到第三方；部署时间与故障相邻只表示相关性，不单独证明因果。不得记录凭据或启动长期采集。
 
 ## Agent 管理工具
 
@@ -152,13 +162,14 @@ Plugin 提供 Skill 内容，不代装 Playwright、Java、Vue 等运行依赖�
 
 ### Codex
 
-从 GitHub 添加 Marketplace，再安装需要的分类；下面列出 Codex 的全部六类，可按需选择：
+从 GitHub 添加 Marketplace，再安装需要的分类；下面列出 Codex 的全部七类，可按需选择：
 
 ```powershell
 codex plugin marketplace add vsattce/agent-marketplace --ref main
 codex plugin add common-workflow@agent-marketplace --json
 codex plugin add frontend-dev@agent-marketplace --json
 codex plugin add backend-dev@agent-marketplace --json
+codex plugin add engineering-tools@agent-marketplace --json
 codex plugin add testing-automation@agent-marketplace --json
 codex plugin add agent-manager@agent-marketplace --json
 codex plugin add personal-dev@agent-marketplace --json
@@ -179,6 +190,7 @@ claude plugin marketplace add vsattce/agent-marketplace
 claude plugin install common-workflow@agent-marketplace
 claude plugin install frontend-dev@agent-marketplace
 claude plugin install backend-dev@agent-marketplace
+claude plugin install engineering-tools@agent-marketplace
 claude plugin install testing-automation@agent-marketplace
 claude plugin install agent-manager@agent-marketplace
 claude plugin install personal-dev@agent-marketplace

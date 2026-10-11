@@ -116,6 +116,24 @@
       "group": "testing-automation",
       "commit": "283d5cbc5d11aac1abda058b16ad22c317d54dc0",
       "syncedAt": "2026-10-10T04:02:30+00:00"
+    },
+    "fastapi": {
+      "name": "fastapi",
+      "repo": "fastapi/fastapi",
+      "path": "fastapi/.agents/skills/fastapi",
+      "ref": "master",
+      "group": "backend-dev",
+      "commit": "f5c6e9b4f9cadc1bf0f9a1fd672e621206b63007",
+      "syncedAt": "2026-10-11T12:24:48+00:00"
+    },
+    "docker-build-strategies": {
+      "name": "docker-build-strategies",
+      "repo": "docker/skills",
+      "path": "skills/docker-build-strategies",
+      "ref": "main",
+      "group": "engineering-tools",
+      "commit": "f79172733725e2fd236343ee7b963c446ed85d09",
+      "syncedAt": "2026-10-11T12:24:57+00:00"
     }
   }
 }

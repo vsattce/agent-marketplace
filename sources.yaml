@@ -51,6 +51,18 @@ groups:
         repo: pluginagentmarketplace/custom-plugin-java
         path: skills/java-spring-boot
         ref: main
+      - name: fastapi
+        repo: fastapi/fastapi
+        path: fastapi/.agents/skills/fastapi
+        ref: master
+
+  engineering-tools:
+    displayName: 工程工具
+    skills:
+      - name: docker-build-strategies
+        repo: docker/skills
+        path: skills/docker-build-strategies
+        ref: main
 
   testing-automation:
     displayName: 测试与自动化

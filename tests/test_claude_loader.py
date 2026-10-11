@@ -19,6 +19,24 @@ from test_configure_project import editor
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def skill_body(plugin, skill):
+    text = (ROOT / "plugins" / plugin / "skills" / skill / "SKILL.md").read_text(encoding="utf-8")
+    parts = text.split("---", 2)
+    if len(parts) != 3:
+        raise AssertionError(f"Invalid Skill frontmatter: {plugin}:{skill}")
+    return parts[2].strip()
+
+
+def contains_text(value, expected):
+    if isinstance(value, str):
+        return expected in value
+    if isinstance(value, dict):
+        return any(contains_text(child, expected) for child in value.values())
+    if isinstance(value, list):
+        return any(contains_text(child, expected) for child in value)
+    return False
+
+
 def run(command, env, cwd):
     result = subprocess.run(command, env=env, cwd=cwd, capture_output=True,
                             text=True, encoding="utf-8", errors="replace", timeout=45)
@@ -96,24 +114,32 @@ class ClaudeLoaderTests(unittest.TestCase):
         for entry in catalog["plugins"]:
             self.install(entry["name"])
             details = run(["claude", "plugin", "details", entry["name"]], self.env, self.project)
-            for skill in (ROOT / entry["source"] / "skills").iterdir():
-                self.assertIn(skill.name, details)
+            for skill_entry in (ROOT / entry["source"] / "skills").glob("*/SKILL.md"):
+                self.assertIn(skill_entry.parent.name, details)
         init, context = self.context()
         commands = init.get("slash_commands", [])
         for entry in catalog["plugins"]:
-            for skill in (ROOT / entry["source"] / "skills").iterdir():
-                self.assertIn(f'{entry["name"]}:{skill.name}', commands)
+            for skill_entry in (ROOT / entry["source"] / "skills").glob("*/SKILL.md"):
+                self.assertIn(f'{entry["name"]}:{skill_entry.parent.name}', commands)
         self.assertIn("frontend-dev:vue", context)
+        for plugin, skill in (("backend-dev", "fastapi"),
+                              ("engineering-tools", "docker-build-strategies")):
+            with self.subTest(invocation=f"{plugin}:{skill}"):
+                _, explicit = self.context(
+                    f"/{plugin}:{skill} 仅验证完整 Skill 正文已加载，不执行正文、不修改文件。"
+                )
+                self.assertTrue(contains_text(json.loads(explicit), skill_body(plugin, skill)))
         for name in ("common-workflow:handoff", "agent-manager:am-conflict",
                      "agent-manager:am-update", "agent-manager:am-config",
                      "personal-dev:dev-delegate", "personal-dev:dev-review",
-                     "personal-dev:dev-yagni", "personal-dev:dev-simplify"):
+                     "personal-dev:dev-yagni", "personal-dev:dev-simplify",
+                     "personal-dev:dev-runtime-check"):
             self.assertNotIn(name, context)
 
     def test_personal_dev_explicit_invocation_and_native_agent_schema(self):
         self.install("personal-dev")
         init, context = self.context(tools="Agent,Skill")
-        for name in ("dev-delegate", "dev-review", "dev-yagni", "dev-simplify"):
+        for name in ("dev-delegate", "dev-review", "dev-yagni", "dev-simplify", "dev-runtime-check"):
             self.assertIn(f"personal-dev:{name}", init["slash_commands"])
             self.assertNotIn(f"personal-dev:{name}", context)
         agent = next(tool for payload in json.loads(context) for tool in payload.get("tools", [])
@@ -130,6 +156,11 @@ class ClaudeLoaderTests(unittest.TestCase):
         for name, marker in (("dev-yagni", "# 按需实现"), ("dev-simplify", "# 精简当前改动")):
             _, explicit = self.context(f"/personal-dev:{name} 仅验证加载，不执行建议、不修改文件。")
             self.assertIn(marker, explicit)
+
+        _, runtime_check = self.context(
+            "/personal-dev:dev-runtime-check 仅验证入口加载，不连接主机、不执行诊断。"
+        )
+        self.assertIn("# 远端运行诊断", runtime_check)
 
         _, combined = self.context(
             "/personal-dev:dev-yagni 与 /personal-dev:dev-simplify 仅验证组合加载，不执行建议、不修改文件。"

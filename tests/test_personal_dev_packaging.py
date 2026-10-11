@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins/personal-dev"
 SKILL = PLUGIN / "skills/dev-delegate"
 REVIEW = PLUGIN / "skills/dev-review"
+RUNTIME_CHECK = PLUGIN / "skills/dev-runtime-check"
 
 
 class PersonalDevPackagingTests(unittest.TestCase):
@@ -21,11 +22,11 @@ class PersonalDevPackagingTests(unittest.TestCase):
         self.assertEqual(entries[0]["skills"], "./skills/")
         manifest = json.loads((PLUGIN / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(
-            {path.name for path in (PLUGIN / "skills").iterdir()},
-            {"dev-delegate", "dev-review", "dev-yagni", "dev-simplify"},
+            {path.parent.name for path in (PLUGIN / "skills").glob("*/SKILL.md")},
+            {"dev-delegate", "dev-review", "dev-yagni", "dev-simplify", "dev-runtime-check"},
         )
         self.assertEqual(manifest["name"], entries[0]["name"])
-        self.assertEqual(manifest["version"], "0.5.0")
+        self.assertEqual(manifest["version"], "0.6.0")
         self.assertEqual(manifest["extensions"]["com.openai"]["interface"], entries[0]["interface"])
         self.assertTrue((SKILL / "scripts/select_models.py").is_file())
         self.assertTrue((SKILL / "references/roles.md").is_file())
@@ -61,6 +62,29 @@ class PersonalDevPackagingTests(unittest.TestCase):
         self.assertNotIn("version", claude_manifest)
         self.assertTrue((PLUGIN / "references/codex.md").is_file())
         self.assertTrue((PLUGIN / "references/claude.md").is_file())
+
+        sources = yaml.safe_load((ROOT / "sources.yaml").read_text(encoding="utf-8"))["groups"]
+        lock = json.loads((ROOT / "sources.lock.json").read_text(encoding="utf-8"))["skills"]
+        self.assertEqual(sum(len(group["skills"]) for group in sources.values()), 15)
+        self.assertEqual(len(lock), 15)
+        self.assertIn("fastapi", {item["name"] for item in sources["backend-dev"]["skills"]})
+        self.assertIn("docker-build-strategies", {item["name"] for item in sources["engineering-tools"]["skills"]})
+        self.assertEqual(lock["fastapi"]["group"], "backend-dev")
+        self.assertEqual(lock["docker-build-strategies"]["group"], "engineering-tools")
+
+    def test_runtime_diagnostics_skill_has_chinese_manual_only_metadata(self):
+        entry = (RUNTIME_CHECK / "SKILL.md").read_text(encoding="utf-8")
+        frontmatter = yaml.safe_load(entry.split("---", 2)[1])
+        metadata = yaml.safe_load((RUNTIME_CHECK / "agents/openai.yaml").read_text(encoding="utf-8"))
+        self.assertEqual(frontmatter["name"], "dev-runtime-check")
+        self.assertTrue(any("\u4e00" <= character <= "\u9fff" for character in frontmatter["description"]))
+        self.assertIs(frontmatter["disable-model-invocation"], True)
+        self.assertEqual(metadata["interface"]["display_name"], "远端运行诊断")
+        self.assertTrue(any("\u4e00" <= character <= "\u9fff" for character in metadata["interface"]["short_description"]))
+        self.assertIs(metadata["policy"]["allow_implicit_invocation"], False)
+        prompt = metadata["interface"]["default_prompt"]
+        self.assertIn("$personal-dev:dev-runtime-check", prompt)
+        self.assertIn("/personal-dev:dev-runtime-check", entry)
 
     def test_manual_only_policy_and_owned_source_boundary(self):
         frontmatter = yaml.safe_load((SKILL / "SKILL.md").read_text(encoding="utf-8").split("---", 2)[1])

@@ -20,7 +20,7 @@
     {
       "name": "backend-dev",
       "source": "./plugins/backend-dev",
-      "description": "Java / Spring Boot 开发与工程实践。"
+      "description": "FastAPI 与 Java / Spring Boot 开发与工程实践。"
     },
     {
       "name": "testing-automation",
@@ -35,7 +35,12 @@
     {
       "name": "personal-dev",
       "source": "./plugins/personal-dev",
-      "description": "仅手动调用的个人开发委派、独立验收与增强代码审查，支持 Claude Code 和 Codex。"
+      "description": "仅手动调用的个人开发委派、独立验收、增强代码审查与远端运行诊断，支持 Claude Code 和 Codex。"
+    },
+    {
+      "name": "engineering-tools",
+      "source": "./plugins/engineering-tools",
+      "description": "跨技术栈的构建、部署、脚本与工程辅助工具。"
     }
   ]
 }
