@@ -2,3 +2,7 @@
 __pycache__/
 *.pyc
 .skill-sync-*/
+
+# Temporary artifacts when TMP/TEMP points to the repository.
+/claude/fswatch-probe-*/
+/mise/pnpm/*/bin_paths-*.msgpack.z
