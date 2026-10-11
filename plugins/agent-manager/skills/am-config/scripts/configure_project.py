@@ -395,6 +395,7 @@ def publish(root: Path, config: Path, original: bytes | None, planned: bytes, ex
     created_directory = not config.parent.exists()
     staging = None
     lock_fd = None
+    # Keep the historical lock path so old and renamed Skill copies serialize together.
     lock = config.parent / ".configure-project.lock"
     replaced = False
     try:
@@ -410,7 +411,7 @@ def publish(root: Path, config: Path, original: bytes | None, planned: bytes, ex
                 current = config.read_bytes() if config.exists() else None
                 if current != original:
                     raise Blocked("CONFIG CHANGED CONCURRENTLY")
-                descriptor, name = tempfile.mkstemp(prefix=".configure-project-", dir=config.parent)
+                descriptor, name = tempfile.mkstemp(prefix=".am-config-", dir=config.parent)
                 staging = Path(name)
                 with os.fdopen(descriptor, "wb") as stream:
                     stream.write(planned)
@@ -434,7 +435,7 @@ def publish(root: Path, config: Path, original: bytes | None, planned: bytes, ex
                     if original is None:
                         config.unlink()
                     else:
-                        descriptor, name = tempfile.mkstemp(prefix=".configure-project-", dir=config.parent)
+                        descriptor, name = tempfile.mkstemp(prefix=".am-config-", dir=config.parent)
                         staging = Path(name)
                         with os.fdopen(descriptor, "wb") as stream:
                             stream.write(original)

@@ -144,10 +144,10 @@ class SyncTests(unittest.TestCase):
         self.assertEqual(before, self.snapshot())
 
     def test_owned_plugin_survives_repeated_sync_and_failure(self):
-        owned = self.root / "plugins/agent-manager/skills/resolve-conflicts"
+        owned = self.root / "plugins/agent-manager/skills/am-conflict"
         owned.mkdir(parents=True)
         (owned / "SKILL.md").write_text("owned source", encoding="utf-8")
-        configure = self.root / "plugins/agent-manager/skills/configure-project"
+        configure = self.root / "plugins/agent-manager/skills/am-config"
         configure.mkdir(parents=True)
         (configure / "SKILL.md").write_text("owned project configuration source", encoding="utf-8")
         self.run_sync()
@@ -175,7 +175,7 @@ class SyncTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=self.root) as staging:
             staged = Path(staging) / "replacement"
             staged.mkdir()
-            for relative in ("plugins/agent-manager/skills/resolve-conflicts", "plugins/common-workflow/plugin.json", "plugins/common-workflow/skills", "plugins/common-workflow/.claude-plugin/plugin.json", ".claude-plugin/marketplace.json"):
+            for relative in ("plugins/agent-manager/skills/am-conflict", "plugins/common-workflow/plugin.json", "plugins/common-workflow/skills", "plugins/common-workflow/.claude-plugin/plugin.json", ".claude-plugin/marketplace.json"):
                 with self.subTest(target=relative), self.assertRaises(skill_sync.SyncError):
                     skill_sync.publish([(staged, self.root / relative)], Path(staging), self.root)
             self.assertTrue(staged.exists())

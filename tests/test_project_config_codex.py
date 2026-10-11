@@ -37,7 +37,7 @@ class ProjectConfigurationCodexTests(unittest.TestCase):
         self.config.parent.mkdir()
         self.assertEqual(run(["codex", "--version"], self.env, self.project).strip(), editor.VERIFIED_CODEX)
         inventory, _ = rpc_skills(self.project, self.env)
-        self.plugin_skill = next(item for item in inventory if item["name"] == "agent-manager:resolve-conflicts")
+        self.plugin_skill = next(item for item in inventory if item["name"] == "agent-manager:am-conflict")
         plugin_root = Path(self.plugin_skill["path"]).parents[2]
         self.payload = {"agent": "codex", "explicit_invocation": True, "scope": "project",
                         "requests": [{"kind": "plugin", "target": "agent-manager@agent-marketplace", "enabled": False}],

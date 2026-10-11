@@ -1,6 +1,6 @@
 # Kimi Code 来源与只读检查
 
-仅用于已确认的 Kimi Code Harness，不按模型品牌认领。手动入口为 `/skill:resolve-conflicts`、`/skill:check-updates`、`/skill:configure-project`；Kimi 识别共享 frontmatter 的 `disable-model-invocation: true`，`agents/openai.yaml` 只控制 Codex。
+仅用于已确认的 Kimi Code Harness，不按模型品牌认领。手动入口为 `/skill:am-conflict`、`/skill:am-update`、`/skill:am-config`；Kimi 识别共享 frontmatter 的 `disable-model-invocation: true`，`agents/openai.yaml` 只控制 Codex。
 
 ## 来源与加载证据
 
@@ -27,6 +27,6 @@
 
 2026-10-10 核对 Kimi Code Desktop 1.0.4：原生 PluginManager 的开关持久化到用户数据根 `plugins/installed.json`，插件对所有项目生效；官方文档明确尚无项目安装 scope。本版未发现已验证的项目 Plugin / 单个 Skill 开关契约，`.kimi-code/local.toml` 不能凭空增加 enablement 字段。
 
-`configure-project` 中 Kimi Plugin 项目开关返回 `BLOCKED / KIMI PROJECT-LEVEL CONFIGURATION NOT SUPPORTED`；混入其他操作时仍整批零写入。Kimi 的项目 `AGENTS.md` 编辑和 standalone Skill 目录复制可按当前实际加载来源与项目发现目录预检，不调用用户级 Plugin 安装器；Plugin 项目安装仍无全写入项目的已验证契约。具体执行见 [项目文件预检](../skills/configure-project/references/project-edits.md)。
+`am-config` 中 Kimi Plugin 项目开关返回 `BLOCKED / KIMI PROJECT-LEVEL CONFIGURATION NOT SUPPORTED`；混入其他操作时仍整批零写入。Kimi 的项目 `AGENTS.md` 编辑和 standalone Skill 目录复制可按当前实际加载来源与项目发现目录预检，不调用用户级 Plugin 安装器；Plugin 项目安装仍无全写入项目的已验证契约。具体执行见 [项目文件预检](../skills/am-config/references/project-edits.md)。
 
 官方依据：[Plugin 安装、manifest 与作用域](https://github.com/MoonshotAI/kimi-code/blob/main/docs/en/customization/plugins.md)、[Skill 来源与调用](https://github.com/MoonshotAI/kimi-code/blob/main/docs/en/customization/skills.md)、[配置文件](https://github.com/MoonshotAI/kimi-code/blob/main/docs/en/configuration/config-files.md)。

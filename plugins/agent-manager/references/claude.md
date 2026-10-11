@@ -1,6 +1,6 @@
 # Claude Code 来源与只读更新检查
 
-仅用于已确认的 Claude Code Harness。`/agent-manager:resolve-conflicts`、`/agent-manager:check-updates`、`/agent-manager:configure-project` 为手动入口；三个 Skill 的 `disable-model-invocation: true` 保留该限制，`agents/openai.yaml` 只控制 Codex。
+仅用于已确认的 Claude Code Harness。`/agent-manager:am-conflict`、`/agent-manager:am-update`、`/agent-manager:am-config` 为手动入口；三个 Skill 的 `disable-model-invocation: true` 保留该限制，`agents/openai.yaml` 只控制 Codex。
 
 ## 来源与安装证据
 
@@ -17,8 +17,8 @@
 
 本仓库 Claude manifest 与 catalog 故意不写 version，Git 来源按 Marketplace commit 跟踪更新，避免第三方快照同步后被固定 `1.0.0` 阻挡。比较安装 `gitCommitSha` 与既定 Marketplace repo/ref；字段缺失或不可靠时用精确文件比较，否则 UNKNOWN。对本地 in-place 安装，source 内容可能直接生效，不能把安装时间误判为旧版本。远端新 commit 只说明市场版本变化；定位具体 Skill 时使用对应 sources/lock 或内容证据。
 
-第三方来源比较继续使用共享 `check_sources.py`；OWNED 比较源码当前 branch / tracking remote 的 SHA 与 ancestry；两者遵循 check-updates 主流程。standalone 从现有会话、项目 `.claude/skills`、配置根 `skills` 和已确认额外目录发现；按真实来源与 provenance 分别列行。新版本也可能在用户 skills 下提供 Plugin；先核对 manifest，避免重复统计。没有来源的入口为 UNKNOWN SOURCE，不按同名 upstream 认领。
+第三方来源比较继续使用共享 `check_sources.py`；OWNED 比较源码当前 branch / tracking remote 的 SHA 与 ancestry；两者遵循 am-update 主流程。standalone 从现有会话、项目 `.claude/skills`、配置根 `skills` 和已确认额外目录发现；按真实来源与 provenance 分别列行。新版本也可能在用户 skills 下提供 Plugin；先核对 manifest，避免重复统计。没有来源的入口为 UNKNOWN SOURCE，不按同名 upstream 认领。
 
-项目开关的写入能力另见 [Claude 支持证据](../skills/configure-project/references/claude-support.md)，本文件不授权配置修改。
+项目开关的写入能力另见 [Claude 支持证据](../skills/am-config/references/claude-support.md)，本文件不授权配置修改。
 
 官方依据（2026-10-10）：[Marketplace](https://code.claude.com/docs/en/plugin-marketplaces)、[manifest](https://code.claude.com/docs/en/plugins-reference)、[版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)、[配置层级与目录](https://code.claude.com/docs/en/settings)、[Skill 调用](https://code.claude.com/docs/en/skills)。

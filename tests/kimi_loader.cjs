@@ -120,7 +120,7 @@ test('Kimi native plugin compatibility', { skip: !ASAR, timeout: 60_000 }, async
       const discovery = await kimi.discoverFileSkills(manager.pluginSkillRoots());
       assert.equal(discovery.skills.length, 16);
       assert.equal(new Set(discovery.skills.map((skill) => skill.name.toLowerCase())).size, 16);
-      const manual = new Set(['handoff', 'resolve-conflicts', 'check-updates', 'configure-project']);
+      const manual = new Set(['handoff', 'am-conflict', 'am-update', 'am-config']);
       const catalog = new kimi.InMemorySkillCatalog();
       for (const skill of discovery.skills) {
         catalog.register(skill);
@@ -141,7 +141,7 @@ test('Kimi native plugin compatibility', { skip: !ASAR, timeout: 60_000 }, async
       // Companion scripts, references and licenses also survive managed copying.
       for (const relative of [
         'plugins/agent-manager/references/kimi.md',
-        'plugins/agent-manager/skills/configure-project/scripts/configure_project.py',
+        'plugins/agent-manager/skills/am-config/scripts/configure_project.py',
         'plugins/common-workflow/skills/writing-for-agents/SKILL-MECHANICS.md',
         'plugins/backend-dev/skills/java-spring-boot/assets/schema.json',
       ]) {

@@ -11,7 +11,7 @@ SCRIPT_DIR = (
     / "plugins"
     / "personal-dev"
     / "skills"
-    / "delegated-development"
+    / "dev-delegate"
     / "scripts"
 )
 sys.path.insert(0, str(SCRIPT_DIR))

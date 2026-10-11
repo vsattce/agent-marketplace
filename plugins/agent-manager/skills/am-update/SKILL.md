@@ -1,12 +1,12 @@
 ---
-name: check-updates
+name: am-update
 disable-model-invocation: true
 description: "Read-only version checks for recorded Agent Plugin / Skill upstreams and marketplaces. Only use when explicitly invoked by the user."
 ---
 
 # 只读检查 Agent 更新
 
-只在用户明确选择本 Skill 时执行：Codex 使用 `$agent-manager:check-updates`，Claude Code 使用 `/agent-manager:check-updates`，Kimi Code 使用 `/skill:check-updates`；裸别名以会话支持为准。普通讨论、会话启动或检测到 Plugin 不触发。只检查，不执行更新。
+只在用户明确选择本 Skill 时执行：Codex 使用 `$agent-manager:am-update`，Claude Code 使用 `/agent-manager:am-update`，Kimi Code 使用 `/skill:am-update`；裸别名以会话支持为准。普通讨论、会话启动或检测到 Plugin 不触发。只检查，不执行更新。
 
 1. 由当前会话身份识别 Agent。身份不明输出 `BLOCKED`；Codex 读取 [Codex adapter](../../references/codex.md)，Claude Code 读取 [Claude adapter](../../references/claude.md)，Kimi Code 读取 [Kimi adapter](../../references/kimi.md)。其他 Agent 输出 `UNSUPPORTED AGENT`。核验当前版本的 metadata 与只读机制，机制不明确时中断对应步骤。
 2. 找到真实 agent-marketplace 源码目录：从官方 Marketplace metadata、Plugin 已记录来源或用户指定位置定位。安装缓存的 Plugin 目录不等于源码根；不能确认时将需要源码的步骤报告 `BLOCKED`，继续其他有可靠来源的检查，不要按相似名字认领来源。读取 `sources.yaml`、`sources.lock.json`、Marketplace catalog 和各 Plugin manifest；Kimi 根聚合副本的快照读取与源码 Git 检查按 adapter 区分。

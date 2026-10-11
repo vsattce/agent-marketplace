@@ -1,12 +1,12 @@
 ---
-name: review
+name: dev-review
 description: Use when the user explicitly invokes this skill in Codex or Claude Code for an evidence-led project code review.
 disable-model-invocation: true
 ---
 
 # 增强代码审查
 
-Only use when the user explicitly invokes this skill. Codex 使用 `$personal-dev:review`，Claude Code 使用 `/personal-dev:review`；不启动原生 `/review`，不嵌套启动客户端。
+Only use when the user explicitly invokes this skill. Codex 使用 `$personal-dev:dev-review`，Claude Code 使用 `/personal-dev:dev-review`；不启动原生 `/review`，不嵌套启动客户端。
 
 当前对话主模型负责预检、安排审查与独立复核、核验证据并生成 Markdown 报告。审查代理只读并回传发现，不写文件、不修复、不提交、不继续派生代理。
 

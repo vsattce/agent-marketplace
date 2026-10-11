@@ -22,7 +22,7 @@ class Unknown(ValueError):
 
 
 def query_json(url: str):
-    request = Request(url, headers={"Accept": "application/vnd.github+json", "User-Agent": "agent-manager-check-updates"})
+    request = Request(url, headers={"Accept": "application/vnd.github+json", "User-Agent": "agent-manager-am-update"})
     try:
         with urlopen(request, timeout=20) as response:
             payload = response.read(10_000_001)

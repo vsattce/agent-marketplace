@@ -43,7 +43,8 @@ class ClaudeLoaderTests(unittest.TestCase):
                          "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1", "DISABLE_AUTOUPDATER": "1",
                          "CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY": "1"})
         subprocess.run(["git", "init", "--quiet", str(self.project)], check=True, capture_output=True)
-        self.assertEqual(run(["claude", "--version"], self.env, self.project).strip(), editor.VERIFIED_CLAUDE)
+        self.claude_version = run(["claude", "--version"], self.env, self.project).strip()
+        self.assertIn(self.claude_version, editor.VERIFIED_CLAUDE_VERSIONS)
         run(["claude", "plugin", "marketplace", "add", str(ROOT)], self.env, self.project)
 
     def install(self, name):
@@ -103,15 +104,15 @@ class ClaudeLoaderTests(unittest.TestCase):
             for skill in (ROOT / entry["source"] / "skills").iterdir():
                 self.assertIn(f'{entry["name"]}:{skill.name}', commands)
         self.assertIn("frontend-dev:vue", context)
-        for name in ("common-workflow:handoff", "agent-manager:resolve-conflicts",
-                     "agent-manager:check-updates", "agent-manager:configure-project",
-                     "personal-dev:delegated-development", "personal-dev:review"):
+        for name in ("common-workflow:handoff", "agent-manager:am-conflict",
+                     "agent-manager:am-update", "agent-manager:am-config",
+                     "personal-dev:dev-delegate", "personal-dev:dev-review"):
             self.assertNotIn(name, context)
 
     def test_personal_dev_explicit_invocation_and_native_agent_schema(self):
         self.install("personal-dev")
         init, context = self.context(tools="Agent,Skill")
-        for name in ("delegated-development", "review"):
+        for name in ("dev-delegate", "dev-review"):
             self.assertIn(f"personal-dev:{name}", init["slash_commands"])
             self.assertNotIn(f"personal-dev:{name}", context)
         agent = next(tool for payload in json.loads(context) for tool in payload.get("tools", [])
@@ -120,7 +121,7 @@ class ClaudeLoaderTests(unittest.TestCase):
         self.assertIn("subagent_type", properties)
         self.assertNotIn("reasoning_effort", properties)
         print("Claude Agent parameters:", ", ".join(sorted(properties)), flush=True)
-        for name, marker in (("delegated-development", "# 委派开发与独立验收"), ("review", "# 增强代码审查")):
+        for name, marker in (("dev-delegate", "# 委派开发与独立验收"), ("dev-review", "# 增强代码审查")):
             _, explicit = self.context(f"/personal-dev:{name} 仅验证加载，不执行正文、不派发、不修改文件。")
             self.assertIn(marker, explicit)
             self.assertIn("Claude adapter", explicit)
@@ -144,7 +145,7 @@ class ClaudeLoaderTests(unittest.TestCase):
         record = installed["plugins"]["frontend-dev@agent-marketplace"][0]
         payload = {"agent": "claude", "explicit_invocation": True, "scope": "project",
                    "requests": [{"kind": "plugin", "target": "frontend-dev@agent-marketplace", "enabled": False}],
-                   "inventory": {"complete": True, "claude_version": editor.VERIFIED_CLAUDE,
+                   "inventory": {"complete": True, "claude_version": self.claude_version,
                                  "project_root": str(self.project), "project_config_active": True,
                                  "project_overrides_effective": True, "targets": [{"kind": "plugin",
                                  "id": "frontend-dev@agent-marketplace", "name": "frontend-dev",

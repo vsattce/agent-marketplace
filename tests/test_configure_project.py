@@ -11,7 +11,7 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "plugins/agent-manager/skills/configure-project/scripts/configure_project.py"
+SCRIPT = ROOT / "plugins/agent-manager/skills/am-config/scripts/configure_project.py"
 spec = importlib.util.spec_from_file_location("configure_project", SCRIPT)
 editor = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(editor)
@@ -194,8 +194,19 @@ class ConfigureProjectTests(unittest.TestCase):
         self.assertEqual(report["Project"], str(self.project))
 
     def test_dotdot_sibling_prefix_and_other_drive_escape(self):
-        for path in (self.project / "../escape/config.toml", self.base / "project-sibling/config.toml",
-                     Path("Z:/outside/config.toml") if os.name == "nt" else Path("/outside/config.toml")):
+        paths = [self.project / "../escape/config.toml", self.base / "project-sibling/config.toml"]
+        if os.name == "nt":
+            mounted_drives = {drive[:2].casefold() for drive in os.listdrives()}
+            unmounted_drive = next(
+                (letter for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if f"{letter}:".casefold() not in mounted_drives),
+                None,
+            )
+            if unmounted_drive is None:
+                self.skipTest("No unmounted drive is available for the cross-drive path check")
+            paths.append(Path(f"{unmounted_drive}:/outside/config.toml"))
+        else:
+            paths.append(Path("/outside/config.toml"))
+        for path in paths:
             with self.subTest(path=path), self.assertRaisesRegex(editor.Blocked, "PATH ESCAPES PROJECT ROOT"):
                 editor.safe_path(path, self.project)
 

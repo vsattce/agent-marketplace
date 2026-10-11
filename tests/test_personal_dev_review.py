@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT_PATH = ROOT / "plugins/personal-dev/skills/review/scripts/select_models.py"
+SCRIPT_PATH = ROOT / "plugins/personal-dev/skills/dev-review/scripts/select_models.py"
 
 
 def load_review_module():

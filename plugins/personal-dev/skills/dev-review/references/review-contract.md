@@ -13,7 +13,7 @@
 
 CLI 从 stdin 读取一个 JSON object。必填字段为 `primary_model`、`primary_model_source`（`current-turn` 或 `user`）、`inventory_source`（`current-spawn-tool`）和 `models`（当前派发工具实际可用的 `{id, efforts}` 项目数组）。可选字段为 `model_override` 与 `override_confirmed`，以及 `audit_effort` / `verification_effort`（默认 `xhigh` / `max`）。不接受未知字段，也不接受旧的 `coding_effort` / `review_effort` 角色字段。模型覆盖仍须按兄弟 helper 规则明确确认，并在当前工具名单中。
 
-成功退出 0 并输出 `status=READY`、`audit={model,effort}`、`verification={model,effort}` 和两行 `display`。失败退出 2，仅输出 `status=BLOCKED` 与安全原因；不回显输入、路径或异常内容。自动选择先确定同代数字版本最高的 Luna，再校验所需强度；该型号缺强度即阻塞，不降到旧版本。adapter 只映射角色并调用 `delegated-development/scripts/select_models.py`，不得复制或另建选择规则。
+成功退出 0 并输出 `status=READY`、`audit={model,effort}`、`verification={model,effort}` 和两行 `display`。失败退出 2，仅输出 `status=BLOCKED` 与安全原因；不回显输入、路径或异常内容。自动选择先确定同代数字版本最高的 Luna，再校验所需强度；该型号缺强度即阻塞，不降到旧版本。adapter 只映射角色并调用 `dev-delegate/scripts/select_models.py`，不得复制或另建选择规则。
 
 ## 审查维度与降噪
 

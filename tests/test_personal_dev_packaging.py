@@ -8,8 +8,8 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins/personal-dev"
-SKILL = PLUGIN / "skills/delegated-development"
-REVIEW = PLUGIN / "skills/review"
+SKILL = PLUGIN / "skills/dev-delegate"
+REVIEW = PLUGIN / "skills/dev-review"
 
 
 class PersonalDevPackagingTests(unittest.TestCase):
@@ -21,11 +21,11 @@ class PersonalDevPackagingTests(unittest.TestCase):
         self.assertEqual(entries[0]["skills"], "./skills/")
         manifest = json.loads((PLUGIN / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], entries[0]["name"])
-        self.assertEqual(manifest["version"], "0.3.1")
+        self.assertEqual(manifest["version"], "0.4.0")
         self.assertEqual(manifest["extensions"]["com.openai"]["interface"], entries[0]["interface"])
         self.assertEqual(
             {path.name for path in (PLUGIN / "skills").iterdir()},
-            {"delegated-development", "review"},
+            {"dev-delegate", "dev-review"},
         )
         self.assertTrue((SKILL / "scripts/select_models.py").is_file())
         self.assertTrue((SKILL / "references/roles.md").is_file())
@@ -35,10 +35,10 @@ class PersonalDevPackagingTests(unittest.TestCase):
 
         review_frontmatter = yaml.safe_load((REVIEW / "SKILL.md").read_text(encoding="utf-8").split("---", 2)[1])
         review_metadata = yaml.safe_load((REVIEW / "agents/openai.yaml").read_text(encoding="utf-8"))
-        self.assertEqual(review_frontmatter["name"], "review")
+        self.assertEqual(review_frontmatter["name"], "dev-review")
         self.assertIs(review_frontmatter["disable-model-invocation"], True)
         self.assertIs(review_metadata["policy"]["allow_implicit_invocation"], False)
-        self.assertIn("$personal-dev:review", review_metadata["interface"]["default_prompt"])
+        self.assertIn("$personal-dev:dev-review", review_metadata["interface"]["default_prompt"])
 
         claude = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
         kimi = json.loads((ROOT / "kimi.plugin.json").read_text(encoding="utf-8"))
@@ -55,10 +55,10 @@ class PersonalDevPackagingTests(unittest.TestCase):
     def test_manual_only_policy_and_owned_source_boundary(self):
         frontmatter = yaml.safe_load((SKILL / "SKILL.md").read_text(encoding="utf-8").split("---", 2)[1])
         metadata = yaml.safe_load((SKILL / "agents/openai.yaml").read_text(encoding="utf-8"))
-        self.assertEqual(frontmatter["name"], "delegated-development")
+        self.assertEqual(frontmatter["name"], "dev-delegate")
         self.assertIs(frontmatter["disable-model-invocation"], True)
         self.assertIs(metadata["policy"]["allow_implicit_invocation"], False)
-        self.assertIn("$personal-dev:delegated-development", metadata["interface"]["default_prompt"])
+        self.assertIn("$personal-dev:dev-delegate", metadata["interface"]["default_prompt"])
         sources = yaml.safe_load((ROOT / "sources.yaml").read_text(encoding="utf-8"))
         lock = json.loads((ROOT / "sources.lock.json").read_text(encoding="utf-8"))
         self.assertNotIn("personal-dev", sources["groups"])

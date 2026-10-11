@@ -19,7 +19,7 @@ def load_module(name, relative):
     return module
 
 
-updates = load_module("check_sources", "skills/check-updates/scripts/check_sources.py")
+updates = load_module("check_sources", "skills/am-update/scripts/check_sources.py")
 
 
 class UpdateTests(unittest.TestCase):
@@ -89,6 +89,7 @@ class PackagingTests(unittest.TestCase):
     def test_kimi_manifests_share_all_catalog_skills_without_collisions(self):
         catalog = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text(encoding="utf-8"))
         aggregate = json.loads((ROOT / "kimi.plugin.json").read_text(encoding="utf-8"))
+        self.assertEqual(aggregate["version"], "1.1.0")
         shared_plugins = [entry for entry in catalog["plugins"] if entry["name"] != "personal-dev"]
         self.assertEqual(aggregate["name"], catalog["name"])
         self.assertEqual(aggregate["interface"]["displayName"], "Agent Marketplace")
@@ -98,6 +99,8 @@ class PackagingTests(unittest.TestCase):
             root = ROOT / entry["source"]["path"]
             native = json.loads((root / "kimi.plugin.json").read_text(encoding="utf-8"))
             self.assertEqual(native["name"], entry["name"])
+            if entry["name"] == "agent-manager":
+                self.assertEqual(native["version"], "0.6.0")
             self.assertEqual(native["skills"], "./skills/")
             self.assertEqual(native["interface"]["displayName"], entry["interface"]["displayName"])
             for skill in (root / native["skills"]).glob("*/SKILL.md"):
@@ -113,8 +116,10 @@ class PackagingTests(unittest.TestCase):
         entries = [entry for entry in catalog["plugins"] if entry["name"] == "agent-manager"]
         self.assertEqual(len(entries), 1)
         self.assertEqual(entries[0]["source"]["path"], "./plugins/agent-manager")
+        manifest = json.loads((PLUGIN / "plugin.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["version"], "0.6.0")
         skills = list((PLUGIN / "skills").iterdir())
-        self.assertEqual({skill.name for skill in skills}, {"resolve-conflicts", "check-updates", "configure-project"})
+        self.assertEqual({skill.name for skill in skills}, {"am-conflict", "am-update", "am-config"})
         for skill in skills:
             policy = yaml.safe_load((skill / "agents/openai.yaml").read_text(encoding="utf-8"))
             self.assertIs(policy["policy"]["allow_implicit_invocation"], False)
@@ -126,8 +131,8 @@ class PackagingTests(unittest.TestCase):
         self.assertNotIn("agent-manager", sources["groups"])
         lock = json.loads((ROOT / "sources.lock.json").read_text(encoding="utf-8"))
         self.assertNotIn("agent-manager", {item["group"] for item in lock["skills"].values()})
-        self.assertNotIn("configure-project", lock["skills"])
-        self.assertNotIn("configure-project", {item["name"] for group in sources["groups"].values() for item in group["skills"]})
+        self.assertNotIn("am-config", lock["skills"])
+        self.assertNotIn("am-config", {item["name"] for group in sources["groups"].values() for item in group["skills"]})
 
     def test_claude_catalog_uses_same_plugin_roots_and_unpinned_versions(self):
         codex = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text(encoding="utf-8"))

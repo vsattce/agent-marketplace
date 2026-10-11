@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-manager",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "手动查找 Agent 冲突、检查来源版本，并按明确请求编辑项目指令、安装指定 Skill 或修改受支持的 Plugin 开关。",
   "license": "MIT",
   "extensions": {
@@ -9,7 +9,7 @@
       "interface": {
         "displayName": "Agent 管理工具",
         "shortDescription": "冲突查找、来源检查及明确的项目指令、Skill 和 Plugin 操作；仅手动调用。",
-        "longDescription": "本仓库直接维护的 OWNED Plugin。\n\nresolve-conflicts：按当前 Agent 的加载规则，只读查找项目与全局指令、Skills、Plugins / Extensions 的冲突及歧义，输出原文、位置和建议。\ncheck-updates：支持 Codex、Claude Code 与 Kimi Code，只读对比已记录 upstream、自有仓库、已安装 Plugin、standalone Skill 与 Marketplace 状态。\nconfigure-project：只处理用户明确请求，先检查整批冲突与重复，再编辑项目 AGENTS.md、复制明确来源的 standalone Skill，或修改已支持的 Codex / Claude 项目 Plugin 开关。Plugin 项目安装仅在已证明所有写入都留在项目内时支持；当前 Codex / Claude / Kimi 均无此已验证契约。Kimi Plugin 项目开关、单个 Skill 开关及未支持目标整批 BLOCKED；全局始终只读。\n\n三个 Skill 均仅显式调用：Codex 为 $agent-manager:<skill>，Claude 为 /agent-manager:<skill>，Kimi 为 /skill:<name>。加载证据不足时标记 PARTIAL / UNKNOWN / BLOCKED。",
+        "longDescription": "本仓库直接维护的 OWNED Plugin。\n\nam-conflict：按当前 Agent 的加载规则，只读查找项目与全局指令、Skills、Plugins / Extensions 的冲突及歧义，输出原文、位置和建议。\nam-update：支持 Codex、Claude Code 与 Kimi Code，只读对比已记录 upstream、自有仓库、已安装 Plugin、standalone Skill 与 Marketplace 状态。\nam-config：只处理用户明确请求，先检查整批冲突与重复，再编辑项目 AGENTS.md、复制明确来源的 standalone Skill，或修改已支持的 Codex / Claude 项目 Plugin 开关。Plugin 项目安装仅在已证明所有写入都留在项目内时支持；当前 Codex / Claude / Kimi 均无此已验证契约。Kimi Plugin 项目开关、单个 Skill 开关及未支持目标整批 BLOCKED；全局始终只读。\n\n三个 Skill 均仅显式调用：Codex 为 $agent-manager:<skill>，Claude 为 /agent-manager:<skill>，Kimi 为 /skill:<name>。加载证据不足时标记 PARTIAL / UNKNOWN / BLOCKED。",
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://github.com/vsattce/agent-marketplace",

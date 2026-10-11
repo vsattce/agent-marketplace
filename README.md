@@ -12,8 +12,8 @@
 | `frontend-dev` | 前端开发 | frontend-design、web-design-guidelines、vue、vue-best-practices |
 | `backend-dev` | 后端开发 | java-spring-boot |
 | `testing-automation` | 测试与自动化 | webapp-testing、playwright-cli、playwright-best-practices |
-| `agent-manager` | Agent 管理工具 | resolve-conflicts、check-updates、configure-project |
-| `personal-dev` | 个人开发工具，Codex / Claude Code | delegated-development、review |
+| `agent-manager` | Agent 管理工具 | am-conflict、am-update、am-config |
+| `personal-dev` | 个人开发工具，Codex / Claude Code | dev-delegate、dev-review |
 
 Codex / Claude 按分类安装，完整身份为 `<plugin>@agent-marketplace`；Kimi 可一次安装整个仓库，也可按本地分类目录安装。
 
@@ -33,17 +33,17 @@ Codex / Claude 按分类安装，完整身份为 `<plugin>@agent-marketplace`；
 | --- | --- | --- | --- |
 | 使用 Vue Skill | `$frontend-dev:vue` | `/frontend-dev:vue` | `/skill:vue` |
 | 交接当前任务 | `$common-workflow:handoff` | `/common-workflow:handoff` | `/skill:handoff` |
-| 只读检查更新 | `$agent-manager:check-updates` | `/agent-manager:check-updates` | `/skill:check-updates` |
-| 委派开发与独立验收 | `$personal-dev:delegated-development` | `/personal-dev:delegated-development` | 暂不支持 |
-| 增强代码审查 | `$personal-dev:review` | `/personal-dev:review` | 暂不支持 |
+| 只读检查更新 | `$agent-manager:am-update` | `/agent-manager:am-update` | `/skill:am-update` |
+| 委派开发与独立验收 | `$personal-dev:dev-delegate` | `/personal-dev:dev-delegate` | 暂不支持 |
+| 增强代码审查 | `$personal-dev:dev-review` | `/personal-dev:dev-review` | 暂不支持 |
 
 `handoff`、三个 Agent 管理 Skill 和 `personal-dev` 中的 Skills **仅手动调用**；其余 Skill 可按任务匹配，也可显式调用。启用 Plugin 不会自行执行任务。
 
-`delegated-development` 由当前主模型安排任务、最终整体检查；Codex 自动选择同大版本最新可用 Luna，默认 `xhigh` 编码，另一个同型号代理以 `max`（最强）验收；用户可分别指定强度，未指定的角色使用默认值。Claude Code 沿用当前子代理模型与思考配置，用户指定时按原生工具能力核验。开始前显示模型策略与已确认的实际值，再直接执行；判断不明确或两轮修复仍阻塞时中断，由用户决定。改名系列须明确确认，不自动猜测或跨代降级。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code)。
+`dev-delegate` 由当前主模型安排任务、最终整体检查；Codex 自动选择同大版本最新可用 Luna，默认 `xhigh` 编码，另一个同型号代理以 `max`（最强）验收；用户可分别指定强度，未指定的角色使用默认值。Claude Code 沿用当前子代理模型与思考配置，用户指定时按原生工具能力核验。开始前显示模型策略与已确认的实际值，再直接执行；判断不明确或两轮修复仍阻塞时中断，由用户决定。改名系列须明确确认，不自动猜测或跨代降级。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code)。
 
-`review` 仅在显式调用后审查，默认覆盖当前项目全部自有代码，即使没有 diff；指定范围时严格遵守。它只读源码与配置，先集中预检，再派发审查和必要的独立复核；没有生产证据时仍可完成代码层审查。问题按证据与影响分级，报告保存在项目的 `docs/reviews/`。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code)。
+`dev-review` 仅在显式调用后审查，默认覆盖当前项目全部自有代码，即使没有 diff；指定范围时严格遵守。它只读源码与配置，先集中预检，再派发审查和必要的独立复核；没有生产证据时仍可完成代码层审查。问题按证据与影响分级，报告保存在项目的 `docs/reviews/`。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code)。
 
-`configure-project` 仅手动处理明确的项目 `AGENTS.md` 编辑、指定来源的 standalone Skill 安装和已支持的 Codex / Claude Plugin 开关；Plugin 项目安装、单个 Skill 开关及 Kimi Plugin 项目开关暂不支持。所有操作先检查冲突、重复和 Harness 加载边界，见[使用手册](docs/usage.md#项目开关支持范围)。
+`am-config` 仅手动处理明确的项目 `AGENTS.md` 编辑、指定来源的 standalone Skill 安装和已支持的 Codex / Claude Plugin 开关；Plugin 项目安装、单个 Skill 开关及 Kimi Plugin 项目开关暂不支持。所有操作先检查冲突、重复和 Harness 加载边界，见[使用手册](docs/usage.md#项目开关支持范围)。
 
 Marketplace 第三方来源以 [sources.yaml](sources.yaml) 为准，同步 commit 记录在 [sources.lock.json](sources.lock.json)。本仓库自有脚本与 metadata 使用 [MIT License](LICENSE)，第三方内容遵守各自附带的许可证。
 

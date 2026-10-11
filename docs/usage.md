@@ -14,16 +14,16 @@
 | Claude Code | `/<plugin>:<skill>` | `/frontend-dev:vue 帮我实现这个组件` |
 | Kimi Code | `/skill:<name>` | `/skill:vue 帮我实现这个组件` |
 
-Kimi 的 Skill 名称不带分类前缀。可用入口以当前会话实际显示的清单为准。
+Kimi 的 Skill 名称不带分类前缀。可用入口以当前会话实际显示的清单为准。Skill 改名发布后，刷新客户端安装副本并开启新会话或重载 Plugin；旧完整调用名不作为别名保留。
 
-**仅手动调用**：`handoff`、`resolve-conflicts`、`check-updates`、`configure-project`，以及 `personal-dev` 中的 Skills。其他 Skill 可在任务匹配时由 Agent 选用，也可手动指定；自动选用不保证每次发生，启用 Plugin 不会自行执行任务。
+**仅手动调用**：`handoff`、`am-conflict`、`am-update`、`am-config`，以及 `personal-dev` 中的 Skills。其他 Skill 可在任务匹配时由 Agent 选用，也可手动指定；自动选用不保证每次发生，启用 Plugin 不会自行执行任务。
 
 例如在 Codex 中：
 
 ```text
 $common-workflow:handoff 整理当前进度，供新会话继续
-$agent-manager:resolve-conflicts 检查当前项目与全局规则的冲突
-$agent-manager:check-updates 检查已记录来源和安装副本是否有更新
+$agent-manager:am-conflict 检查当前项目与全局规则的冲突
+$agent-manager:am-update 检查已记录来源和安装副本是否有更新
 ```
 
 ## Skill 速查
@@ -43,21 +43,21 @@ $agent-manager:check-updates 检查已记录来源和安装副本是否有更新
 | testing-automation | webapp-testing | 验证本地网页交互，查看截图与控制台日志 | 任务匹配 / 手动 |
 | testing-automation | playwright-cli | 通过 Playwright CLI 操作浏览器并验证交互 | 任务匹配 / 手动 |
 | testing-automation | playwright-best-practices | 指导 Playwright 测试、模拟、认证、调试与 CI | 任务匹配 / 手动 |
-| agent-manager | resolve-conflicts | 只读查找项目与全局指令、Skill、Plugin 的冲突和歧义 | 仅手动 |
-| agent-manager | check-updates | 只读比较既定来源、仓库、安装副本与 Marketplace 状态 | 仅手动 |
-| agent-manager | configure-project | 预检后编辑项目指令、安装指定 Skill 或执行受支持的 Plugin 开关 | 仅手动 |
-| personal-dev | delegated-development | 主模型安排任务，独立编码与验收代理执行，主模型最终整体检查；Codex / Claude Code | 仅手动 |
-| personal-dev | review | 只读审查当前项目或明确范围，独立复核高等级发现并生成报告；Codex / Claude Code | 仅手动 |
+| agent-manager | am-conflict | 只读查找项目与全局指令、Skill、Plugin 的冲突和歧义 | 仅手动 |
+| agent-manager | am-update | 只读比较既定来源、仓库、安装副本与 Marketplace 状态 | 仅手动 |
+| agent-manager | am-config | 预检后编辑项目指令、安装指定 Skill 或执行受支持的 Plugin 开关 | 仅手动 |
+| personal-dev | dev-delegate | 主模型安排任务，独立编码与验收代理执行，主模型最终整体检查；Codex / Claude Code | 仅手动 |
+| personal-dev | dev-review | 只读审查当前项目或明确范围，独立复核高等级发现并生成报告；Codex / Claude Code | 仅手动 |
 
 ## 个人开发工具（Codex / Claude Code）
 
 ```text
-$personal-dev:delegated-development 实现当前需求，保留现有接口和范围外行为
-$personal-dev:delegated-development 实现当前需求，编码 medium，验收 xhigh
-$personal-dev:review 检查当前项目的性能、资源、请求、磁盘和长期运行风险
+$personal-dev:dev-delegate 实现当前需求，保留现有接口和范围外行为
+$personal-dev:dev-delegate 实现当前需求，编码 medium，验收 xhigh
+$personal-dev:dev-review 检查当前项目的性能、资源、请求、磁盘和长期运行风险
 ```
 
-Claude Code 使用 `/personal-dev:delegated-development` 与 `/personal-dev:review`，未指定时沿用当前子代理模型与思考配置，省略 `model` / `effort`；用户明确指定时按本轮原生工具能力核验，也不要求 Codex 的 Luna、`reasoning_effort` 或 Python 检查器。派发前显示模型策略；实际 ID 或强度无法确认时标 `UNKNOWN`，不冒充已验证值。独立验收、两轮修复上限与主模型终审流程和 Codex 相同。
+Claude Code 使用 `/personal-dev:dev-delegate` 与 `/personal-dev:dev-review`，未指定时沿用当前子代理模型与思考配置，省略 `model` / `effort`；用户明确指定时按本轮原生工具能力核验，也不要求 Codex 的 Luna、`reasoning_effort` 或 Python 检查器。派发前显示模型策略；实际 ID 或强度无法确认时标 `UNKNOWN`，不冒充已验证值。独立验收、两轮修复上限与主模型终审流程和 Codex 相同。
 
 主模型按可独立验证的功能或修复点拆任务，同类小改动合并。Codex 当前已确认的低成本编码系列为 Luna：从本轮派发工具实际允许的型号中选择与主模型同一大版本内数字版本最高者，默认 `xhigh` 编码；另一个干净上下文的同型号代理默认 `max`（最强）验收。用户可分别指定本次编码与验收强度，明确指定的值优先，未指定的角色保留默认值，无需再次确认强度；不支持的值会说明原因并中断。最终由当前主模型检查累计改动与跨任务联动。
 
@@ -78,7 +78,7 @@ Codex / Claude 均注册此 Plugin，Kimi 暂不注册。安装后新建对应�
 
 ### 增强代码审查
 
-`$personal-dev:review` / `/personal-dev:review` 仅在用户显式调用时运行。默认检查当前项目全部自有代码，包括已提交存量和工作区源码，即使没有 diff；指定目录、文件、模块、主题、commit 或 diff 时严格限定范围。它不依赖 Git，也不会启动原生 `/review`。
+`$personal-dev:dev-review` / `/personal-dev:dev-review` 仅在用户显式调用时运行。默认检查当前项目全部自有代码，包括已提交存量和工作区源码，即使没有 diff；指定目录、文件、模块、主题、commit 或 diff 时严格限定范围。它不依赖 Git，也不会启动原生 `/review`。
 
 主模型在正式派发前一次性核对项目规则、范围、源码可读性、改动基线、报告位置与当前 Harness adapter。Codex 另核对可靠模型身份、当前派发工具名单与强度及解释器；Claude 核对原生 Agent 与非 fork 子代理能力。缺少必需项时集中输出 `BLOCKED`；生产权限、凭证、配额或实时运行数据属于可选证据，缺少时仍可进行代码层审查，并把相关量化结论列为待运行验证。审查和复核的实际型号/强度会在派发前展示；必要的独立复核只针对 P0/P1 或实质争议。
 
@@ -88,13 +88,13 @@ Codex / Claude 均注册此 Plugin，Kimi 暂不注册。安装后新建对应�
 
 ### 查找冲突
 
-`resolve-conflicts` 按当前 Agent 的实际加载规则检查项目与全局来源，在对话中报告双方原文、位置、触发条件、影响及最小建议。它区分冲突、歧义、能力重叠和已有覆盖规则消解的差异。
+`am-conflict` 按当前 Agent 的实际加载规则检查项目与全局来源，在对话中报告双方原文、位置、触发条件、影响及最小建议。它区分冲突、歧义、能力重叠和已有覆盖规则消解的差异。
 
 全过程只读，不改配置、不禁用或卸载入口，也不创建报告文件。来源或加载状态不明时标记 `UNKNOWN`，扫描不完整时标记 `PARTIAL`。
 
 ### 检查更新
 
-`check-updates` 支持 Codex、Claude Code 与 Kimi Code，只比较已记录的 repo / path / ref、精确 commit 和安装证据，不更新对象或更换来源。固定 commit 不跟随 main；版本字符串相同也不代表内容相同。
+`am-update` 支持 Codex、Claude Code 与 Kimi Code，只比较已记录的 repo / path / ref、精确 commit 和安装证据，不更新对象或更换来源。固定 commit 不跟随 main；版本字符串相同也不代表内容相同。
 
 源码快照、Marketplace 快照和客户端安装副本分别报告。来源无法确认时标记 `UNKNOWN SOURCE`，证据不足时标记 `UNKNOWN` 或 `BLOCKED`。
 
@@ -105,14 +105,14 @@ Codex / Claude 均注册此 Plugin，Kimi 暂不注册。安装后新建对应�
 修改 Plugin 开关时，逐项指定完整 Plugin 身份及启用 / 禁用状态，例如：
 
 ```text
-$agent-manager:configure-project 在当前项目禁用 frontend-dev@agent-marketplace，启用 testing-automation@agent-marketplace
+$agent-manager:am-config 在当前项目禁用 frontend-dev@agent-marketplace，启用 testing-automation@agent-marketplace
 ```
 
-Claude 使用 `/agent-manager:configure-project`。该入口只处理用户明确指定的项目操作：编辑 `AGENTS.md`、从准确来源安装 standalone Skill，或执行受支持的 Plugin 开关。它不推荐组合、不提交或推送用户项目。
+Claude 使用 `/agent-manager:am-config`。该入口只处理用户明确指定的项目操作：编辑 `AGENTS.md`、从准确来源安装 standalone Skill，或执行受支持的 Plugin 开关。它不推荐组合、不提交或推送用户项目。
 
 #### 项目开关支持范围
 
-以下版本范围仅针对 `configure-project` 的配置执行能力：
+以下版本范围仅针对 `am-config` 的配置执行能力：
 
 | 客户端与已验证版本 | 项目 Plugin 开关 | 写入位置 |
 | --- | --- | --- |
@@ -128,7 +128,7 @@ standalone Skill 的项目安装与 Skill 开关不同：用户须指定准确�
 
 `AGENTS.md` 默认编辑项目 Git/workspace 根文件；只有明确指定时才处理子目录。先核实当前 Harness 的真实指令链和遮蔽关系：Codex 同目录 `AGENTS.override.md` 优先；Claude Code v2.1.277+ 按祖先 `CLAUDE.md`、`.claude/CLAUDE.md`、`CLAUDE.local.md`、版本与 Project instructions 设置选择是否加载；Kimi 按实际项目来源判断。用户指定编辑文件时可以改文件本身，但不会自动添加引用或声称当前会话已加载。
 
-任何一个目标不受支持、冲突未解决或核心来源/加载证据缺失，整个混合批次都不写入。全局与项目外始终只读；保存后新会话或重新加载才能确认会话状态。详细边界见 [项目文件预检](../plugins/agent-manager/skills/configure-project/references/project-edits.md)、[Codex](../plugins/agent-manager/skills/configure-project/references/codex-support.md)、[Claude](../plugins/agent-manager/skills/configure-project/references/claude-support.md) 与 [Kimi](../plugins/agent-manager/references/kimi.md)。
+任何一个目标不受支持、冲突未解决或核心来源/加载证据缺失，整个混合批次都不写入。全局与项目外始终只读；保存后新会话或重新加载才能确认会话状态。详细边界见 [项目文件预检](../plugins/agent-manager/skills/am-config/references/project-edits.md)、[Codex](../plugins/agent-manager/skills/am-config/references/codex-support.md)、[Claude](../plugins/agent-manager/skills/am-config/references/claude-support.md) 与 [Kimi](../plugins/agent-manager/references/kimi.md)。
 
 ## 安装与更新
 

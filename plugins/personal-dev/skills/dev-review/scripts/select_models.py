@@ -11,7 +11,7 @@ from typing import Any
 
 SIBLING_HELPER_PATH = (
     Path(__file__).resolve().parents[2]
-    / "delegated-development"
+    / "dev-delegate"
     / "scripts"
     / "select_models.py"
 )

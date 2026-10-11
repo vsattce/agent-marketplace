@@ -1,12 +1,12 @@
 ---
-name: configure-project
+name: am-config
 disable-model-invocation: true
 description: Use when explicitly called to edit project AGENTS.md files, install user-specified project Skills or Plugins, or change a supported project Plugin switch. Only use when explicitly invoked by the user.
 ---
 
 # 配置当前项目的 Agent 指令 / Skill / Plugin
 
-纯执行型项目配置入口。只有用户明确调用 Codex 的 `$agent-manager:configure-project`、Claude Code 的 `/agent-manager:configure-project`、Kimi Code 的 `/skill:configure-project`（或当前客户端支持的显式别名）后才执行。普通聊天、技术栈识别、配置问题或冲突发现均不能触发，也不从 `resolve-conflicts` 自动转入。
+纯执行型项目配置入口。只有用户明确调用 Codex 的 `$agent-manager:am-config`、Claude Code 的 `/agent-manager:am-config`、Kimi Code 的 `/skill:am-config`（或当前客户端支持的显式别名）后才执行。普通聊天、技术栈识别、配置问题或冲突发现均不能触发，也不从 `am-conflict` 自动转入。
 
 最高边界：只写当前项目；用户级、全局和项目外始终只读。不改 trust、安全、审批、model、reasoning、MCP 或 profile，不 commit / push，不刷新 Marketplace，不自动安装依赖。只执行用户明确要求的操作，不推荐组合。
 

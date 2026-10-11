@@ -1,12 +1,12 @@
 ---
-name: resolve-conflicts
+name: am-conflict
 disable-model-invocation: true
 description: "Find conflicts and ambiguities between project and global Agent instructions, Skills and Plugins. Read-only. Only use when explicitly invoked by the user."
 ---
 
 # 查找项目级与全局的 Agent 冲突
 
-只在用户明确选择本 Skill 时执行。Codex 使用 `$agent-manager:resolve-conflicts`；其他 Agent 使用其实际支持的手动入口。保留 `resolve-conflicts` 技术标识以兼容已有调用，功能是查找并报告。
+只在用户明确选择本 Skill 时执行。Codex 使用 `$agent-manager:am-conflict`；其他 Agent 使用其实际支持的手动入口。功能是查找并报告。
 
 ## 只读边界
 

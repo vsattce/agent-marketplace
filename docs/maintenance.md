@@ -128,12 +128,14 @@ git diff --check
 
 | 内容 | 入口 |
 | --- | --- |
-| 冲突查找工作流 | [resolve-conflicts](../plugins/agent-manager/skills/resolve-conflicts/SKILL.md) |
-| 只读版本比较与共享 API helper | [check-updates](../plugins/agent-manager/skills/check-updates/SKILL.md) |
-| 项目指令、Skill 安装、开关工作流与编辑器 | [configure-project](../plugins/agent-manager/skills/configure-project/SKILL.md) |
+| 冲突查找工作流 | [am-conflict](../plugins/agent-manager/skills/am-conflict/SKILL.md) |
+| 只读版本比较与共享 API helper | [am-update](../plugins/agent-manager/skills/am-update/SKILL.md) |
+| 项目指令、Skill 安装、开关工作流与编辑器 | [am-config](../plugins/agent-manager/skills/am-config/SKILL.md) |
 | Codex / Claude / Kimi 来源与加载机制 | [Codex](../plugins/agent-manager/references/codex.md)、[Claude](../plugins/agent-manager/references/claude.md)、[Kimi](../plugins/agent-manager/references/kimi.md) |
 | 其他 Agent 的只读来源发现 | [agent-sources.md](../plugins/agent-manager/references/agent-sources.md) |
-| 项目文件预检、开关能力与输入契约 | [project-edits.md](../plugins/agent-manager/skills/configure-project/references/project-edits.md)、[Codex](../plugins/agent-manager/skills/configure-project/references/codex-support.md)、[Claude](../plugins/agent-manager/skills/configure-project/references/claude-support.md)、[editor-input.md](../plugins/agent-manager/skills/configure-project/references/editor-input.md) |
+| 项目文件预检、开关能力与输入契约 | [project-edits.md](../plugins/agent-manager/skills/am-config/references/project-edits.md)、[Codex](../plugins/agent-manager/skills/am-config/references/codex-support.md)、[Claude](../plugins/agent-manager/skills/am-config/references/claude-support.md)、[editor-input.md](../plugins/agent-manager/skills/am-config/references/editor-input.md) |
+
+自有 Skill 命名规则：`personal-dev` 采用 `dev-{action}`，`agent-manager` 采用 `am-{action}`。插件身份和 `skills/` 发现目录保持现有结构；重命名后的入口使用新完整调用名。
 
 Plugin 开关编辑器的 Codex 分支使用 tomlkit 0.13.3+（<1）保留注释与排版；Claude 分支使用标准库增量替换 JSON 值，拒绝重复键和损坏配置。它只处理 Plugin 开关；AGENTS.md 与 standalone Skill 文件操作由 Skill 层完成，并在混合请求写入前统一预检。现有开关事务保留无关字节，具备幂等、锁、原子替换、二次读取和失败恢复；Windows 路径、symlink、junction 与 hardlink 的拒绝行为有测试覆盖。
 

@@ -24,7 +24,7 @@
 
 此 adapter 只用于 Codex；Claude Code 使用 [独立 adapter](claude.md)，不因其他 Agent 的来源示例扩大更新检查范围。每次执行核对当前官方只读查询机制。可用命令与字段须经当前版本证实；无法证明 CLI / RPC 无安装、刷新、日志或缓存写入副作用时，读取现有 metadata，缺失项标 `UNKNOWN`。
 
-Codex Plugin 调用优先使用 `$agent-manager:resolve-conflicts`、`$agent-manager:check-updates`；裸别名是否可用以当前会话为准，不通过复制 standalone Skill 或修改配置补别名。
+Codex Plugin 调用优先使用 `$agent-manager:am-conflict`、`$agent-manager:am-update`；裸别名是否可用以当前会话为准，不通过复制 standalone Skill 或修改配置补别名。
 
 将 installed Plugin receipt/cache 的精确版本与其原先 Marketplace source 对比。GitHub repo/ref 来源用只读远端查询或 GitHub API 查同一目标，记录 snapshot commit；npm 只查已记录 registry/package/version 目标；local 来源只比较实际 catalog/文件指纹，并标注 `LOCAL SOURCE`。无法映射安装 commit 时 `UNKNOWN`，不猜 cache 版本目录等于远端最新。
 

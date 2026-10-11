@@ -1,6 +1,6 @@
 # 项目规则与安装预检
 
-供 `configure-project` 处理 `AGENTS.md`、standalone Skill 安装和已支持 Plugin 开关时使用。它不扩展项目外写入，也不改变 `configure_project.py` 的输入。
+供 `am-config` 处理 `AGENTS.md`、standalone Skill 安装和已支持 Plugin 开关时使用。它不扩展项目外写入，也不改变 `configure_project.py` 的输入。
 
 ## 全批预检
 
