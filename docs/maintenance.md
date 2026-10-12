@@ -51,13 +51,13 @@ agent-marketplace/
 └── README.md                      # 概览与文档入口
 ```
 
-六个 Plugin 共享 `skills/<name>/`，提供 Codex `plugin.json` 与 Claude Code `.claude-plugin/plugin.json`。四个第三方分类另存 `licenses/<name>/`；两个 Marketplace 均指向 `./plugins/<plugin>`。当前共 22 个 Skills：第三方四类共 14 个，`agent-manager` 与 `personal-dev` 是本仓库自有 Plugin，分别包含 3 个和 5 个。`personal-dev` 中的 `dev-delegate` / `dev-review` 使用 `references/codex.md` / `references/claude.md` 适配原生委派工具。
+六个 Plugin 共享 `skills/<name>/`，提供 Codex `plugin.json` 与 Claude Code `.claude-plugin/plugin.json`。四个第三方分类另存 `licenses/<name>/`；两个 Marketplace 均指向 `./plugins/<plugin>`。当前共 20 个 Skills：第三方四类共 14 个，`agent-manager` 与 `personal-dev` 是本仓库自有 Plugin，分别包含 1 个和 5 个。`personal-dev` 中的 `dev-delegate` / `dev-review` 使用 `references/codex.md` / `references/claude.md` 适配原生委派工具。
 
 Codex 使用便携 manifest，中文信息位于 `extensions.com.openai.interface`。Claude manifest / catalog 有意不写 version，GitHub 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
 
 ## 第三方来源与维护边界
 
-[sources.yaml](../sources.yaml) 是第三方来源的唯一人工维护入口，记录 group / displayName 及各 Skill 的 name、repo、path、ref。新增、移除、换源、路径、分组或 ref 先改该文件，再同步；作者与 upstream 只表示来源，不决定分类。`sync.py` 与 `am-update` 会在 fetch、query 或发布前拒绝来源 YAML 与 lock JSON 中的重复映射键，同时保留合法 YAML merge 覆盖。
+[sources.yaml](../sources.yaml) 是第三方来源的唯一人工维护入口，记录 group / displayName 及各 Skill 的 name、repo、path、ref。新增、移除、换源、路径、分组或 ref 先改该文件，再同步；作者与 upstream 只表示来源，不决定分类。`sync.py` 会在 fetch 或发布前拒绝来源 YAML 与 lock JSON 中的重复映射键，同时保留合法 YAML merge 覆盖。
 
 准确 repo / path / ref 查看配置，实际完整 commit 查看 [sources.lock.json](../sources.lock.json)。当前 Anthropic 与 antfu 来源固定在 commit，其余配置跟随 main；分支同步到当前内容，固定 commit 保持固定，改变固定版本需明确修改 ref。
 
@@ -81,7 +81,7 @@ lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，�
 
 ### 使用项目 Skill
 
-在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入六个 Plugin 的 22 个 Skills。
+在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入六个 Plugin 的 20 个 Skills。
 
 Agent 核对目标、Git 状态与运行时后，按 sources 的既定来源 / ref 同步，保留用户改动，检查差异并运行相关验证。按 [AGENTS.md](../AGENTS.md) 默认提交、推送当前分支；当前任务明确不提交或不推送时遵从该要求。环境、同步或验证失败时停止，零差异不制造提交。
 
@@ -127,13 +127,12 @@ git diff --check
 
 ## 自有 Agent 管理工具
 
-源码在 [plugins/agent-manager](../plugins/agent-manager)，三个 Skill 均仅手动调用。用户行为与支持范围见[使用手册](usage.md#agent-管理工具)，这里保留维护入口：
+源码在 [plugins/agent-manager](../plugins/agent-manager)，仅保留 `am-config` 一个手动入口，合并编辑预检和只读冲突检查。用户行为与支持范围见[使用手册](usage.md#agent-管理工具)，这里保留维护入口：
 
 | 内容 | 入口 |
 | --- | --- |
-| 冲突查找工作流 | [am-conflict](../plugins/agent-manager/skills/am-conflict/SKILL.md) |
-| 只读版本比较与共享 API helper | [am-update](../plugins/agent-manager/skills/am-update/SKILL.md) |
-| 项目指令、Skill 安装、开关工作流与编辑器 | [am-config](../plugins/agent-manager/skills/am-config/SKILL.md) |
+| 项目编辑、只读检查与开关编辑器 | [am-config](../plugins/agent-manager/skills/am-config/SKILL.md) |
+| 冲突识别、检查范围与分级输出 | [conflicts.md](../plugins/agent-manager/skills/am-config/references/conflicts.md) |
 | Codex / Claude 来源与加载机制 | [Codex](../plugins/agent-manager/references/codex.md)、[Claude](../plugins/agent-manager/references/claude.md) |
 | 项目文件预检、开关能力与输入契约 | [project-edits.md](../plugins/agent-manager/skills/am-config/references/project-edits.md)、[Codex](../plugins/agent-manager/skills/am-config/references/codex-support.md)、[Claude](../plugins/agent-manager/skills/am-config/references/claude-support.md)、[editor-input.md](../plugins/agent-manager/skills/am-config/references/editor-input.md) |
 

@@ -37,7 +37,7 @@ class ProjectConfigurationCodexTests(unittest.TestCase):
         self.config.parent.mkdir()
         self.assertEqual(run(["codex", "--version"], self.env, self.project).strip(), editor.VERIFIED_CODEX)
         inventory, _ = rpc_skills(self.project, self.env)
-        self.plugin_skill = next(item for item in inventory if item["name"] == "agent-manager:am-conflict")
+        self.plugin_skill = next(item for item in inventory if item["name"] == "agent-manager:am-config")
         plugin_root = Path(self.plugin_skill["path"]).parents[2]
         self.payload = {"agent": "codex", "explicit_invocation": True, "scope": "project",
                         "requests": [{"kind": "plugin", "target": "agent-manager@agent-marketplace", "enabled": False}],
@@ -71,7 +71,7 @@ class ProjectConfigurationCodexTests(unittest.TestCase):
                 present = [item for item in inventory if item["name"].startswith("agent-manager:")]
                 self.assertEqual(bool(present), enabled)
                 if enabled:
-                    self.assertEqual(len(present), 3)
+                    self.assertEqual(len(present), 1)
                 self.assertEqual(self.user_config.read_bytes(), before)
 
     def test_skill_project_fields_are_loaded_but_ignored_and_cannot_override_user(self):

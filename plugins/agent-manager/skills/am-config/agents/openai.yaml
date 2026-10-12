@@ -1,6 +1,6 @@
 interface:
-  display_name: "配置当前项目的 Agent 指令 / Skill / Plugin"
-  short_description: "仅手动处理明确的项目指令、Skill 安装和受支持的 Plugin 安装/开关。"
-  default_prompt: "使用 $agent-manager:am-config 执行我明确指定的项目 AGENTS.md 编辑、standalone Skill 安装、Plugin 安装或受支持的 Plugin 开关；Plugin 安装仅在已核实具体操作及全部写入局限当前项目时执行；先检查整批冲突和重复，只写当前项目。"
+  display_name: "编辑项目 Agent 指令 / Skill / Plugin"
+  short_description: "仅手动编辑项目或只读查找冲突；轻微差异简述，实质冲突详细报告。"
+  default_prompt: "使用 $agent-manager:am-config 处理我明确指定的项目 AGENTS.md 编辑、standalone Skill 安装或受支持的 Plugin 开关，先检查本次操作相关的冲突与重复，只写当前项目；若我仅要求查找冲突，则全程只读并在报告后结束。轻微差异简述，实质冲突给出双方位置、原文、影响和最小方案；项目 Plugin 安装仍须已有完整项目内写入证据。"
 policy:
   allow_implicit_invocation: false

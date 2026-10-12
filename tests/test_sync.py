@@ -426,12 +426,12 @@ class SyncTests(unittest.TestCase):
         self.assertEqual(before, self.snapshot())
 
     def test_owned_plugin_survives_repeated_sync_and_failure(self):
-        owned = self.root / "plugins/agent-manager/skills/am-conflict"
+        owned = self.root / "plugins/agent-manager/skills/am-config"
         owned.mkdir(parents=True)
         (owned / "SKILL.md").write_text("owned source", encoding="utf-8")
-        configure = self.root / "plugins/agent-manager/skills/am-config"
-        configure.mkdir(parents=True)
-        (configure / "SKILL.md").write_text("owned project configuration source", encoding="utf-8")
+        references = owned / "references"
+        references.mkdir()
+        (references / "conflicts.md").write_text("owned conflict checks", encoding="utf-8")
         self.run_sync()
         before = skill_sync.fingerprints(self.root / "plugins/agent-manager")
         snapshot = self.snapshot()
@@ -457,7 +457,7 @@ class SyncTests(unittest.TestCase):
         with temporary_test_directory("publisher") as staging:
             staged = Path(staging) / "replacement"
             staged.mkdir()
-            for relative in ("plugins/agent-manager/skills/am-conflict", "plugins/common-workflow/plugin.json", "plugins/common-workflow/skills", "plugins/common-workflow/.claude-plugin/plugin.json", "plugins/common-workflow/kimi.plugin.json", "plugins/engineering-tools/plugin.json", "kimi.plugin.json", ".claude-plugin/marketplace.json"):
+            for relative in ("plugins/agent-manager/skills/am-config", "plugins/common-workflow/plugin.json", "plugins/common-workflow/skills", "plugins/common-workflow/.claude-plugin/plugin.json", "plugins/common-workflow/kimi.plugin.json", "plugins/engineering-tools/plugin.json", "kimi.plugin.json", ".claude-plugin/marketplace.json"):
                 with self.subTest(target=relative), self.assertRaises(skill_sync.SyncError):
                     skill_sync.publish([(staged, self.root / relative)], Path(staging), self.root)
             self.assertTrue(staged.exists())

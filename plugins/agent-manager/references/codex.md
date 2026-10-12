@@ -1,6 +1,6 @@
 # Codex 来源与加载规则
 
-适用于已确认的 Codex Harness。冲突查找与更新检查均只读；此文件不授权修改配置或运行探测。官方规则用于解释，本机会话/配置用于判断实际来源；文档无法访问时保留静态检查并标明未知机制。
+适用于已确认的 Codex Harness。供手动入口 `$agent-manager:am-config` 的只读冲突检查与编辑预检使用；此文件不授权修改配置或运行探测。官方规则用于解释，本机会话/配置用于判断实际来源；文档无法访问时保留静态检查并标明未知机制。
 
 ## 冲突查找
 
@@ -20,12 +20,4 @@
 
 优先读已有会话的清单与文件。若现有工具可无副作用地返回 `skills/list`、`config/read` 或 Plugin 状态，再按实际协议查询；不猜请求格式，不输出可能含密钥的完整配置。不启动新 Codex / app-server，不安装测试 Plugin，不写临时 CODEX_HOME，也不执行 disable filtering 验证。无法取得加载证据时，相关项为 `UNKNOWN`，静态分析继续。
 
-## 更新检查
-
-此 adapter 只用于 Codex；Claude Code 使用[独立 adapter](claude.md)。每次执行核对当前官方只读查询机制。可用命令与字段须经当前版本证实；无法证明 CLI / RPC 无安装、刷新、日志或缓存写入副作用时，读取现有 metadata，缺失项标 `UNKNOWN`。
-
-Codex Plugin 调用优先使用 `$agent-manager:am-conflict`、`$agent-manager:am-update`；裸别名是否可用以当前会话为准，不通过复制 standalone Skill 或修改配置补别名。
-
-将 installed Plugin receipt/cache 的精确版本与其原先 Marketplace source 对比。GitHub repo/ref 来源用只读远端查询或 GitHub API 查同一目标，记录 snapshot commit；npm 只查已记录 registry/package/version 目标；local 来源只比较实际 catalog/文件指纹，并标注 `LOCAL SOURCE`。无法映射安装 commit 时 `UNKNOWN`，不猜 cache 版本目录等于远端最新。
-
-standalone upstream 仅来自已有 receipt、明确配置或所属 Git repo。owned commit ancestry 只基于当前 tracking branch 的精确远端 SHA；已有 origin/<branch> 可能陈旧，不把它当实时远端。不 fetch、更新或更换来源。
+调用使用完整入口 `$agent-manager:am-config`；裸别名是否可用以当前会话为准，不通过复制 standalone Skill 或修改配置补别名。项目开关写入能力见 [Codex 支持证据](../skills/am-config/references/codex-support.md)。

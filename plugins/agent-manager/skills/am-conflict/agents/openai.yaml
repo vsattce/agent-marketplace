@@ -1,6 +1,0 @@
-interface:
-  display_name: "查找 Agent 冲突"
-  short_description: "仅手动调用，只读对照项目与全局指令、Skill 和 Plugin，报告冲突及歧义。"
-  default_prompt: "使用 $agent-manager:am-conflict 按当前 Agent 的加载规则，查找项目级与全局指令、Skill 和 Plugin 的歧义或冲突，输出双方原文和位置，仅报告建议。"
-policy:
-  allow_implicit_invocation: false

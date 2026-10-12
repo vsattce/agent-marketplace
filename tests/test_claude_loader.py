@@ -29,7 +29,8 @@ def skill_body(plugin, skill):
 
 def contains_text(value, expected):
     if isinstance(value, str):
-        return expected in value
+        # Claude preserves CRLF from local Skills; read_text normalizes it to LF.
+        return expected.replace("\r\n", "\n") in value.replace("\r\n", "\n")
     if isinstance(value, dict):
         return any(contains_text(child, expected) for child in value.values())
     if isinstance(value, list):
@@ -137,12 +138,24 @@ class ClaudeLoaderTests(unittest.TestCase):
                     f"/{plugin}:{skill} 仅验证完整 Skill 正文已加载，不执行正文、不修改文件。"
                 )
                 self.assertTrue(contains_text(json.loads(explicit), skill_body(plugin, skill)))
-        for name in ("common-workflow:handoff", "agent-manager:am-conflict",
-                     "agent-manager:am-update", "agent-manager:am-config",
+        self.assertEqual({name for name in commands if name.startswith("agent-manager:")},
+                         {"agent-manager:am-config"})
+        for name in ("common-workflow:handoff", "agent-manager:am-config",
                      "personal-dev:dev-delegate", "personal-dev:dev-review",
                      "personal-dev:dev-yagni", "personal-dev:dev-simplify",
                      "personal-dev:dev-runtime-check"):
             self.assertNotIn(name, context)
+
+    def test_agent_manager_single_entry_and_explicit_invocation(self):
+        self.install("agent-manager")
+        init, context = self.context()
+        self.assertEqual({name for name in init["slash_commands"] if name.startswith("agent-manager:")},
+                         {"agent-manager:am-config"})
+        self.assertNotIn("agent-manager:am-config", context)
+        _, explicit = self.context(
+            "/agent-manager:am-config 仅验证入口加载，不检查冲突、不执行编辑、不修改文件。"
+        )
+        self.assertTrue(contains_text(json.loads(explicit), skill_body("agent-manager", "am-config")))
 
     def test_personal_dev_explicit_invocation_and_native_agent_schema(self):
         self.install("personal-dev")

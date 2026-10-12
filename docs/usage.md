@@ -6,7 +6,7 @@
 
 当前支持 Codex 与 Claude Code；其他客户端暂不适配或维护。
 
-当前共 **6 个 Plugin、22 个 Skills**：四个第三方聚合 Plugin 收录 14 个 Skills；本仓库自有的 `agent-manager` 与 `personal-dev` 分别包含 3 个和 5 个 Skills。第三方来源、作者与许可证边界见 [README](../README.md)。
+当前共 **6 个 Plugin、20 个 Skills**：四个第三方聚合 Plugin 收录 14 个 Skills；本仓库自有的 `agent-manager` 与 `personal-dev` 分别包含 1 个和 5 个 Skills。第三方来源、作者与许可证边界见 [README](../README.md)。
 
 ## 日常调用
 
@@ -19,14 +19,14 @@
 
 可用入口以当前会话实际显示的清单为准。Skill 改名发布后，刷新客户端安装副本并开启新会话或重载 Plugin；旧完整调用名不作为别名保留。
 
-**仅手动调用**：`handoff`、`am-conflict`、`am-update`、`am-config`，以及 `personal-dev` 中的 Skills。其他 Skill 可在任务匹配时由 Agent 选用，也可手动指定；自动选用不保证每次发生，启用 Plugin 不会自行执行任务。
+**仅手动调用**：`handoff`、`am-config`，以及 `personal-dev` 中的 Skills。其他 Skill 可在任务匹配时由 Agent 选用，也可手动指定；自动选用不保证每次发生，启用 Plugin 不会自行执行任务。
 
 例如在 Codex 中：
 
 ```text
 $common-workflow:handoff 整理当前进度，供新会话继续
-$agent-manager:am-conflict 检查当前项目与全局规则的冲突
-$agent-manager:am-update 检查已记录来源和安装副本是否有更新
+$agent-manager:am-config 只检查当前项目与全局规则的冲突，不修改
+$agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”改为“只提交、不推送”
 ```
 
 ## Skill 速查
@@ -47,9 +47,7 @@ $agent-manager:am-update 检查已记录来源和安装副本是否有更新
 | testing-automation | webapp-testing | 验证本地网页交互，查看截图与控制台日志 | 任务匹配 / 手动 |
 | testing-automation | playwright-cli | 通过 Playwright CLI 操作浏览器并验证交互 | 任务匹配 / 手动 |
 | testing-automation | playwright-best-practices | 指导 Playwright 测试、模拟、认证、调试与 CI | 任务匹配 / 手动 |
-| agent-manager | am-conflict | 只读查找项目与全局指令、Skill、Plugin 的冲突和歧义 | 仅手动 |
-| agent-manager | am-update | 只读比较既定来源、仓库、安装副本与 Marketplace 状态 | 仅手动 |
-| agent-manager | am-config | 预检后编辑项目指令、安装指定 Skill 或执行受支持的 Plugin 开关 | 仅手动 |
+| agent-manager | am-config | 检查相关冲突后编辑项目指令、安装指定 Skill 或修改受支持的 Plugin 开关；也可只读查冲突 | 仅手动 |
 | personal-dev | dev-delegate | 主模型安排任务，独立编码与验收代理执行，主模型最终整体检查；Codex / Claude Code | 仅手动 |
 | personal-dev | dev-review | 只读审查当前项目或明确范围，独立复核高等级发现并生成报告；Codex / Claude Code | 仅手动 |
 | personal-dev | dev-yagni | 按当前明确目标完成最小但完整的开发任务；只要求方案时等待确认 | 仅手动 |
@@ -116,21 +114,11 @@ Codex 使用其原生终端能力，Claude Code 使用原生 Bash 工具。诊�
 
 ## Agent 管理工具
 
-### 查找冲突
+### 编辑项目与冲突检查
 
-`am-conflict` 仅支持 Codex 与 Claude Code；它按对应客户端的实际加载规则检查项目与全局来源，在对话中报告双方原文、位置、触发条件、影响及最小建议。它区分冲突、歧义、能力重叠和已有覆盖规则消解的差异。其他 Harness 输出 `BLOCKED / UNSUPPORTED AGENT`。
+`am-config` 是唯一入口，仅支持 Codex 与 Claude Code。编辑前检查本次操作相关的项目/全局规则、Skills、Plugins、重复能力及实际加载边界；默认不展开无关能力。轻微重复、措辞差异或已有明确覆盖关系，用一两句话提醒；实质互斥、会改变其他行为的歧义或权限边界问题，详细给出双方原文、位置、触发条件、影响和最小方案，未明确取舍前停止整批写入。提示简短不构成覆盖、禁用或删除其他能力的授权。
 
-全过程只读，不改配置、不禁用或卸载入口，也不创建报告文件。来源或加载状态不明时标记 `UNKNOWN`，扫描不完整时标记 `PARTIAL`。
-
-### 检查更新
-
-`am-update` 支持 Codex 与 Claude Code，只比较已记录的 repo / path / ref、精确 commit 和安装证据，不更新对象或更换来源，也不创建报告文件。其他 Harness 输出 `BLOCKED / UNSUPPORTED AGENT`。固定 commit 不跟随 main；版本字符串相同也不代表内容相同。
-
-源码快照、Marketplace 快照和客户端安装副本分别报告。来源无法确认时标记 `UNKNOWN SOURCE`，证据不足时标记 `UNKNOWN` 或 `BLOCKED`。
-
-需要实际更新时，维护仓库按[维护指南](maintenance.md#升级第三方-skill)同步，再按下方对应客户端步骤刷新安装副本。
-
-### 配置项目
+同一入口支持只读检查，例如 `$agent-manager:am-config 只检查当前项目与全局规则的冲突，不修改`。仅要求查冲突时，全程只读并在报告后结束，不调用配置编辑器，也不创建探测环境、临时或报告文件。用户未限定范围时检查当前项目适用的指令、Skills、Plugins 与相关全局来源；指定范围时按范围检查。来源或加载状态不明标记 `UNKNOWN`，检查不完整标记 `PARTIAL`，不能声称完整无冲突。旧的独立冲突/更新入口已移除。
 
 修改 Plugin 开关时，逐项指定完整 Plugin 身份及启用 / 禁用状态，例如：
 
@@ -138,7 +126,7 @@ Codex 使用其原生终端能力，Claude Code 使用原生 Bash 工具。诊�
 $agent-manager:am-config 在当前项目禁用 software-dev@agent-marketplace，启用 testing-automation@agent-marketplace
 ```
 
-Claude 使用 `/agent-manager:am-config`。该入口只处理用户明确指定的项目操作：编辑 `AGENTS.md`、从准确来源安装 standalone Skill，或执行受支持的 Plugin 开关。它不推荐组合、不提交或推送用户项目。
+Claude 使用 `/agent-manager:am-config`。编辑分支只处理用户明确指定的项目操作：编辑 `AGENTS.md`、从准确来源安装 standalone Skill，或执行受支持的 Plugin 开关。全局与项目外始终只读，不推荐组合、不提交或推送用户项目。更新安装副本仍使用下方[安装与更新](#安装与更新)步骤，维护仓库仍按[维护指南](maintenance.md#升级第三方-skill)同步。
 
 #### 项目开关支持范围
 
