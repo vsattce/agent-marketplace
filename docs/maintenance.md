@@ -53,7 +53,7 @@ agent-marketplace/
 
 六个 Plugin 都提供 Claude Code `.claude-plugin/plugin.json`；Codex 侧除 `agent-manager` 外使用便携 `plugin.json`，该 Plugin 使用原生 `.codex-plugin/plugin.json` 并显式发现 `skills/` 与 `codex-skills/`。`am-context` 放在后者，因此仅 Codex 可发现；`am-config` 仍共享。四个第三方分类另存 `licenses/<name>/`，两个 Marketplace 均指向 `./plugins/<plugin>`。当前 Codex 有 21 个 Skills、Claude Code 有 20 个：第三方四类共 14 个，`agent-manager` 在两端分别有 2 / 1 个，`personal-dev` 两端各有 5 个。`personal-dev` 中的 `dev-delegate` / `dev-review` 使用 `references/codex.md` / `references/claude.md` 适配原生委派工具。
 
-Codex 便携 manifest 的中文信息位于 `extensions.com.openai.interface`；原生 Codex manifest 的中文信息使用根级 `interface`。Claude manifest / catalog 有意不写 version，GitHub 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
+Codex 便携 manifest 的中文信息位于 `extensions.com.openai.interface`；原生 Codex manifest 的中文信息使用根级 `interface`。Claude manifest / catalog 有意不写 version，Git 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
 
 ## 第三方来源与维护边界
 

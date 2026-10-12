@@ -159,10 +159,10 @@ Plugin 提供 Skill 内容，不代装 Playwright、Java、Vue 等运行依赖�
 
 ### Codex
 
-从 GitHub 添加 Marketplace，再安装需要的分类；下面列出 Marketplace 中的六个 Plugin，可按需选择：
+从 Gitee 添加 Marketplace，再安装需要的分类；下面列出 Marketplace 中的六个 Plugin，可按需选择：
 
 ```powershell
-codex plugin marketplace add vsattce/agent-marketplace --ref main
+codex plugin marketplace add git@gitee.com:vsattce/agent-marketplace.git --ref main
 codex plugin add common-workflow@agent-marketplace --json
 codex plugin add software-dev@agent-marketplace --json
 codex plugin add engineering-tools@agent-marketplace --json
@@ -175,14 +175,14 @@ codex plugin add personal-dev@agent-marketplace --json
 
 本地开发可用 `codex plugin marketplace add E:\WorkSpace\agent-marketplace`。用 `codex plugin marketplace list` 核对注册，`codex plugin list --marketplace agent-marketplace --available --json` 查看可安装入口；切换同名市场来源前先核对旧注册。
 
-**刷新**：本地来源同步后，重新执行对应的 `codex plugin add <plugin>@agent-marketplace --json`。GitHub 来源先刷新客户端中的 Marketplace 快照，再重新安装对应 Plugin，最后新建聊天。
+**刷新**：本地来源同步后，重新执行对应的 `codex plugin add <plugin>@agent-marketplace --json`。Gitee 来源先执行 `codex plugin marketplace upgrade agent-marketplace` 刷新客户端中的 Marketplace 快照，再重新安装对应 Plugin，最后新建聊天。
 
 ### Claude Code
 
-从 GitHub 添加并按需安装分类：
+从 Gitee 添加并按需安装分类：
 
 ```powershell
-claude plugin marketplace add vsattce/agent-marketplace
+claude plugin marketplace add git@gitee.com:vsattce/agent-marketplace.git
 claude plugin install common-workflow@agent-marketplace
 claude plugin install software-dev@agent-marketplace
 claude plugin install engineering-tools@agent-marketplace
@@ -195,7 +195,7 @@ claude plugin install personal-dev@agent-marketplace
 
 本地开发使用 `claude plugin marketplace add E:\WorkSpace\agent-marketplace`。当前已验证版本的本地目录来源直接加载源目录，编辑后新建会话或执行 `/reload-plugins`。
 
-**刷新 GitHub 来源**：先更新市场，再更新需要的 Plugin，例如：
+**刷新 Gitee 来源**：先更新市场，再更新需要的 Plugin，例如：
 
 ```powershell
 claude plugin marketplace update agent-marketplace

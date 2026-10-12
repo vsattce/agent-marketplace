@@ -2,6 +2,8 @@
 
 长期维护的个人 Skill / Plugin Marketplace 项目，客户端显示为 **Agent Marketplace**。目前仅支持 Codex 与 Claude Code，多数 Skill 内容与资源共用，并按客户端适配原生工具；其他客户端暂不适配或维护。
 
+代码托管与日常 Git 同步统一使用 [Gitee](https://gitee.com/vsattce/agent-marketplace)，`origin` 地址为 `git@gitee.com:vsattce/agent-marketplace.git`。提交、推送与拉取约定见 [AGENTS.md](AGENTS.md#仓库维护规则)。
+
 Codex 与 Claude Code 均包含 **6 个 Plugin**；Codex 有 **21 个 Skills**，Claude Code 有 **20 个**。四个第三方聚合 Plugin 共 14 项；本仓库自有的 `agent-manager` 在 Codex / Claude Code 分别有 2 / 1 项，`personal-dev` 两端各有 5 项。
 
 `software-dev` 收录第三方上游项目的 Skills，仅供个人使用与整理；原作者署名、上游内容及许可证均按原样保留。该说明只适用于 `software-dev`；`agent-manager` 和 `personal-dev` 是本仓库自有并直接维护的 Plugin。
