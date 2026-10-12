@@ -62,6 +62,8 @@ Marketplace 第三方来源以 [sources.yaml](sources.yaml) 为准，同步 comm
 
 本项目另在 `.agents/skills/` 安装了 [obra/superpowers](https://github.com/obra/superpowers) 的完整 15 个 Skills，供本仓库开发使用，不计入上述 Marketplace Plugin 与 Skill 数量。安装范围仅限当前项目，保留上游 Skill 内容、配套脚本与参考资料。
 
+本仓库维护默认从 `using-superpowers` 开始，按任务类型选择相应流程并保持验证深度与任务风险匹配；手动 Skill 的调用条件、只读及 Git 边界仍按该次调用执行。具体规则见 [AGENTS.md](AGENTS.md#默认工作流程)。
+
 包含 brainstorming、diagnosing-superpowers、dispatching-parallel-agents、executing-plans、finishing-a-development-branch、receiving-code-review、requesting-code-review、subagent-driven-development、systematic-debugging、test-driven-development、using-git-worktrees、using-superpowers、verification-before-completion、writing-plans、writing-skills。
 
 安装快照固定在 `bb92a77741419a4ab5f06e711a283343f1ada0c3`，完整来源与清单见 [.agents/superpowers/source.json](.agents/superpowers/source.json)，上游 MIT 许可证见 [.agents/superpowers/LICENSE](.agents/superpowers/LICENSE)。这些项目 Skills 独立于 `sources.yaml`，不由 Marketplace 同步脚本更新。Codex 安装后可在下一轮对话使用，例如 `$using-superpowers` 或 `$brainstorming`。这些第三方项目 Skills 保持上游内容。

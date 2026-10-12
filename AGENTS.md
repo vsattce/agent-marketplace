@@ -2,6 +2,20 @@
 
 本仓库是长期维护的个人 Skill / Plugin Marketplace。
 
+## 默认工作流程
+
+1. **Superpowers 默认入口：** 本项目默认按照已安装的 Superpowers 执行。每次任务开始先使用 `using-superpowers`，按当前任务匹配相关 Skill 并遵循其流程；用户明确指定 Skill 时优先使用指定入口。本规则覆盖通用的“普通任务默认不调用 Skill”策略。
+
+2. **按任务选择流程：** 新功能和行为变更先用 `brainstorming` 明确需求与设计；多步骤实现使用 `writing-plans`，计划执行按任务依赖和当前工具能力选择 `subagent-driven-development` 或 `executing-plans`。Bug 和异常行为先用 `systematic-debugging` 定位原因；代码实现与修复按 `test-driven-development` 执行。隔离开发、代码审查和分支收尾分别按对应 Skill 的触发条件处理；完成声明前使用 `verification-before-completion` 核对证据。
+
+3. **深度匹配任务：** 按风险、影响和不确定性控制读取范围、计划、产物与验证深度，不机械执行全部 Superpowers Skills。适用 Skill 要求的确认、审查和验证步骤按其触发条件执行；纯文案、文档、只读检查和常规 Git 操作不强制套用完整开发链。用户已明确的目标、取舍与授权不重复询问。
+
+4. **手动入口与授权：** `am-config`、`personal-dev` 等仅手动调用的 Skill 仍须用户显式调用，不因 Superpowers 默认流程而自动触发。显式调用的 Skill 规定只读、不提交或不推送时，按该次调用边界执行；用户另有明确授权时以用户要求为准。任何 Skill 不扩大任务范围或文件系统、运行时、客户端配置及外部服务权限。
+
+5. **客户端与可用性：** Codex / Claude Code 只使用各自当前会话实际可用的 Skill、工具和入口，不把磁盘文件或安装缓存当作已加载。所需能力缺失时说明缺项及受影响步骤，不自行安装、修改全局配置或声称新规则已在当前会话热加载。
+
+## 仓库维护规则
+
 1. **定位与客户端：** 当前仅支持 Claude Code 和 Codex，其他客户端暂不适配或维护。业务流程和 Skill 正文可共享，manifest、Skill 发现、项目配置、工具调用及客户端行为按 Harness 实际能力区分；双端修改时检查双方入口、加载、手动调用策略、随包资源和直接受影响行为。
 
 2. **产品与开发工具边界（repository development tooling）：** .agents/skills/ 中的 Superpowers、项目 upgrade、Claude Code plugin 开发 Skill 及未来项目级开发 Skill，.agents/plugin-dev/ 中的官方参考快照，以及项目 MCP 与 Codex / Claude 开发辅助配置默认只服务本仓库维护，不属于 Marketplace 产品。除非用户明确要求，不把它们注册到 .agents/plugins/marketplace.json、.claude-plugin/marketplace.json、sources.yaml 或对外安装目录，也不计入 Plugin / Skill 数量；README 保留 Superpowers 不计数说明。
@@ -18,7 +32,7 @@
 
 8. **文档工具：** 近期变化、版本敏感或不确定的行为优先查当前官方资料或已有真实测试；稳定的本地小改动无需每次查文档。OpenAI Docs MCP 用于 Codex / OpenAI plugin、MCP、Skill 与配置行为；Claude Code plugin 行为以官方文档及 `.agents/plugin-dev/upstream/` 中固定版本的参考为准；Context7 用于外部库、框架、SDK、CLI 的 API、配置格式或版本差异。两者均按需调用，复用本任务结果；不可用时查官方网页，查询不发送凭据、私有源码或会话内容。
 
-9. **Git 收尾：** 必要验证和 diff 检查后，仅暂存任务文件，以 Conventional Commits 提交并推送当前分支；用户明确要求不提交或不推送时遵从。禁止 force push。远端收到提交才算同步；失败如实报告，并汇报变更、测试、分支、提交哈希、推送状态及未验证的客户端。
+9. **Git 收尾：** 普通开发任务在必要验证和 diff 检查后，仅暂存任务文件，以 Conventional Commits 提交并推送当前分支；显式调用的管理、只读或审查 Skill 规定不提交或不推送时，遵守该次调用边界，用户另有明确授权时以用户要求为准。禁止 force push。远端收到提交才算同步；失败如实报告，并汇报变更、测试、分支、提交哈希、推送状态及未验证的客户端。
 
 10. **Skill 描述与展示：** 本仓库自有 Skill（含项目级开发 Skill 及客户端入口）的 `SKILL.md` frontmatter `description` 统一使用中文，按“中文名称＋用途＋调用条件”编写，保留适用范围、只读与手动调用边界及必要技术关键词。`name` 保持稳定的英文调用标识；Codex 的 `agents/openai.yaml` 中 `display_name`、`short_description` 同样使用中文，并与共享描述含义一致。第三方上游快照遵循来源与同步规则，不为本地化直接修改。
 
