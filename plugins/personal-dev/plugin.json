@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "personal-dev",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "仅手动调用的个人开发、精简建议、委派、增强代码审查与远端运行诊断，支持 Codex 和 Claude Code。",
   "license": "MIT",
   "extensions": {

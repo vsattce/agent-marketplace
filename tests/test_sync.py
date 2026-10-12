@@ -5,11 +5,11 @@ import importlib.util
 import io
 import json
 from pathlib import Path
-import tempfile
 import unittest
 from unittest.mock import patch
 
 import yaml
+from temp_paths import temporary_test_directory
 
 SPEC = importlib.util.spec_from_file_location("skill_sync", Path(__file__).parents[1] / "scripts" / "sync.py")
 skill_sync = importlib.util.module_from_spec(SPEC)
@@ -18,7 +18,7 @@ SPEC.loader.exec_module(skill_sync)
 
 class SyncTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory()
+        self.temporary = temporary_test_directory("sync")
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name) / "marketplace"
         self.root.mkdir()
@@ -68,6 +68,74 @@ class SyncTests(unittest.TestCase):
         self.assertEqual((self.root / "plugins/common-workflow/licenses/alpha/LICENSE").read_bytes(), (self.upstream / "LICENSE").read_bytes())
         self.assertEqual(json.loads((self.root / "sources.lock.json").read_text())["skills"]["alpha"]["commit"], self.commit)
 
+    def test_sync_uses_unique_temporary_run_directories_and_cleans_them(self):
+        destinations = []
+
+        def record_fetch(source, destination):
+            destinations.append(destination)
+            return self.upstream, self.commit
+
+        self.mock_fetch.side_effect = record_fetch
+        self.run_sync()
+        self.run_sync()
+
+        run_directories = [destination.parent for destination in destinations]
+        expected_parent = self.root / ".agent-tmp" / "sync"
+        self.assertEqual(len(run_directories), 2)
+        self.assertNotEqual(run_directories[0], run_directories[1])
+        for run_directory in run_directories:
+            self.assertEqual(run_directory.parent, expected_parent)
+            self.assertTrue(run_directory.name.startswith("run-"))
+            self.assertFalse(run_directory.exists())
+        self.assertEqual(list(expected_parent.iterdir()), [])
+
+    def test_sync_cleans_temporary_run_directory_when_fetch_fails(self):
+        destinations = []
+
+        def fail_fetch(source, destination):
+            destinations.append(destination)
+            raise skill_sync.SyncError("network unavailable")
+
+        self.mock_fetch.side_effect = fail_fetch
+        with self.assertRaises(skill_sync.SyncError):
+            self.run_sync()
+
+        self.assertEqual(len(destinations), 1)
+        self.assertEqual(destinations[0].parent.parent, self.root / ".agent-tmp" / "sync")
+        self.assertFalse(destinations[0].parent.exists())
+        self.assertEqual(list((self.root / ".agent-tmp" / "sync").iterdir()), [])
+
+    def test_sync_rejects_redirected_temporary_parent_before_fetch(self):
+        temporary_parent = self.root / ".agent-tmp"
+        temporary_parent.mkdir()
+        outside = Path(self.temporary.name) / "outside-sync"
+        outside.mkdir()
+        redirected = temporary_parent / "sync"
+        try:
+            redirected.symlink_to(outside, target_is_directory=True)
+        except OSError:
+            self.skipTest("Host does not permit symlink creation")
+
+        before = self.snapshot()
+        with self.assertRaises(skill_sync.SyncError):
+            self.run_sync()
+
+        self.mock_fetch.assert_not_called()
+        self.assertEqual(before, self.snapshot())
+        self.assertEqual(list(outside.iterdir()), [])
+
+    def test_sync_rejects_temporary_parent_occupied_by_file(self):
+        temporary_parent = self.root / ".agent-tmp"
+        temporary_parent.write_text("occupied", encoding="utf-8")
+        before = self.snapshot()
+
+        with self.assertRaises(skill_sync.SyncError):
+            self.run_sync()
+
+        self.mock_fetch.assert_not_called()
+        self.assertEqual(before, self.snapshot())
+        self.assertEqual(temporary_parent.read_text(encoding="utf-8"), "occupied")
+
     def test_engineering_tools_updates_idempotently_and_restores_failed_publish(self):
         plugin = self.root / "plugins" / "engineering-tools"
         plugin.mkdir(parents=True)
@@ -112,7 +180,7 @@ class SyncTests(unittest.TestCase):
         original_replace = Path.replace
 
         def fail_lock_replace(path, target):
-            if path.name == "sources.lock.json" and path.parent.name.startswith(".skill-sync-"):
+            if path.name == "sources.lock.json" and path.parent.parent.name == "sync" and ".agent-tmp" in path.parts:
                 raise OSError("simulated write failure")
             return original_replace(path, target)
 
@@ -349,7 +417,7 @@ class SyncTests(unittest.TestCase):
         original_replace = Path.replace
 
         def replace(path, target):
-            if path.name == "sources.lock.json" and path.parent.name.startswith(".skill-sync-"):
+            if path.name == "sources.lock.json" and path.parent.parent.name == "sync" and ".agent-tmp" in path.parts:
                 raise OSError("simulated write failure")
             return original_replace(path, target)
 
@@ -386,7 +454,7 @@ class SyncTests(unittest.TestCase):
         self.assertEqual(self.mock_fetch.call_count, 0)
 
     def test_publisher_rejects_owned_manifest_and_snapshot_targets(self):
-        with tempfile.TemporaryDirectory(dir=self.root) as staging:
+        with temporary_test_directory("publisher") as staging:
             staged = Path(staging) / "replacement"
             staged.mkdir()
             for relative in ("plugins/agent-manager/skills/am-conflict", "plugins/common-workflow/plugin.json", "plugins/common-workflow/skills", "plugins/common-workflow/.claude-plugin/plugin.json", "plugins/common-workflow/kimi.plugin.json", "plugins/engineering-tools/plugin.json", "kimi.plugin.json", ".claude-plugin/marketplace.json"):

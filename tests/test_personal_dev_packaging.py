@@ -26,10 +26,11 @@ class PersonalDevPackagingTests(unittest.TestCase):
             {"dev-delegate", "dev-review", "dev-yagni", "dev-simplify", "dev-runtime-check"},
         )
         self.assertEqual(manifest["name"], entries[0]["name"])
-        self.assertEqual(manifest["version"], "0.6.0")
+        self.assertEqual(manifest["version"], "0.6.1")
         self.assertEqual(manifest["extensions"]["com.openai"]["interface"], entries[0]["interface"])
         self.assertTrue((SKILL / "scripts/select_models.py").is_file())
         self.assertTrue((SKILL / "references/roles.md").is_file())
+        self.assertTrue((PLUGIN / "references/artifacts.md").is_file())
         self.assertTrue((REVIEW / "scripts/select_models.py").is_file())
         self.assertTrue((REVIEW / "references/review-contract.md").is_file())
         self.assertTrue((REVIEW / "references/report-template.md").is_file())

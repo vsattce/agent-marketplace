@@ -8,6 +8,8 @@ disable-model-invocation: true
 
 Only use when explicitly invoked by the user. Codex 使用 `$personal-dev:dev-delegate`，Claude Code 使用 `/personal-dev:dev-delegate`；普通开发请求不自动触发本 Skill。
 
+任务记录和临时产物按需遵循[任务产物位置](../../references/artifacts.md)；普通小任务只在交接消息中说明，不强制创建文档。
+
 当前对话主模型安排任务和最终整体检查；编码与验收由不同的独立 subagent 执行。Codex 使用同型号 Luna，默认编码 `xhigh`、独立验收 `max`（最强）；Claude Code 沿用当前子代理模型与思考配置。用户可分别指定本次编码与验收的思考强度，明确指定的角色优先使用用户值，未指定的角色保留默认策略；按对应 adapter 核验支持后直接执行，无需再次确认强度。目标是减少主模型的实现与逐项审查负担，不承诺固定费用、额度或总 token 降幅。
 
 ## 1. 先确定 Harness 与委派策略
@@ -35,7 +37,7 @@ Only use when explicitly invoked by the user. Codex 使用 `$personal-dev:dev-de
 
 派发前读取 [角色交接与验收契约](references/roles.md)。按当前 Harness adapter 调用原生委派工具，新任务使用干净上下文，不复制整段聊天。提供工作目录、任务范围、接口约束、验收条件与验证要求。所有子代理禁止继续派生代理。
 
-简单任务在派发消息中交接即可。多步骤或长任务在项目允许的位置建立独立的轻量任务记录，包含需求、实际模型、代理身份、验收状态、修复次数、改动基线和证据位置；不记录敏感信息。上下文压缩后先恢复记录，禁止重复开发已完成任务或清零修复计数。
+简单任务在派发消息中交接即可。多步骤或长任务仅在需要跨步骤恢复或保留验收证据时，在 `docs/personal-dev/tasks/<task-id>/` 建立轻量任务记录；设计、计划、进度和验收文件按实际需要创建，包含需求、实际模型、代理身份、验收状态、修复次数、改动基线和证据位置。短期日志及原始测试输出可放在 `.agent-tmp/tasks/<task-id>/`，不记录敏感信息。上下文压缩后先恢复已建立的记录，禁止重复开发已完成任务或清零修复计数。
 
 派发前记录原有 tracked / staged / untracked 改动；保留用户已有内容。编码代理不 commit / push。审查必须覆盖本任务 staged、unstaged 和新文件；`BASE..HEAD` 只包含已提交改动，不能作为未提交任务的全部证据。已有用户改动与任务改动无法区分时先澄清，不能重置或丢弃。
 

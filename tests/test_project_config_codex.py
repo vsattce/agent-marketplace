@@ -2,13 +2,13 @@
 import json
 import os
 from pathlib import Path
-import tempfile
 import unittest
 from unittest.mock import patch
 import tomlkit
 
 from test_codex_loader import rpc_skills, run
 from test_configure_project import editor
+from temp_paths import temporary_test_directory
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 @unittest.skipUnless(os.environ.get("AGENT_MANAGER_CODEX_TESTS") == "1", "Opt-in isolated Codex loader validation")
 class ProjectConfigurationCodexTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix=".skill-sync-native-", dir=ROOT)
+        self.temporary = temporary_test_directory("codex-project-config")
         self.addCleanup(self.temporary.cleanup)
         self.base = Path(self.temporary.name).resolve()
         self.project = self.base / "project"

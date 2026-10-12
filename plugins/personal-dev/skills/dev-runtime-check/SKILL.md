@@ -8,6 +8,8 @@ disable-model-invocation: true
 
 仅在用户明确调用 `$personal-dev:dev-runtime-check`（Codex）或 `/personal-dev:dev-runtime-check`（Claude Code）后使用。普通故障描述、日志或性能问题不会自动启用本 Skill。
 
+临时与可选保存位置按需遵循[任务产物位置](../../references/artifacts.md)。诊断结论默认在聊天中汇报；只有用户明确要求保存时，才在目标项目的 `docs/personal-dev/runtime/<diagnostic-id>/report.md` 写报告。
+
 ## 确认目标与授权
 
 先从当前对话确认 SSH 连接方式、目标主机、目标服务或容器、症状和大致时间范围。信息足以连接并确定检查对象时，直接开始必要取证，不再要求重复确认。只有连接目标、认证方式或诊断对象缺失且无法从上下文判断时，集中询问一个关键问题。

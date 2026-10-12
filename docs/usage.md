@@ -56,6 +56,8 @@ $agent-manager:am-update 检查已记录来源和安装副本是否有更新
 | personal-dev | dev-simplify | 默认只读提出行为等价的精简建议，确认后再编辑 | 仅手动 |
 | personal-dev | dev-runtime-check | 使用当前 Harness 原生 Shell / SSH 对指定远端主机、容器或服务取证；默认只读 | 仅手动 |
 
+普通小任务直接在交接消息中处理，不要求创建文档。委派开发只有在需要跨步骤恢复或保留验收证据时才建立 `docs/personal-dev/tasks/<task-id>/` 记录；审查报告、长任务进度、远端诊断保存及临时文件的路径和边界见[任务产物位置](../plugins/personal-dev/references/artifacts.md)。
+
 ## 个人开发工具（Codex / Claude Code）
 
 ```text
@@ -104,11 +106,11 @@ Codex / Claude 均注册此 Plugin。安装后新建对应客户端会话加载�
 
 主模型在正式派发前一次性核对项目规则、范围、源码可读性、改动基线、报告位置与当前 Harness adapter。Codex 另核对可靠模型身份、当前派发工具名单与强度及解释器；Claude 核对原生 Agent 与非 fork 子代理能力。缺少必需项时集中输出 `BLOCKED`；生产权限、凭证、配额或实时运行数据属于可选证据，缺少时仍可进行代码层审查，并把相关量化结论列为待运行验证。审查和复核的实际型号/强度会在派发前展示；必要的独立复核只针对 P0/P1 或实质争议。
 
-默认报告写到项目 `docs/reviews/`，代码、配置和 Git 状态只读，审查过程不自动修复或提交。报告区分 `COMPLETE`、`PARTIAL`、`BLOCKED` 执行状态与 P0–P3 风险等级；发现问题不会让执行状态自动变成 `BLOCKED`。没有高等级发现也不代表项目绝对安全。
+默认报告写到项目 `docs/personal-dev/reviews/<review-id>/report.md`，长审查的轻量进度记录与报告同目录。代码、配置和 Git 状态只读，审查过程不自动修复、提交或推送。报告区分 `COMPLETE`、`PARTIAL`、`BLOCKED` 执行状态与 P0–P3 风险等级；发现问题不会让执行状态自动变成 `BLOCKED`。没有高等级发现也不代表项目绝对安全。
 
 ### 远端运行诊断
 
-`$personal-dev:dev-runtime-check` / `/personal-dev:dev-runtime-check` 仅在用户显式调用时运行。需要目标主机、SSH 连接方式、诊断对象和相关时间范围；信息足够时直接开始取证。默认只读，明确要求修复后才执行授权范围内的必要操作，并遵守当前 Harness 的权限与审批。
+`$personal-dev:dev-runtime-check` / `/personal-dev:dev-runtime-check` 仅在用户显式调用时运行。需要目标主机、SSH 连接方式、诊断对象和相关时间范围；信息足够时直接开始取证。默认只读并在聊天中汇报；只有用户明确要求保存时，才写入项目 `docs/personal-dev/runtime/<diagnostic-id>/report.md`。明确要求修复后才执行授权范围内的必要操作，并遵守当前 Harness 的权限与审批。
 
 Codex 使用其原生终端能力，Claude Code 使用原生 Bash 工具。诊断直接连接用户指定目标，先确认主机与进程、服务或容器身份；连接或命令失败时停止远端结论，不改查当前工作站。连接和每条远端命令都设置有限超时，仅对适用的暂时性错误有限重试。按症状有限采样，比较速率时记录两次计数、单位和真实间隔，并区分宿主机、容器与应用。排查请求量时区分浏览器到自有后端和后端到第三方；部署时间与故障相邻只表示相关性，不单独证明因果。不得记录凭据或启动长期采集。
 
@@ -122,7 +124,7 @@ Codex 使用其原生终端能力，Claude Code 使用原生 Bash 工具。诊�
 
 ### 检查更新
 
-`am-update` 支持 Codex 与 Claude Code，只比较已记录的 repo / path / ref、精确 commit 和安装证据，不更新对象或更换来源。其他 Harness 输出 `BLOCKED / UNSUPPORTED AGENT`。固定 commit 不跟随 main；版本字符串相同也不代表内容相同。
+`am-update` 支持 Codex 与 Claude Code，只比较已记录的 repo / path / ref、精确 commit 和安装证据，不更新对象或更换来源，也不创建报告文件。其他 Harness 输出 `BLOCKED / UNSUPPORTED AGENT`。固定 commit 不跟随 main；版本字符串相同也不代表内容相同。
 
 源码快照、Marketplace 快照和客户端安装副本分别报告。来源无法确认时标记 `UNKNOWN SOURCE`，证据不足时标记 `UNKNOWN` 或 `BLOCKED`。
 

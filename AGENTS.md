@@ -21,3 +21,11 @@
 9. **Git 收尾：** 必要验证和 diff 检查后，仅暂存任务文件，以 Conventional Commits 提交并推送当前分支；用户明确要求不提交或不推送时遵从。禁止 force push。远端收到提交才算同步；失败如实报告，并汇报变更、测试、分支、提交哈希、推送状态及未验证的客户端。
 
 10. **Skill 描述与展示：** 本仓库自有 Skill（含项目级开发 Skill 及客户端入口）的 `SKILL.md` frontmatter `description` 统一使用中文，按“中文名称＋用途＋调用条件”编写，保留适用范围、只读与手动调用边界及必要技术关键词。`name` 保持稳定的英文调用标识；Codex 的 `agents/openai.yaml` 中 `display_name`、`short_description` 同样使用中文，并与共享描述含义一致。第三方上游快照遵循来源与同步规则，不为本地化直接修改。
+
+## 任务产物目录
+
+- 临时同步、测试和任务日志按需放入 `.agent-tmp/sync/<run-id>/`、`.agent-tmp/tests/<run-id>/`、`.agent-tmp/tasks/<task-id>/`，由 Git 忽略。测试进程需要 `TMP` / `TEMP` 时，只指向本次测试运行目录。
+- 委派任务仅在需要跨步骤恢复或保留验收证据时使用 `docs/personal-dev/tasks/<task-id>/`；设计、计划、进度和验收记录按需创建，普通小任务不强制建文档。
+- 增强审查报告默认写入 `docs/personal-dev/reviews/<review-id>/report.md`，长审查的轻量进度记录与报告同目录。审查只写报告和必要进度记录，不自动提交或推送。
+- 远端诊断默认在聊天中汇报，只有用户要求保存时写入 `docs/personal-dev/runtime/<diagnostic-id>/report.md`。`dev-yagni` / `dev-simplify` 不要求文档，`am-conflict` / `am-update` 不创建文件。
+- ID 使用用户时区的日期、时间和主题；冲突追加唯一后缀且不覆盖。目标项目规则和用户指定位置优先。`am-config` 的目标旁 `.am-config-*` 原子替换临时文件与 `.configure-project.lock` 保持原位。

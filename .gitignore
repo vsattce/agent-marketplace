@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 .skill-sync-*/
+.agent-tmp/
 
 # Temporary artifacts when TMP/TEMP points to the repository.
 /claude/fswatch-probe-*/

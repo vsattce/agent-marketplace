@@ -8,11 +8,11 @@ from pathlib import Path
 import subprocess
 import stat
 import sys
-import tempfile
 import tomllib
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
+from temp_paths import temporary_test_directory
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "plugins/agent-manager/skills/am-config/scripts/configure_project.py"
@@ -23,7 +23,7 @@ spec.loader.exec_module(editor)
 
 class ConfigureProjectTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix=".skill-sync-config-", dir=ROOT)
+        self.temporary = temporary_test_directory("configure-project")
         self.addCleanup(self.temporary.cleanup)
         self.base = Path(self.temporary.name).resolve()
         self.project = self.base / "project"

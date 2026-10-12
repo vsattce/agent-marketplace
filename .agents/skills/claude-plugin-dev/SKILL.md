@@ -7,6 +7,8 @@ description: 开发 Claude Code Plugin：用于开发、修复或检查本仓库
 
 Use the relevant official reference bundled at `.agents/plugin-dev/upstream/`. Start with that topic's `SKILL.md` or guide, then read only the linked references, examples, and scripts needed for the task. The bundle's entry point is `.agents/plugin-dev/upstream/README.md`.
 
+Keep temporary validation artifacts under `.agent-tmp/tests/<run-id>/` and short-lived task logs under `.agent-tmp/tasks/<task-id>/`. Create long-term task notes only when needed to resume work or retain acceptance evidence; follow the [task artifact locations](../../../plugins/personal-dev/references/artifacts.md).
+
 | Topic | Start here | Related upstream material |
 | --- | --- | --- |
 | Plugin manifests and discovery | `skills/plugin-structure/SKILL.md` | `skills/plugin-structure/references/manifest-reference.md`, `skills/plugin-structure/README.md`, `.claude-plugin/plugin.json` |

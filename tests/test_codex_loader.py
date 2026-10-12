@@ -10,10 +10,10 @@ import os
 from pathlib import Path
 import queue
 import subprocess
-import tempfile
 import threading
 import time
 import unittest
+from temp_paths import temporary_test_directory
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -138,7 +138,7 @@ def rpc_skills(cwd: Path, env: dict[str, str], selector: str | None = None) -> t
 @unittest.skipUnless(os.environ.get("AGENT_MANAGER_CODEX_TESTS") == "1", "Opt-in isolated Codex loader validation")
 class CodexLoaderTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix=".skill-sync-loader-", dir=ROOT)
+        self.temporary = temporary_test_directory("codex-loader")
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         self.project = self.root / "project"

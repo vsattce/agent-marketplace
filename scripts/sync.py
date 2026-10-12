@@ -148,6 +148,28 @@ def contained(path: Path, parent: Path) -> None:
         raise SyncError(f"Path escapes its target directory: {path}")
 
 
+def sync_temporary_parent(root: Path) -> Path:
+    """Create and validate the in-repository parent for one sync run."""
+    root = root.absolute()
+    if root.resolve() != root:
+        raise SyncError("Marketplace root is redirected")
+
+    temporary_root = root / ".agent-tmp"
+    sync_root = temporary_root / "sync"
+    for directory in (temporary_root, sync_root):
+        if directory.is_symlink() or directory.is_junction() or directory.resolve() != directory.absolute():
+            raise SyncError(f"Synchronization temporary directory is redirected: {directory.name}")
+        if directory.exists() and not directory.is_dir():
+            raise SyncError(f"Synchronization temporary path is not a directory: {directory.name}")
+        try:
+            directory.mkdir(exist_ok=True)
+        except OSError as error:
+            raise SyncError(f"Cannot prepare synchronization temporary directory: {directory.name}") from error
+        if directory.is_symlink() or directory.is_junction() or directory.resolve() != directory.absolute():
+            raise SyncError(f"Synchronization temporary directory is redirected: {directory.name}")
+    return sync_root
+
+
 def git(repository: Path, *arguments: str) -> str:
     command = ["git", "-C", str(repository), *arguments]
     try:
@@ -258,7 +280,8 @@ def sync(root: Path) -> None:
     replacements = []
     summaries = []
     # Stage and validate every source before changing any tracked snapshot.
-    with tempfile.TemporaryDirectory(prefix=".skill-sync-", dir=root) as temporary:
+    temporary_parent = sync_temporary_parent(root)
+    with tempfile.TemporaryDirectory(prefix="run-", dir=temporary_parent) as temporary:
         workspace = Path(temporary)
         repositories = {}
         for source in sources:

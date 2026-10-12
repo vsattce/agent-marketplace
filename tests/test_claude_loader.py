@@ -10,11 +10,11 @@ from pathlib import Path
 import queue
 import shutil
 import subprocess
-import tempfile
 import threading
 import unittest
 
 from test_configure_project import editor
+from temp_paths import temporary_test_directory
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -48,7 +48,7 @@ def run(command, env, cwd):
 @unittest.skipUnless(os.environ.get("AGENT_MANAGER_CLAUDE_TESTS") == "1", "Opt-in isolated Claude loader validation")
 class ClaudeLoaderTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix=".skill-sync-claude-", dir=ROOT)
+        self.temporary = temporary_test_directory("claude-loader")
         self.addCleanup(self.temporary.cleanup)
         self.base = Path(self.temporary.name).resolve()
         self.project = self.base / "project"

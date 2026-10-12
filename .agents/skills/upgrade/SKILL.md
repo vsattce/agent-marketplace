@@ -7,6 +7,8 @@ description: 升级第三方 Skills：用于升级或同步 agent-marketplace �
 
 Codex 用户调用 `$upgrade`，Claude Code 用户通过 `.claude/skills/upgrade/` 入口调用 `/upgrade`，即执行升级，无需用户手动输入同步命令。两端共用本文件的执行正文；不依赖任何一端专用的委派工具。
 
+同步暂存由脚本保存在项目 `.agent-tmp/sync/<run-id>/` 并在结束时清理。短期命令日志按需放入 `.agent-tmp/tasks/<task-id>/`；只有需要跨步骤恢复或保留验收证据时才创建长期任务记录。路径细则见[任务产物位置](../../../plugins/personal-dev/references/artifacts.md)。
+
 ## 确认目标与环境
 
 1. 从本 Skill 所在目录解析 `../../..` 得到仓库根目录。用 `git rev-parse --show-toplevel` 确认当前工作目录属于该仓库，并确认根目录存在 `sources.yaml`、`sources.lock.json`、`scripts/sync.py` 和 `.agents/plugins/marketplace.json`。不匹配时停止，不转向其他仓库。

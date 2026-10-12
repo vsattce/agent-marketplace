@@ -8,6 +8,8 @@ disable-model-invocation: true
 
 Only use when the user explicitly invokes this skill. Codex 使用 `$personal-dev:dev-review`，Claude Code 使用 `/personal-dev:dev-review`；不启动原生 `/review`，不嵌套启动客户端。
 
+报告和临时产物按需遵循[任务产物位置](../../references/artifacts.md)；本 Skill 只写审查报告及必要的轻量进度记录，不自动执行 Git 操作。
+
 当前对话主模型负责预检、安排审查与独立复核、核验证据并生成 Markdown 报告。审查代理只读并回传发现，不写文件、不修复、不提交、不继续派生代理。
 
 ## 1. 先完成一次预检
@@ -16,7 +18,7 @@ Only use when the user explicitly invokes this skill. Codex 使用 `$personal-de
 
 记录只读基线：当前范围、工作区变化、可用 Git 状态以及后续可能影响证据的变化。排除依赖、构建产物、生成文件、历史报告和二进制；只有核实结论所必需时读取相关自有配置或直接调用点。范围外问题只简要注明。
 
-报告默认写到项目的 `docs/reviews/YYYY-MM-DD-HHMMSS-review.md`，按用户时区取时间；冲突时用唯一后缀，绝不覆盖。先检查目录/位置可写。仓库规则不允许默认位置时选合规位置；若报告无法写入，BLOCKED，集中询问用户其他位置或是否接受仅聊天输出。未来执行仅报告及同目录必要的轻量进度记录可写；代码、配置、Git 状态只读。
+报告默认写到项目的 `docs/personal-dev/reviews/<review-id>/report.md`，按用户时区用日期、时间和主题组成 ID；冲突时追加唯一后缀，绝不覆盖。先检查目录/位置可写。仓库规则不允许默认位置时选合规位置；若报告无法写入，BLOCKED，集中询问用户其他位置或是否接受仅聊天输出。长审查的轻量进度记录放在报告同目录。执行期间只有报告和必要的轻量进度记录可写；代码、配置、Git 状态只读，不自动提交或推送。
 
 派发前从当前会话确认真实 Harness，不能从模型品牌猜客户端。Codex 读取 [Codex adapter](../../references/codex.md)，用本 Skill 的 `scripts/select_models.py` 校验本轮可信主模型身份、实际派发名单与强度；同代最高数值版本 Luna 默认 `xhigh` 审查、`max` 复核，最高版本缺少任一强度时 `BLOCKED`。Claude Code 读取 [Claude adapter](../../references/claude.md)，沿用原生子代理模型与思考配置，不运行 Codex helper，不要求 Python 或 Codex 参数。其他或未知 Harness `BLOCKED / UNSUPPORTED AGENT`。
 
