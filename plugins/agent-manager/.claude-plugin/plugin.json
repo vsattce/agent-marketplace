@@ -1,6 +1,6 @@
 {
   "name": "agent-manager",
-  "description": "仅手动编辑 Codex / Claude 项目指令、安装指定 Skill 或修改受支持的 Plugin 开关，内置冲突检查并支持只读检查。",
+  "description": "仅手动检查当前上下文的组成与来源，或编辑 Codex / Claude 项目指令、安装指定 standalone Skill、修改受支持的 Plugin 开关；支持只读冲突检查。",
   "author": {
     "name": "hjy"
   },

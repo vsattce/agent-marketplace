@@ -29,7 +29,7 @@ class PackagingTests(unittest.TestCase):
         self.assertEqual(len(entries), 1)
         self.assertEqual(entries[0]["source"]["path"], "./plugins/agent-manager")
         manifest = json.loads((PLUGIN / "plugin.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifest["version"], "0.7.0")
+        self.assertEqual(manifest["version"], "0.8.0")
         self.assertEqual(entries[0]["description"], manifest["description"])
         self.assertEqual(entries[0]["interface"], manifest["extensions"]["com.openai"]["interface"])
         claude = json.loads((PLUGIN / ".claude-plugin/plugin.json").read_text(encoding="utf-8"))
@@ -38,7 +38,7 @@ class PackagingTests(unittest.TestCase):
         self.assertEqual(claude["description"], manifest["description"])
         self.assertEqual(claude_entry["description"], manifest["description"])
         skill_entries = list((PLUGIN / "skills").glob("*/SKILL.md"))
-        self.assertEqual({skill.parent.name for skill in skill_entries}, {"am-config"})
+        self.assertEqual({skill.parent.name for skill in skill_entries}, {"am-config", "am-context"})
         for entry in skill_entries:
             skill_name = entry.parent.name
             policy = yaml.safe_load((entry.parent / "agents/openai.yaml").read_text(encoding="utf-8"))
@@ -75,7 +75,7 @@ class PackagingTests(unittest.TestCase):
             self.assertNotIn("version", entry)
             self.assertNotIn("skills", manifest)  # Default directory discovery, one shared copy.
             count += len(list((root / "skills").glob("*/SKILL.md")))
-        self.assertEqual(count, 20)
+        self.assertEqual(count, 21)
         software = next(entry for entry in claude["plugins"] if entry["name"] == "software-dev")
         software_manifest = json.loads((ROOT / "plugins/software-dev/.claude-plugin/plugin.json").read_text(encoding="utf-8"))
         codex_software = next(entry for entry in codex["plugins"] if entry["name"] == "software-dev")

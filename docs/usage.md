@@ -6,7 +6,7 @@
 
 当前支持 Codex 与 Claude Code；其他客户端暂不适配或维护。
 
-当前共 **6 个 Plugin、20 个 Skills**：四个第三方聚合 Plugin 收录 14 个 Skills；本仓库自有的 `agent-manager` 与 `personal-dev` 分别包含 1 个和 5 个 Skills。第三方来源、作者与许可证边界见 [README](../README.md)。
+当前共 **6 个 Plugin、21 个 Skills**：四个第三方聚合 Plugin 收录 14 个 Skills；本仓库自有的 `agent-manager` 与 `personal-dev` 分别包含 2 个和 5 个 Skills。第三方来源、作者与许可证边界见 [README](../README.md)。
 
 ## 日常调用
 
@@ -19,12 +19,14 @@
 
 可用入口以当前会话实际显示的清单为准。Skill 改名发布后，刷新客户端安装副本并开启新会话或重载 Plugin；旧完整调用名不作为别名保留。
 
-**仅手动调用**：`handoff`、`am-config`，以及 `personal-dev` 中的 Skills。其他 Skill 可在任务匹配时由 Agent 选用，也可手动指定；自动选用不保证每次发生，启用 Plugin 不会自行执行任务。
+**仅手动调用**：`handoff`、`agent-manager` 和 `personal-dev` 中的 Skills。其他 Skill 可在任务匹配时由 Agent 选用，也可手动指定；自动选用不保证每次发生，启用 Plugin 不会自行执行任务。
 
 例如在 Codex 中：
 
 ```text
 $common-workflow:handoff 整理当前进度，供新会话继续
+$agent-manager:am-context
+$agent-manager:am-context skills
 $agent-manager:am-config 只检查当前项目与全局规则的冲突，不修改
 $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”改为“只提交、不推送”
 ```
@@ -47,6 +49,7 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 | testing-automation | webapp-testing | 验证本地网页交互，查看截图与控制台日志 | 任务匹配 / 手动 |
 | testing-automation | playwright-cli | 通过 Playwright CLI 操作浏览器并验证交互 | 任务匹配 / 手动 |
 | testing-automation | playwright-best-practices | 指导 Playwright 测试、模拟、认证、调试与 CI | 任务匹配 / 手动 |
+| agent-manager | am-context | 只读速览当前 Harness 的上下文组成、来源和加载证据；支持 all、skills、tools、rules | 仅手动 |
 | agent-manager | am-config | 检查相关冲突后编辑项目指令、安装指定 Skill 或修改受支持的 Plugin 开关；也可只读查冲突 | 仅手动 |
 | personal-dev | dev-delegate | 主模型安排任务，独立编码与验收代理执行，主模型最终整体检查；Codex / Claude Code | 仅手动 |
 | personal-dev | dev-review | 只读审查当前项目或明确范围，独立复核高等级发现并生成报告；Codex / Claude Code | 仅手动 |
@@ -114,9 +117,19 @@ Codex 使用其原生终端能力，Claude Code 使用原生 Bash 工具。诊�
 
 ## Agent 管理工具
 
+### 当前上下文速览
+
+`am-context` 只在用户显式调用后检查当前 Harness 的上下文组成、来源和加载证据，全程只读。Codex 使用 `$agent-manager:am-context`，Claude Code 使用 `/agent-manager:am-context`；不附加模式时以紧凑 JSON 显示简短摘要，可附加单个小写模式 `all`、`skills`、`tools`、`rules` 或 `help`。`help` 和未知模式只返回用法，不扫描项目或调用工具。需要 Python 3.11 或更高版本，不安装依赖；脚本使用内置标准库，只有已安装 `tiktoken` 且编码数据已有本地缓存时才用它估算，否则将 UTF-8 字节数明确标为大小代理，不联网或创建缓存。摘要中的已知来源估算不代表当前会话实际加载量；运行脚本的示例命令：
+
+```sh
+python -B plugins/agent-manager/skills/am-context/scripts/context.py --mode summary --harness codex --project . --active-skill am-context
+```
+
+磁盘存在不代表当前会话已加载；来源或状态缺证据时显示“未知”或“无法获取”，检查不完整时显示“检查不完整”。脚本内部状态及数据字段保持稳定，面向用户的摘要和详情用中文呈现。该入口不创建报告或探测文件，不测试工具连接，也不修改配置。详见 [Skill 正文](../plugins/agent-manager/skills/am-context/SKILL.md)。
+
 ### 编辑项目与冲突检查
 
-`am-config` 是唯一入口，仅支持 Codex 与 Claude Code。编辑前检查本次操作相关的项目/全局规则、Skills、Plugins、重复能力及实际加载边界；默认不展开无关能力。轻微重复、措辞差异或已有明确覆盖关系，用一两句话提醒；实质互斥、会改变其他行为的歧义或权限边界问题，详细给出双方原文、位置、触发条件、影响和最小方案，未明确取舍前停止整批写入。提示简短不构成覆盖、禁用或删除其他能力的授权。
+`am-config` 仅支持 Codex 与 Claude Code。编辑前检查本次操作相关的项目/全局规则、Skills、Plugins、重复能力及实际加载边界；默认不展开无关能力。轻微重复、措辞差异或已有明确覆盖关系，用一两句话提醒；实质互斥、会改变其他行为的歧义或权限边界问题，详细给出双方原文、位置、触发条件、影响和最小方案，未明确取舍前停止整批写入。提示简短不构成覆盖、禁用或删除其他能力的授权。
 
 同一入口支持只读检查，例如 `$agent-manager:am-config 只检查当前项目与全局规则的冲突，不修改`。仅要求查冲突时，全程只读并在报告后结束，不调用配置编辑器，也不创建探测环境、临时或报告文件。用户未限定范围时检查当前项目适用的指令、Skills、Plugins 与相关全局来源；指定范围时按范围检查。来源或加载状态不明标记 `UNKNOWN`，检查不完整标记 `PARTIAL`，不能声称完整无冲突。旧的独立冲突/更新入口已移除。
 

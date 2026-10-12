@@ -1,15 +1,15 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-manager",
-  "version": "0.7.0",
-  "description": "仅手动编辑 Codex / Claude 项目指令、安装指定 Skill 或修改受支持的 Plugin 开关，内置冲突检查并支持只读检查。",
+  "version": "0.8.0",
+  "description": "仅手动检查当前上下文的组成与来源，或编辑 Codex / Claude 项目指令、安装指定 standalone Skill、修改受支持的 Plugin 开关；支持只读冲突检查。",
   "license": "MIT",
   "extensions": {
     "com.openai": {
       "interface": {
         "displayName": "Agent 管理工具",
-        "shortDescription": "项目编辑与只读冲突检查共用一个入口；轻微差异简述，实质冲突详细报告。",
-        "longDescription": "本仓库直接维护的 OWNED Plugin，仅提供 am-config 一个手动入口。\n\nam-config（编辑项目 Agent 指令 / Skill / Plugin）：先检查本次操作相关的冲突与重复，再按明确请求编辑项目 AGENTS.md、复制指定来源的 standalone Skill，或修改受支持的 Codex / Claude 项目 Plugin 开关；也可只读查找当前项目与相关全局来源的冲突，报告后结束。\n\n轻微差异用一两句话提醒；实质冲突详细给出双方原文、位置、影响与最小方案，未明确取舍前停止写入。项目与全局来源按各客户端加载规则判断，全局始终只读。Plugin 项目安装及单个 Skill 开关暂不支持；其他 Harness 为 BLOCKED。\n\n显式调用：Codex 为 $agent-manager:am-config，Claude Code 为 /agent-manager:am-config。加载证据不足时标记 PARTIAL / UNKNOWN / BLOCKED。",
+        "shortDescription": "上下文组成与来源只读速览，以及项目编辑和冲突检查；两个入口均仅手动调用。",
+        "longDescription": "本仓库直接维护的 OWNED Plugin，包含两个仅手动调用入口。\n\nam-context（当前上下文速览）：只读检查 Harness、项目、规则、Skills、Plugins、MCP / Tools 与当前 Context token usage；默认简要摘要，可用 all、skills、tools、rules 展开。仅依据会话与有限只读来源证据，区分来源、作用域、状态和加载证据；无证据时标记 UNKNOWN / UNAVAILABLE，检查不完整时标记 PARTIAL。\n\nam-config（编辑项目 Agent 指令 / Skill / Plugin）：先检查本次操作相关的冲突与重复，再按明确请求编辑项目 AGENTS.md、复制指定来源的 standalone Skill，或修改受支持的 Codex / Claude 项目 Plugin 开关；也可只读查找当前项目与相关全局来源的冲突，报告后结束。轻微差异简述；实质冲突详细报告双方原文、位置、影响与最小方案，未明确取舍前停止写入。项目与全局来源按各客户端加载规则判断，全局始终只读。Plugin 项目安装及单个 Skill 开关暂不支持；其他 Harness 为 BLOCKED。\n\n显式调用：Codex 为 $agent-manager:am-context / $agent-manager:am-config，Claude Code 为 /agent-manager:am-context / /agent-manager:am-config。加载证据不足时标记 PARTIAL / UNKNOWN / BLOCKED。",
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://github.com/vsattce/agent-marketplace",

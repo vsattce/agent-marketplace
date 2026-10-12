@@ -1,6 +1,6 @@
 # Claude Code 来源与加载规则
 
-仅用于已确认的 Claude Code Harness。`/agent-manager:am-config` 为唯一手动入口，供只读冲突检查与编辑预检使用；`disable-model-invocation: true` 保留该限制，`agents/openai.yaml` 只控制 Codex。
+仅用于已确认的 Claude Code Harness。供 `/agent-manager:am-context` 检查上下文来源，以及 `/agent-manager:am-config` 执行只读冲突检查与编辑预检时使用；`disable-model-invocation: true` 保留对应手动调用限制，`agents/openai.yaml` 只控制 Codex。
 
 ## 来源与安装证据
 
