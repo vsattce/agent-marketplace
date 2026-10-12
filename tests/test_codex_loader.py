@@ -230,7 +230,7 @@ class CodexLoaderTests(unittest.TestCase):
             self.assertNotIn(marker, ordinary)
         for name, marker in (
             ("am-config", "# 编辑项目 Agent 指令 / Skill / Plugin"),
-            ("am-context", "# 检查当前上下文组成与来源"),
+            ("am-context", "# 查看当前请求运行时上下文"),
         ):
             with self.subTest(invocation=name):
                 context = self.capture(f"${name} 仅验证 Skill 加载，本轮无需执行任何操作。")

@@ -1,6 +1,6 @@
 interface:
   display_name: "上下文速览"
-  short_description: "只读检查当前会话的组成、来源和加载证据；仅手动调用。"
-  default_prompt: "使用 $agent-manager:am-context 只读查看当前上下文组成、来源和加载证据；不写文件、不修改配置、不测试工具连接。可省略模式查看摘要，或指定 all、skills、tools、rules、help。"
+  short_description: "只读查看最新请求用量与可确认的运行时上下文；仅手动调用。"
+  default_prompt: "使用 $agent-manager:am-context 只读查看当前 Codex thread 最新报告的请求用量；仅按实际请求成员证据说明组成，缺少快照时标为未知，不扫描磁盘。可省略模式查看摘要，或指定 all、skills、tools、rules、help。"
 policy:
   allow_implicit_invocation: false

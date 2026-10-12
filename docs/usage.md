@@ -49,7 +49,7 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 | testing-automation | webapp-testing | 验证本地网页交互，查看截图与控制台日志 | 任务匹配 / 手动 |
 | testing-automation | playwright-cli | 通过 Playwright CLI 操作浏览器并验证交互 | 任务匹配 / 手动 |
 | testing-automation | playwright-best-practices | 指导 Playwright 测试、模拟、认证、调试与 CI | 任务匹配 / 手动 |
-| agent-manager | am-context | 只读速览当前 Harness 的上下文组成、来源和加载证据；支持 all、skills、tools、rules | 仅手动 |
+| agent-manager | am-context | 只读查看最新请求用量与可确认的运行时上下文；支持 all、skills、tools、rules | 仅手动 |
 | agent-manager | am-config | 检查相关冲突后编辑项目指令、安装指定 Skill 或修改受支持的 Plugin 开关；也可只读查冲突 | 仅手动 |
 | personal-dev | dev-delegate | 主模型安排任务，独立编码与验收代理执行，主模型最终整体检查；Codex / Claude Code | 仅手动 |
 | personal-dev | dev-review | 只读审查当前项目或明确范围，独立复核高等级发现并生成报告；Codex / Claude Code | 仅手动 |
@@ -117,15 +117,15 @@ Codex 使用其原生终端能力，Claude Code 使用原生 Bash 工具。诊�
 
 ## Agent 管理工具
 
-### 当前上下文速览
+### 最新请求上下文速览
 
-`am-context` 只在用户显式调用后检查当前 Harness 的上下文组成、来源和加载证据，全程只读。Codex 使用 `$agent-manager:am-context`，Claude Code 使用 `/agent-manager:am-context`；不附加模式时以紧凑 JSON 显示简短摘要，可附加单个小写模式 `all`、`skills`、`tools`、`rules` 或 `help`。`help` 和未知模式只返回用法，不扫描项目或调用工具。需要 Python 3.11 或更高版本，不安装依赖；脚本使用内置标准库，只有已安装 `tiktoken` 且编码数据已有本地缓存时才用它估算，否则将 UTF-8 字节数明确标为大小代理，不联网或创建缓存。摘要中的已知来源估算不代表当前会话实际加载量；运行脚本的示例命令：
+`am-context` 只在用户显式调用后查看当前 Codex thread 最新已报告模型请求的用量，全程只读。Codex 使用 `$agent-manager:am-context`，Claude Code 使用 `/agent-manager:am-context`；不附加模式时显示简短摘要，可附加单个小写模式 `all`、`skills`、`tools`、`rules` 或 `help`。`help` 和未知模式只返回用法，不读取会话或项目文件。Python 3.11 或更高版本即可，脚本只用标准库。脚本只读取精确 thread 且 cwd 匹配的会话日志；当运行时没有公开完整最新请求快照时，组成显示未知，不把历史、截断工具输出、磁盘文件或目录估算冒充请求成员。运行脚本的示例命令：
 
 ```sh
-python -B plugins/agent-manager/skills/am-context/scripts/context.py --mode summary --harness codex --project . --active-skill am-context
+python -B plugins/agent-manager/skills/am-context/scripts/context.py --mode summary --harness codex --project .
 ```
 
-磁盘存在不代表当前会话已加载；来源或状态缺证据时显示“未知”或“无法获取”，检查不完整时显示“检查不完整”。脚本内部状态及数据字段保持稳定，面向用户的摘要和详情用中文呈现。该入口不创建报告或探测文件，不测试工具连接，也不修改配置。详见 [Skill 正文](../plugins/agent-manager/skills/am-context/SKILL.md)。
+Codex 的输入总量来自最新单次 `token_usage_record` 或 `token_count` 实测；输出及累计 total / turn / thread 用量不纳入输入。模型窗口来自同一 `token_count` 明确报告的值，或与该请求 `turn_id` 匹配的唯一 `task_started` 事件；仅据此推导近似占用和剩余。没有可靠请求成员关联时，summary 简述组成未知，`all`、`skills`、`tools`、`rules` 仅解释相应类别为何未知。Claude Code 当前没有可确认的请求用量记录时显示未知。面向用户的状态和说明用中文呈现。该入口不创建报告、缓存或探测文件，不启用 rollout tracing，不扫描磁盘，不测试工具连接，也不修改配置。详见 [Skill 正文](../plugins/agent-manager/skills/am-context/SKILL.md)。
 
 ### 编辑项目与冲突检查
 
