@@ -1,6 +1,6 @@
 # Codex 来源与加载规则
 
-适用于已确认的 Codex Harness。供手动入口 `$agent-manager:am-context` 检查上下文来源，以及 `$agent-manager:am-config` 执行只读冲突检查与编辑预检时使用；此文件不授权修改配置或运行探测。官方规则用于解释，本机会话 / 配置用于判断实际来源；文档无法访问时保留静态检查并标明未知机制。
+适用于已确认的 Codex Harness。供手动入口 `$agent-manager:am-context` 概述本轮已进入模型上下文的可见类别，以及 `$agent-manager:am-config` 执行只读冲突检查与编辑预检时使用；此文件不授权修改配置或运行探测。`am-context` 只分析已注入内容；本机配置由 `am-config` 按当前请求读取和判断。官方规则用于解释加载方式；文档无法访问时保留静态检查并标明未知机制。
 
 ## 冲突查找
 

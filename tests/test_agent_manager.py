@@ -29,7 +29,7 @@ class PackagingTests(unittest.TestCase):
         self.assertEqual(len(entries), 1)
         self.assertEqual(entries[0]["source"]["path"], "./plugins/agent-manager")
         manifest = json.loads((PLUGIN / "plugin.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifest["version"], "0.8.0")
+        self.assertEqual(manifest["version"], "0.8.1")
         self.assertEqual(entries[0]["description"], manifest["description"])
         self.assertEqual(entries[0]["interface"], manifest["extensions"]["com.openai"]["interface"])
         claude = json.loads((PLUGIN / ".claude-plugin/plugin.json").read_text(encoding="utf-8"))

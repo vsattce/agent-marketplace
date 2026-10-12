@@ -1,23 +1,16 @@
 ---
 name: am-context
 disable-model-invocation: true
-description: 当前请求速览：只读查看当前 Codex thread 最新报告的模型请求用量与可确认的运行时上下文；仅在用户明确调用 $agent-manager:am-context 或 /agent-manager:am-context 后生效。
+description: 当前上下文自检：仅根据本轮模型已实际可见的内容，简要估算组成与可确认的请求用量；仅在用户明确调用 $agent-manager:am-context 或 /agent-manager:am-context 后生效。
 ---
 
-# 查看当前请求运行时上下文
+# 当前上下文自检
 
-只有用户明确调用 Codex 的 `$agent-manager:am-context` 或 Claude Code 的 `/agent-manager:am-context` 后才执行。普通聊天、引用命令、讨论名称或仅提到 `/context` 都不触发。只支持已确认的 Codex 与 Claude Code；其他 Harness 用中文提示“未知 / 当前 Harness 不受支持”。
+只有用户明确调用 Codex 的 `$agent-manager:am-context` 或 Claude Code 的 `/agent-manager:am-context` 后才执行。只分析当前模型在本轮已经实际可见的内容；不得为自检调用工具、读取文件、会话、目录或配置，不调用其他 Skill。普通聊天、引用命令或只提到 Skill 名称都不触发。
 
 ## 模式
 
-读取完整调用名之后的附加文本，只去除首尾空白，不从自然语言中提取模式：
-
-- 无附加文本时使用内部模式 `summary`。
-- 用户模式只接受精确的小写单值 `all`、`skills`、`tools`、`rules`、`help`。
-- 显式 `summary`、`default`、大小写变化、多个值或其他文字均用中文提示“未知模式：<输入>”并显示用法，然后结束。
-- `help` 以中文显示用法后结束。
-
-用法：
+只解析完整调用名之后的附加文本，去掉首尾空白后按一个完整值匹配，不从自然语言中提取。无附加文本使用 `summary`；只接受精确小写单值 `all`、`skills`、`tools`、`rules`、`help`。显式 `summary`、大小写变化、多个值或其他内容均显示 `未知模式：<输入>` 和中文用法。保留两种客户端的调用拼写：
 
 ```text
 $agent-manager:am-context
@@ -26,28 +19,32 @@ $agent-manager:am-context all|skills|tools|rules|help
 /agent-manager:am-context all|skills|tools|rules|help
 ```
 
-帮助、无效模式和不支持的 Harness 都不得执行检查脚本。
+`help` 和未知参数只说明用法，不检查上下文。
 
-## 检查
+## 分析与估算
 
-确认本 Skill 的实际来源路径后，通过 `python -B` 调用该来源下的 `scripts/context.py` 一次，并传入解析后的内部模式、已确认的 Harness 名称和当前项目工作目录。脚本路径必须来自当前 Harness 已暴露的 Skill 来源；不要搜索用户目录、Plugin 缓存或其他安装位置来猜路径。若无法确认脚本路径或 Python 不可用，用中文报告“无法获取”并停止。保持当前项目工作目录，不要为调用脚本切换目录。
+按本轮仍可见的材料归类，不输出内部推理，也不复述受保护的 System / Developer 正文、凭据或私有会话正文。类别可合并简述：对话与本轮消息、压缩摘要、System / Harness / Developer 指令类别、项目规则、Skill 发现元数据、实际可见的已加载 Skill 正文、当前暴露的工具 / MCP / Plugin 信息、工具结果及其他运行时信息。只引用本轮上下文里仍可见的内容和工具结果。
 
-脚本只按当前 `CODEX_THREAD_ID` 查找一个会话日志；必须先确认日志元信息中的 thread ID 和 cwd 与当前会话、项目匹配，之后才读取该文件的用量事件。不得读取其他会话正文、私有数据库、项目文件、用户 Skills、Plugin、配置或缓存。不得把 `--active-skill`、调用名称、磁盘文件、缓存路径或工具调用名称当作 Skill 正文已进入请求的证据。
+只有确由 Harness 直接提供且明确属于本轮请求的 input 或 window 数值才标“实测”。上下文中的示例、旧日志、历史轮次、默认窗口、配置值、累计值和用户手写引用都不是本轮实测。没有直接数值就标“未知”，不查找或补证。
 
-只把最新 `token_usage_record.payload.usage.input_tokens` 或 `event_msg.token_count.info.last_token_usage.input_tokens` 作为单次请求的实测输入量。忽略输出、累计 total、turn / thread usage，以及 `info=null` 的 rate-limit `token_count` 事件；同一响应镜像到多个日志事件时不可相加。模型窗口只在对应 `token_count` 事件明确报告，或对应 `token_usage_record` 的 `turn_id` 与唯一 `task_started` 事件匹配时展示；剩余量和百分比仅基于该请求输入量与对应窗口推导，并标为“推导近似”。新压缩记录会使此前用量失效，直至读到压缩之后的新测量。线程、cwd、记录或边界不能确认时显示“未知”，不得从其他会话补证。
+LLM 只能粗略估计当前可见组成，写“估算：约 X 千”或“估算：约 X–Y 千”这类量级，不用 tokenizer、逐 token 计数或精确假数。组成估算不等于真实总输入；未知类别不填零，也不从已知部分反推精确总量或差额。若压缩前原文已不可见，只计可见摘要一次。分类时一段内容只归入一个类别；估算占用时，当前可见的真实重复文本仍计入，不因名称或展示列表去重而抹去。名称、模式、命令和路径保持原样；状态及说明使用中文。
 
-当前 Codex 日志不暴露完整的最新请求输入快照，也没有可靠字段把历史消息、工具结果、规则、Skills、工具定义等逐项绑定到该请求。因此组成一律显示“未知”；不得把累计历史、压缩替换历史、截断的工具输出或静态来源估算冒充请求构成。Claude Code 当前没有可确认的请求用量记录时，同样显示“未知 / 无法获取”。
+只有 input 与 window 都有本轮可靠的实测值时，才可推算占用和剩余，并标“推导近似”。若 input 大于 window 或两者冲突，保留实测值，将推导标“未知”并说明冲突，不自行修正或猜测。
 
-- 默认摘要用少量中文行报告：最新请求输入 token、同请求窗口、可得的推导近似占用 / 剩余，以及“组成无法获取”的原因。若窗口未知，不计算占用或剩余。
-- `all` 展示组成类别及各自无法确认的原因。
-- `skills`、`tools`、`rules` 只展示对应类别当前无法确认的状态，不扫描候选清单。
-
-脚本内部状态转成中文展示：`MEASURED` 为“实测”，`UNKNOWN` 为“未知”，`UNAVAILABLE` 为“无法获取”，`AVAILABLE` 为“可获取”，`PARTIAL` 为“检查不完整”，`DERIVED / APPROX` 为“推导近似”。不直接向用户倾倒英文 JSON。
-
-单独复现摘要检查时，将两个路径占位符替换为已确认的 Skill 来源绝对路径和当前项目工作目录；执行时保持当前项目工作目录不变：
+summary 保持简短，按可用信息填写以下骨架；不适用项可省略：
 
 ```text
-python -B "<已确认 Skill 来源目录>/scripts/context.py" --mode summary --harness codex --project "<当前项目工作目录>"
+本轮请求：input 实测/未知；window 实测/未知（注明来源）
+可见组成：估算/未知（简述类别与来源）
+占用与剩余：推导近似/未知（仅在可推导时填写）
 ```
 
-全程只读，不创建或修改文件、缓存和配置；不启动客户端、不启用 rollout tracing、不测试 MCP 连接，也不调用其他 Skill 或有副作用的工具。
+`all` 按上述类别展开可见内容、估算状态和可确认来源。
+
+## 分类模式
+
+- `skills`：只总结本轮实际可见的 Skill 发现元数据（`name`、`description`、已注入路径）与仍可见的已加载正文。只有正文实际出现在当前可见上下文中才算已加载；磁盘、清单、缓存、调用名或历史摘要中的提及都不能证明正文已加载。同名 Skill 只列一次；真实重复出现的文本仍按其可见占用估算。
+- `rules`：只概述当前可见的项目规则，以及 System / Harness / Developer 指令的类别和大意；不披露受保护正文。
+- `tools`：只总结本轮实际暴露的工具、MCP 和 Plugin 信息。区分可见的名称 / 描述与完整定义；延迟工具的登记或可懒加载说明不代表其 schema 已可见。不得据名称、namespace 或缓存路径推断 Plugin 已安装或启用。
+
+以上模式均不读取或探测其外部来源。任何当前不可见的类别标“未知”，不得用历史快照或其他会话补全。
