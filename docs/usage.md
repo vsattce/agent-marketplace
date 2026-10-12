@@ -6,7 +6,7 @@
 
 当前支持 Codex 与 Claude Code；其他客户端暂不适配或维护。
 
-Codex 与 Claude Code 均有 **6 个 Plugin**；Codex 共 **21 个 Skills**，Claude Code 共 **20 个**。四个第三方聚合 Plugin 收录 14 项；本仓库自有的 `agent-manager` 在 Codex / Claude Code 分别有 2 / 1 项，`personal-dev` 两端各有 5 项。第三方来源、作者与许可证边界见 [README](../README.md)。
+Codex 与 Claude Code 均有 **6 个 Plugin**；Codex 共 **20 个 Skills**，Claude Code 共 **19 个**。四个第三方聚合 Plugin 收录 14 项；本仓库自有的 `agent-manager` 在 Codex / Claude Code 分别有 2 / 1 项，`personal-dev` 两端各有 4 项。第三方来源、作者与许可证边界见 [README](../README.md)。
 
 ## 日常调用
 
@@ -43,18 +43,21 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 | software-dev | web-design-guidelines | 审查 Web 界面、可访问性和交互规范 | 任务匹配 / 手动 |
 | software-dev | vue-best-practices | 指导 Vue、Vue Router、Pinia 和 Vite 开发实践 | 任务匹配 / 手动 |
 | software-dev | fastapi | 指导 FastAPI 应用与 API 开发实践 | 任务匹配 / 手动 |
-| software-dev | java-spring-boot | 指导 REST API、安全认证、数据访问与 Actuator | 任务匹配 / 手动 |
+| software-dev | java-springboot | 指导 Spring Boot 的 REST API、数据访问、安全认证与测试 | 任务匹配 / 手动 |
 | engineering-tools | docker-build-strategies | 指导 Docker 镜像构建与缓存策略 | 任务匹配 / 手动 |
-| testing-automation | webapp-testing | 验证本地网页交互，查看截图与控制台日志 | 任务匹配 / 手动 |
+| engineering-tools | docker-compose-patterns | 指导 Compose 服务依赖、健康检查、卷、网络与开发覆盖配置 | 任务匹配 / 手动 |
 | testing-automation | playwright-cli | 通过 Playwright CLI 操作浏览器并验证交互 | 任务匹配 / 手动 |
 | testing-automation | playwright-best-practices | 指导 Playwright 测试、模拟、认证、调试与 CI | 任务匹配 / 手动 |
 | agent-manager | am-context | 粗略估算本轮当前仍可见的上下文；仅 Codex | 仅手动 |
 | agent-manager | am-config | 检查相关冲突后编辑项目指令、安装指定 Skill 或修改受支持的 Plugin 开关；也可只读查冲突 | 仅手动 |
 | personal-dev | dev-delegate | 主模型安排任务，独立编码与验收代理执行，主模型最终整体检查；Codex / Claude Code | 仅手动 |
 | personal-dev | dev-review | 只读审查当前项目或明确范围，独立复核高等级发现并生成报告；Codex / Claude Code | 仅手动 |
-| personal-dev | dev-yagni | 按当前明确目标完成最小但完整的开发任务；只要求方案时等待确认 | 仅手动 |
 | personal-dev | dev-simplify | 默认只读提出行为等价的精简建议，确认后再编辑 | 仅手动 |
 | personal-dev | dev-runtime-check | 使用当前 Harness 原生 Shell / SSH 对指定远端主机、容器或服务取证；默认只读 | 仅手动 |
+
+`java-spring-boot` 已替换为 GitHub `awesome-copilot` 的 `java-springboot`，调用名同步改为 `$software-dev:java-springboot` / `/software-dev:java-springboot`。
+
+`webapp-testing` 与 `dev-yagni` 已移除：网页操作与验证可使用 `playwright-cli`，长期测试规范参考 `playwright-best-practices`；普通开发直接按项目规则执行。
 
 普通小任务直接在交接消息中处理，不要求创建文档。委派开发只有在需要跨步骤恢复或保留验收证据时才建立 `docs/personal-dev/tasks/<task-id>/` 记录；审查报告、长任务进度、远端诊断保存及临时文件的路径和边界见[任务产物位置](../plugins/personal-dev/references/artifacts.md)。
 
@@ -64,14 +67,11 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 $personal-dev:dev-delegate 实现当前需求，保留现有接口和范围外行为
 $personal-dev:dev-delegate 实现当前需求，编码 medium，验收 xhigh
 $personal-dev:dev-review 检查当前项目的性能、资源、请求、磁盘和长期运行风险
-$personal-dev:dev-yagni 按当前明确需求实现最小完整结果
 $personal-dev:dev-simplify 检查当前 diff，先提出行为等价的精简建议
 $personal-dev:dev-runtime-check 检查用户指定的远端主机和服务；默认只读
 ```
 
 Claude Code 使用 `/personal-dev:dev-delegate` 与 `/personal-dev:dev-review`，未指定时沿用当前子代理模型与思考配置，省略 `model` / `effort`；用户明确指定时按本轮原生工具能力核验，也不要求 Codex 的 Luna、`reasoning_effort` 或 Python 检查器。派发前显示模型策略；实际 ID 或强度无法确认时标 `UNKNOWN`，不冒充已验证值。独立验收、两轮修复上限与主模型终审流程和 Codex 相同。
-
-新入口调用名为 `/personal-dev:dev-yagni` 与 `/personal-dev:dev-simplify`。
 
 主模型按可独立验证的功能或修复点拆任务，同类小改动合并。Codex 当前已确认的低成本编码系列为 Luna：从本轮派发工具实际允许的型号中选择与主模型同一大版本内数字版本最高者，默认 `xhigh` 编码；另一个干净上下文的同型号代理默认 `max`（最强）验收。用户可分别指定本次编码与验收强度，明确指定的值优先，未指定的角色保留默认值，无需再次确认强度；不支持的值会说明原因并中断。最终由当前主模型检查累计改动与跨任务联动。
 
@@ -88,13 +88,11 @@ Codex 需要本轮可靠的主模型身份、当前派发工具允许名单和�
 
 Codex 随 Skill 提供的 Python 标准库检查器只校验主模型根据当前工具整理的模型信息，不连接服务、不验证输入来源、不修改配置，也不是原生派发工具的强制拦截器。使用已有且符合规则的 Agent 工具解释器；缺少环境时中断，不自动安装或切换。费用与 Codex 额度的实际节省需要实测，不按 API 标价推算固定比例。
 
-### 按需实现与精简
-
-`dev-yagni` 与 `dev-simplify` 均只在用户显式调用后运行。调用 `dev-yagni` 时，只要目标清楚且用户没有要求只读讨论或暂缓修改，就由当前模型默认完成最小但完整的实现；用户只要求方案时，先说明方案并等待确认。按真实适用性优先复用项目已有能力和依赖，再考虑标准库或成熟的第三方依赖。需要新依赖时，按目标项目规则说明必要性、替代方案与维护代价；安装或升级依赖遵循当前任务已有授权和项目规则，调用 Skill 本身不增加权限。
+### 精简当前改动
 
 调用 `dev-simplify` 后默认由当前模型只读检查并提出行为等价的精简建议，等待确认后编辑；用户明确要求直接精简时执行。默认范围是当前项目工作区的暂存、未暂存和新增源码；用户只写 Skill 名称时仍先检查该 diff。只有 Git 不可用或没有 diff、且未指定范围时才询问，不猜最近提交或扩大到全项目。Bug 单独报告，修复需另行明确授权。
 
-两个 Skill 只作用于当前调用指向的项目和任务，不跨项目、不修改全局配置；任务结束或用户明确更换任务后不继续生效。`dev-simplify` 默认不自行派生代理或调用其他 Skill；用户明确选择 `dev-delegate` 时，才将已启用约束、已确认建议、授权范围和验证条件交给既有流程，尚待确认的建议仍需等待确认。
+该 Skill 只作用于当前调用指向的项目和任务，不跨项目、不修改全局配置；任务结束或用户明确更换任务后不继续生效。`dev-simplify` 默认不自行派生代理或调用其他 Skill；用户明确选择 `dev-delegate` 时，才将已启用约束、已确认建议、授权范围和验证条件交给既有流程，尚待确认的建议仍需等待确认。
 
 调用 Skill 本身不扩大 Git、依赖或发布权限；这些操作按目标项目规则和当前任务已有授权处理。若组合使用两个 Skill，Codex CLI `0.162.0-alpha.17.2` 实测同一消息内的两个显式入口都会加载；Claude Code `2.1.296` 同一消息只直接加载第一个入口。Claude Code 上请在后续消息中再显式调用另一个 Skill；不要把同消息并列调用当作双入口均已加载的保证。
 

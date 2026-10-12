@@ -72,24 +72,6 @@
       "commit": "a74f281a27dadc02397bc1a174b0f2c97531b6ae",
       "syncedAt": "2026-10-10T04:02:23+00:00"
     },
-    "java-spring-boot": {
-      "name": "java-spring-boot",
-      "repo": "pluginagentmarketplace/custom-plugin-java",
-      "path": "skills/java-spring-boot",
-      "ref": "main",
-      "group": "software-dev",
-      "commit": "51aa571c25436e667618e27b8ac8c1d500d62aa2",
-      "syncedAt": "2026-10-10T04:02:25+00:00"
-    },
-    "webapp-testing": {
-      "name": "webapp-testing",
-      "repo": "anthropics/skills",
-      "path": "skills/webapp-testing",
-      "ref": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
-      "group": "testing-automation",
-      "commit": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
-      "syncedAt": "2026-10-10T04:02:25+00:00"
-    },
     "playwright-cli": {
       "name": "playwright-cli",
       "repo": "microsoft/playwright-cli",
@@ -125,6 +107,24 @@
       "group": "engineering-tools",
       "commit": "f79172733725e2fd236343ee7b963c446ed85d09",
       "syncedAt": "2026-10-11T12:24:57+00:00"
+    },
+    "java-springboot": {
+      "name": "java-springboot",
+      "repo": "github/awesome-copilot",
+      "path": "skills/java-springboot",
+      "ref": "main",
+      "group": "software-dev",
+      "commit": "70ddff7fab9d4d49743d221b56d761cff58048d0",
+      "syncedAt": "2026-10-12T13:35:19+00:00"
+    },
+    "docker-compose-patterns": {
+      "name": "docker-compose-patterns",
+      "repo": "docker/skills",
+      "path": "skills/docker-compose-patterns",
+      "ref": "main",
+      "group": "engineering-tools",
+      "commit": "f79172733725e2fd236343ee7b963c446ed85d09",
+      "syncedAt": "2026-10-12T13:35:44+00:00"
     }
   }
 }

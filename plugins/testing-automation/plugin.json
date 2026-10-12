@@ -1,14 +1,14 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "testing-automation",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "网页测试、Playwright 浏览器自动化与测试最佳实践。",
   "extensions": {
     "com.openai": {
       "interface": {
         "displayName": "测试与自动化",
         "shortDescription": "网页测试、Playwright 浏览器自动化与测试最佳实践。",
-        "longDescription": "网页测试、Playwright 浏览器自动化与测试最佳实践。\n\nwebapp-testing（网页测试）：用 Playwright 验证本地网页交互，查看截图与控制台日志，排查界面问题。触发：主动（网页测试任务）／被动（手动）。\nplaywright-cli（浏览器自动化）：通过 Playwright CLI 打开网页、点击输入、读取快照和验证交互。触发：主动（浏览器操作或网页验证任务）／被动（手动）。\nplaywright-best-practices（Playwright 测试实践）：指导测试编写、定位器、断言、Fixture、模拟、认证、调试与 CI 配置。触发：主动（Playwright 测试任务）／被动（手动）。\n\n主动表示 Codex 可按当前任务自动选用；被动表示手动指定 Skill，例如 $testing-automation:playwright-cli。启用插件不会自行执行任务。",
+        "longDescription": "网页测试、Playwright 浏览器自动化与测试最佳实践。\n\nplaywright-cli（浏览器自动化）：通过 Playwright CLI 打开网页、点击输入、读取快照和验证交互。触发：主动（浏览器操作或网页验证任务）／被动（手动）。\nplaywright-best-practices（Playwright 测试实践）：指导测试编写、定位器、断言、Fixture、模拟、认证、调试与 CI 配置。触发：主动（Playwright 测试任务）／被动（手动）。\n\n主动表示 Codex 可按当前任务自动选用；被动表示手动指定 Skill，例如 $testing-automation:playwright-cli。启用插件不会自行执行任务。",
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://gitee.com/vsattce/agent-marketplace",

@@ -18,7 +18,6 @@ class PersonalDevLoaderTests(codex_loader.CodexLoaderTests):
             {
                 "personal-dev:dev-delegate",
                 "personal-dev:dev-review",
-                "personal-dev:dev-yagni",
                 "personal-dev:dev-simplify",
                 "personal-dev:dev-runtime-check",
             },
@@ -28,7 +27,7 @@ class PersonalDevLoaderTests(codex_loader.CodexLoaderTests):
         self.assertNotIn("# 委派开发与独立验收", ordinary)
         self.assertNotIn("# 增强代码审查", ordinary)
         self.assertNotIn("# 远端运行诊断", ordinary)
-        for marker in ("# 按需实现", "# 精简当前改动"):
+        for marker in ("# 精简当前改动",):
             self.assertNotIn(marker, ordinary)
         explicit = self.capture("$personal-dev:dev-delegate 仅验证加载，本轮不执行正文、不派发模型、不修改文件。")
         self.assertIn("# 委派开发与独立验收", explicit)
@@ -39,7 +38,7 @@ class PersonalDevLoaderTests(codex_loader.CodexLoaderTests):
         self.assertIn("审查模型：", review)
         self.assertIn("复核模型：", review)
 
-        for name, marker in (("dev-yagni", "# 按需实现"), ("dev-simplify", "# 精简当前改动")):
+        for name, marker in (("dev-simplify", "# 精简当前改动"),):
             with self.subTest(invocation=name):
                 loaded = self.capture(
                     f"$personal-dev:{name} 仅验证加载，本轮不执行建议或修改任何文件。"
@@ -47,10 +46,10 @@ class PersonalDevLoaderTests(codex_loader.CodexLoaderTests):
                 self.assertIn(marker, loaded)
 
         combined = self.capture(
-            "$personal-dev:dev-yagni 和 $personal-dev:dev-simplify 仅验证组合加载，不执行建议或修改文件。"
+            "$personal-dev:dev-simplify 和 $personal-dev:dev-runtime-check 仅验证组合加载，不执行建议或修改文件。"
         )
-        self.assertIn("# 按需实现", combined)
         self.assertIn("# 精简当前改动", combined)
+        self.assertIn("# 远端运行诊断", combined)
         runtime_check = self.capture(
             "$personal-dev:dev-runtime-check 仅验证加载，不连接主机、不执行诊断。"
         )

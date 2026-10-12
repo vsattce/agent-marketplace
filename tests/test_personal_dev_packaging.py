@@ -23,10 +23,10 @@ class PersonalDevPackagingTests(unittest.TestCase):
         manifest = json.loads((PLUGIN / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(
             {path.parent.name for path in (PLUGIN / "skills").glob("*/SKILL.md")},
-            {"dev-delegate", "dev-review", "dev-yagni", "dev-simplify", "dev-runtime-check"},
+            {"dev-delegate", "dev-review", "dev-simplify", "dev-runtime-check"},
         )
         self.assertEqual(manifest["name"], entries[0]["name"])
-        self.assertEqual(manifest["version"], "0.6.1")
+        self.assertEqual(manifest["version"], "0.7.0")
         self.assertEqual(manifest["extensions"]["com.openai"]["interface"], entries[0]["interface"])
         self.assertTrue((SKILL / "scripts/select_models.py").is_file())
         self.assertTrue((SKILL / "references/roles.md").is_file())
@@ -42,7 +42,7 @@ class PersonalDevPackagingTests(unittest.TestCase):
         self.assertIs(review_metadata["policy"]["allow_implicit_invocation"], False)
         self.assertIn("$personal-dev:dev-review", review_metadata["interface"]["default_prompt"])
 
-        for skill_name in ("dev-yagni", "dev-simplify"):
+        for skill_name in ("dev-simplify",):
             skill_dir = PLUGIN / "skills" / skill_name
             frontmatter = yaml.safe_load((skill_dir / "SKILL.md").read_text(encoding="utf-8").split("---", 2)[1])
             metadata = yaml.safe_load((skill_dir / "agents/openai.yaml").read_text(encoding="utf-8"))
@@ -72,9 +72,13 @@ class PersonalDevPackagingTests(unittest.TestCase):
         self.assertNotIn("vue", lock)
         self.assertEqual(
             {item["name"] for item in sources["software-dev"]["skills"]},
-            {"frontend-design", "web-design-guidelines", "vue-best-practices", "fastapi", "java-spring-boot"},
+            {"frontend-design", "web-design-guidelines", "vue-best-practices", "fastapi", "java-springboot"},
         )
-        self.assertIn("docker-build-strategies", {item["name"] for item in sources["engineering-tools"]["skills"]})
+        self.assertEqual(
+            {item["name"] for item in sources["engineering-tools"]["skills"]},
+            {"docker-build-strategies", "docker-compose-patterns"},
+        )
+        self.assertNotIn("webapp-testing", lock)
         self.assertEqual(lock["fastapi"]["group"], "software-dev")
         self.assertEqual(lock["docker-build-strategies"]["group"], "engineering-tools")
 

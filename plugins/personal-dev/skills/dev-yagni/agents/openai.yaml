@@ -1,6 +1,0 @@
-interface:
-  display_name: "按需实现"
-  short_description: "仅手动调用；按已确认目标完成最小但完整的开发任务。"
-  default_prompt: "使用 $personal-dev:dev-yagni 按当前已明确目标完成最小但完整的开发任务；若用户只要求方案或目标不明，先说明方案或询问并等待。"
-policy:
-  allow_implicit_invocation: false

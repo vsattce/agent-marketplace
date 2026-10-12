@@ -43,7 +43,7 @@
       "interface": {
         "displayName": "软件开发",
         "shortDescription": "第三方上游开发 Skills 的个人整理，保留原作者署名和许可证。",
-        "longDescription": "本 Plugin 汇集第三方上游项目提供的 Skills，仅为个人使用进行整理。各 Skill 的原作者署名、上游内容和许可证均按原样保留；本仓库不主张这些 Skills 为自有作品。`agent-manager` 和 `personal-dev` 是本仓库另行直接维护的 OWNED Plugin，不属于第三方内容。\n\nfrontend-design（界面设计）：新建或重塑前端页面，指导视觉风格、排版和界面细节。触发：主动（界面设计任务）／被动（手动）。\nweb-design-guidelines（Web 界面审查）：检查 UI 代码、可访问性和交互是否符合 Web 设计规范。触发：主动（界面审查任务）／被动（手动）。\nvue-best-practices（Vue 开发规范）：指导 Vue 组件、Vue Router、Pinia 和 Vite 项目的实现与最佳实践。触发：主动（Vue 开发任务）／被动（手动）。\nfastapi（FastAPI 开发）：指导 FastAPI 应用与 API 的构建。触发：主动（FastAPI 开发任务）／被动（手动）。\njava-spring-boot（Spring Boot 开发）：指导 REST API、安全认证、数据访问及 Actuator 监控的实现。触发：主动（Spring Boot 开发任务）／被动（手动）。\n\n主动表示 Codex 可按当前任务自动选用；被动表示手动指定 Skill，例如 $software-dev:vue-best-practices 或 $software-dev:fastapi。启用插件不会自行执行任务。",
+        "longDescription": "本 Plugin 汇集第三方上游项目提供的 Skills，仅为个人使用进行整理。各 Skill 的原作者署名、上游内容和许可证均按原样保留；本仓库不主张这些 Skills 为自有作品。`agent-manager` 和 `personal-dev` 是本仓库另行直接维护的 OWNED Plugin，不属于第三方内容。\n\nfrontend-design（界面设计）：新建或重塑前端页面，指导视觉风格、排版和界面细节。触发：主动（界面设计任务）／被动（手动）。\nweb-design-guidelines（Web 界面审查）：检查 UI 代码、可访问性和交互是否符合 Web 设计规范。触发：主动（界面审查任务）／被动（手动）。\nvue-best-practices（Vue 开发规范）：指导 Vue 组件、Vue Router、Pinia 和 Vite 项目的实现与最佳实践。触发：主动（Vue 开发任务）／被动（手动）。\nfastapi（FastAPI 开发）：指导 FastAPI 应用与 API 的构建。触发：主动（FastAPI 开发任务）／被动（手动）。\njava-springboot（Spring Boot 开发）：指导 Spring Boot 的 REST API、依赖注入、数据访问、安全认证与测试实践。触发：主动（Spring Boot 开发任务）／被动（手动）。\n\n主动表示 Codex 可按当前任务自动选用；被动表示手动指定 Skill，例如 $software-dev:vue-best-practices 或 $software-dev:fastapi。启用插件不会自行执行任务。",
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://gitee.com/vsattce/agent-marketplace",
@@ -68,7 +68,7 @@
       "interface": {
         "displayName": "测试与自动化",
         "shortDescription": "网页测试、Playwright 浏览器自动化与测试最佳实践。",
-        "longDescription": "网页测试、Playwright 浏览器自动化与测试最佳实践。\n\nwebapp-testing（网页测试）：用 Playwright 验证本地网页交互，查看截图与控制台日志，排查界面问题。触发：主动（网页测试任务）／被动（手动）。\nplaywright-cli（浏览器自动化）：通过 Playwright CLI 打开网页、点击输入、读取快照和验证交互。触发：主动（浏览器操作或网页验证任务）／被动（手动）。\nplaywright-best-practices（Playwright 测试实践）：指导测试编写、定位器、断言、Fixture、模拟、认证、调试与 CI 配置。触发：主动（Playwright 测试任务）／被动（手动）。\n\n主动表示 Codex 可按当前任务自动选用；被动表示手动指定 Skill，例如 $testing-automation:playwright-cli。启用插件不会自行执行任务。",
+        "longDescription": "网页测试、Playwright 浏览器自动化与测试最佳实践。\n\nplaywright-cli（浏览器自动化）：通过 Playwright CLI 打开网页、点击输入、读取快照和验证交互。触发：主动（浏览器操作或网页验证任务）／被动（手动）。\nplaywright-best-practices（Playwright 测试实践）：指导测试编写、定位器、断言、Fixture、模拟、认证、调试与 CI 配置。触发：主动（Playwright 测试任务）／被动（手动）。\n\n主动表示 Codex 可按当前任务自动选用；被动表示手动指定 Skill，例如 $testing-automation:playwright-cli。启用插件不会自行执行任务。",
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://gitee.com/vsattce/agent-marketplace",
@@ -102,7 +102,7 @@
       "interface": {
         "displayName": "个人开发工具",
         "shortDescription": "个人开发、行为等价精简、证据化代码审查与远端运行诊断；仅手动调用。",
-        "longDescription": "支持 Codex 与 Claude Code，共有五个 Skill，全部仅手动调用。\n\ndev-delegate：当前主模型规划；Codex 同代最新可用 Luna 默认 xhigh 编码、max 独立验收，可分别指定强度；Claude Code 沿用当前子代理模型与思考配置，指定值按原生能力核验。主模型最终整体检查。先显示模型策略与已确认的实际值，再直接执行。Codex 型号、代际或必需能力不明确时中断并解释；Claude 默认实际型号未知时如实标 UNKNOWN；最多两轮修复，升级由用户决定。\n\ndev-review：当前主模型先做一次性预检，再委派只读审查；必要时由独立代理复核 P0/P1。默认检查当前项目全部自有代码，即使没有 diff；明确范围则严格限定。代码层审查不要求生产凭证或运行环境，发现按证据和影响分级，结果写入 Markdown 报告。审查与复核型号/强度在派发前展示，必需条件缺失时集中 BLOCKED。\n\ndev-yagni：明确调用且目标清楚、没有只读讨论或暂缓要求时，默认由当前模型执行最小完整实现；只要求方案时等待确认。遵循当前项目规则，不增加未来假设。\n\ndev-simplify：明确调用后默认只读提出行为等价的精简建议并等待确认；用户明确要求执行或确认后再编辑。默认检查当前工作区差异；Git 不可用或无差异且未指定范围时先询问。\n\ndev-runtime-check：仅在用户显式调用后使用当前 Harness 原生 Shell / SSH 工具检查指定主机、容器或服务，默认只读；用户明确要求修复时只处理授权范围内的必要操作，不记录凭据。\n\n显式调用：Codex 为 $personal-dev:dev-delegate / $personal-dev:dev-review / $personal-dev:dev-yagni / $personal-dev:dev-simplify / $personal-dev:dev-runtime-check；Claude 为 /personal-dev:dev-delegate / /personal-dev:dev-review / /personal-dev:dev-yagni / /personal-dev:dev-simplify / /personal-dev:dev-runtime-check。新 Skill 不自动串联或委派；dev-delegate 沿用各自 Harness 的原生委派接口。项目范围、Git、依赖和发布操作均服从目标项目规则及当前任务已有授权；其他 Harness 暂不支持。",
+        "longDescription": "支持 Codex 与 Claude Code，共有四个 Skill，全部仅手动调用。\n\ndev-delegate：当前主模型规划；Codex 同代最新可用 Luna 默认 xhigh 编码、max 独立验收，可分别指定强度；Claude Code 沿用当前子代理模型与思考配置，指定值按原生能力核验。主模型最终整体检查。先显示模型策略与已确认的实际值，再直接执行。Codex 型号、代际或必需能力不明确时中断并解释；Claude 默认实际型号未知时如实标 UNKNOWN；最多两轮修复，升级由用户决定。\n\ndev-review：当前主模型先做一次性预检，再委派只读审查；必要时由独立代理复核 P0/P1。默认检查当前项目全部自有代码，即使没有 diff；明确范围则严格限定。代码层审查不要求生产凭证或运行环境，发现按证据和影响分级，结果写入 Markdown 报告。审查与复核型号/强度在派发前展示，必需条件缺失时集中 BLOCKED。\n\ndev-simplify：明确调用后默认只读提出行为等价的精简建议并等待确认；用户明确要求执行或确认后再编辑。默认检查当前工作区差异；Git 不可用或无差异且未指定范围时先询问。\n\ndev-runtime-check：仅在用户显式调用后使用当前 Harness 原生 Shell / SSH 工具检查指定主机、容器或服务，默认只读；用户明确要求修复时只处理授权范围内的必要操作，不记录凭据。\n\n显式调用：Codex 为 $personal-dev:dev-delegate / $personal-dev:dev-review / $personal-dev:dev-simplify / $personal-dev:dev-runtime-check；Claude 为 /personal-dev:dev-delegate / /personal-dev:dev-review / /personal-dev:dev-simplify / /personal-dev:dev-runtime-check。新 Skill 不自动串联或委派；dev-delegate 沿用各自 Harness 的原生委派接口。项目范围、Git、依赖和发布操作均服从目标项目规则及当前任务已有授权；其他 Harness 暂不支持。",
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://gitee.com/vsattce/agent-marketplace",
@@ -119,7 +119,7 @@
       "interface": {
         "displayName": "工程工具",
         "shortDescription": "跨技术栈的构建、部署、脚本与工程辅助工具。",
-        "longDescription": "跨技术栈的构建、部署、脚本与工程辅助工具。\n\ndocker-build-strategies（Docker 构建策略）：指导镜像构建、构建缓存、多阶段构建与 BuildKit 实践。触发：主动（Docker 构建任务）／被动（手动）。\n\n主动表示 Codex 可按当前任务自动选用；被动表示手动指定 Skill，例如 $engineering-tools:docker-build-strategies。启用插件不会自行执行任务。",
+        "longDescription": "跨技术栈的构建、部署、脚本与工程辅助工具。\n\ndocker-build-strategies（Docker 构建策略）：指导镜像构建、构建缓存、多阶段构建与 BuildKit 实践。触发：主动（Docker 构建任务）／被动（手动）。\ndocker-compose-patterns（Docker Compose 编排）：指导服务定义、健康检查、启动依赖、卷、网络、环境变量与开发覆盖配置。触发：主动（Compose 配置任务）／被动（手动）。\n\n主动表示 Codex 可按当前任务自动选用；被动表示手动指定 Skill，例如 $engineering-tools:docker-build-strategies 或 $engineering-tools:docker-compose-patterns。启用插件不会自行执行任务。",
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://gitee.com/vsattce/agent-marketplace",

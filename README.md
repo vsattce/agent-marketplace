@@ -4,7 +4,7 @@
 
 代码托管使用 [Gitee](https://gitee.com/vsattce/agent-marketplace) 和 [GitHub](https://github.com/vsattce/agent-marketplace) 双远端：`origin` 为 Gitee（`git@gitee.com:vsattce/agent-marketplace.git`），`github` 为 GitHub（`git@github.com:vsattce/agent-marketplace.git`）。提交后优先推送 Gitee，再推送 GitHub；GitHub 推送失败不阻塞任务。提交、推送与拉取约定见 [AGENTS.md](AGENTS.md#仓库维护规则)。
 
-Codex 与 Claude Code 均包含 **6 个 Plugin**；Codex 有 **21 个 Skills**，Claude Code 有 **20 个**。四个第三方聚合 Plugin 共 14 项；本仓库自有的 `agent-manager` 在 Codex / Claude Code 分别有 2 / 1 项，`personal-dev` 两端各有 5 项。
+Codex 与 Claude Code 均包含 **6 个 Plugin**；Codex 有 **20 个 Skills**，Claude Code 有 **19 个**。四个第三方聚合 Plugin 共 14 项；本仓库自有的 `agent-manager` 在 Codex / Claude Code 分别有 2 / 1 项，`personal-dev` 两端各有 4 项。
 
 `software-dev` 收录第三方上游项目的 Skills，仅供个人使用与整理；原作者署名、上游内容及许可证均按原样保留。该说明只适用于 `software-dev`；`agent-manager` 和 `personal-dev` 是本仓库自有并直接维护的 Plugin。
 
@@ -13,11 +13,11 @@ Codex 与 Claude Code 均包含 **6 个 Plugin**；Codex 有 **21 个 Skills**�
 | Plugin | 用途 | Skills |
 | --- | --- | --- |
 | `common-workflow` | 通用工作流 | handoff、diagnosing-bugs、research、writing-for-agents、find-skills |
-| `software-dev` | 软件开发 | frontend-design、web-design-guidelines、vue-best-practices、fastapi、java-spring-boot |
-| `engineering-tools` | 跨技术栈工程工具 | docker-build-strategies |
-| `testing-automation` | 测试与自动化 | webapp-testing、playwright-cli、playwright-best-practices |
+| `software-dev` | 软件开发 | frontend-design、web-design-guidelines、vue-best-practices、fastapi、java-springboot |
+| `engineering-tools` | 跨技术栈工程工具 | docker-build-strategies、docker-compose-patterns |
+| `testing-automation` | 测试与自动化 | playwright-cli、playwright-best-practices |
 | `agent-manager` | Agent 管理工具 | am-config；am-context（仅 Codex） |
-| `personal-dev` | 个人开发工具，Codex / Claude Code | dev-delegate、dev-review、dev-yagni、dev-simplify、dev-runtime-check |
+| `personal-dev` | 个人开发工具，Codex / Claude Code | dev-delegate、dev-review、dev-simplify、dev-runtime-check |
 
 Codex / Claude Code 按分类安装，完整身份为 `<plugin>@agent-marketplace`。
 
@@ -38,12 +38,12 @@ Codex / Claude Code 按分类安装，完整身份为 `<plugin>@agent-marketplac
 | 使用 Vue 开发规范 | `$software-dev:vue-best-practices` | `/software-dev:vue-best-practices` |
 | 使用 FastAPI Skill | `$software-dev:fastapi` | `/software-dev:fastapi` |
 | 使用 Docker 构建策略 | `$engineering-tools:docker-build-strategies` | `/engineering-tools:docker-build-strategies` |
+| 编排 Docker Compose 服务 | `$engineering-tools:docker-compose-patterns` | `/engineering-tools:docker-compose-patterns` |
 | 交接当前任务 | `$common-workflow:handoff` | `/common-workflow:handoff` |
 | 估算本轮可见上下文（仅 Codex） | `$agent-manager:am-context` | — |
 | 编辑项目配置 / 只读查冲突 | `$agent-manager:am-config` | `/agent-manager:am-config` |
 | 委派开发与独立验收 | `$personal-dev:dev-delegate` | `/personal-dev:dev-delegate` |
 | 增强代码审查 | `$personal-dev:dev-review` | `/personal-dev:dev-review` |
-| 按需实现 | `$personal-dev:dev-yagni` | `/personal-dev:dev-yagni` |
 | 精简当前改动 | `$personal-dev:dev-simplify` | `/personal-dev:dev-simplify` |
 | 诊断远端运行问题 | `$personal-dev:dev-runtime-check` | `/personal-dev:dev-runtime-check` |
 
@@ -55,7 +55,7 @@ Codex / Claude Code 按分类安装，完整身份为 `<plugin>@agent-marketplac
 
 `dev-runtime-check` 仅在显式调用后通过当前 Harness 的原生 Shell / SSH 工具检查指定的主机、容器或服务；默认只读并在聊天中汇报，用户明确要求修复时仅处理授权范围内的操作。只有用户要求保存结果时才写入 `docs/personal-dev/runtime/<diagnostic-id>/report.md`。报告以目标证据、采样间隔和单位为准，不记录凭据。使用与边界见[使用手册](docs/usage.md#远端运行诊断)。
 
-`dev-yagni` 明确调用且目标清楚、没有只读或暂缓要求时默认由当前模型实现最小完整结果；只要求方案时等待确认。`dev-simplify` 默认先检查当前工作区差异，只读提出行为等价的精简建议；确认或明确要求执行后才修改。两者限当前项目与任务，依照目标项目规则和既有授权处理，详见[使用手册](docs/usage.md#按需实现与精简)。
+`dev-simplify` 默认先检查当前工作区差异，只读提出行为等价的精简建议；确认或明确要求执行后才修改。该 Skill 限当前项目与任务，依照目标项目规则和既有授权处理，详见[使用手册](docs/usage.md#精简当前改动)。
 
 `agent-manager` 有两个 Codex 手动入口和一个 Claude Code 手动入口。Codex 的 `am-context` 只估算当前对话已可见内容，不读取外部来源；两端的 `am-config` 处理明确的项目 `AGENTS.md` 编辑、指定来源的 standalone Skill 安装和已支持的 Plugin 开关，也可只读查找冲突。编辑前检查本次操作相关的冲突、重复与加载边界；轻微差异简述，实质冲突详细报告，未明确取舍前停止写入。Plugin 项目安装及单个 Skill 开关暂不支持，其他 Harness 会拒绝，见[使用手册](docs/usage.md#agent-管理工具)。
 

@@ -123,16 +123,20 @@ class ClaudeLoaderTests(unittest.TestCase):
             for skill_entry in (ROOT / entry["source"] / "skills").glob("*/SKILL.md"):
                 self.assertIn(f'{entry["name"]}:{skill_entry.parent.name}', commands)
         self.assertNotIn("software-dev:vue", commands)
+        for obsolete in ("software-dev:java-spring-boot", "testing-automation:webapp-testing", "personal-dev:dev-yagni"):
+            self.assertNotIn(obsolete, commands)
         self.assertEqual(
             {name for name in commands if name.startswith("software-dev:")},
             {f"software-dev:{name}" for name in (
-                "frontend-design", "web-design-guidelines", "vue-best-practices", "fastapi", "java-spring-boot",
+                "frontend-design", "web-design-guidelines", "vue-best-practices", "fastapi", "java-springboot",
             )},
         )
         self.assertIn("software-dev:vue-best-practices", context)
         for plugin, skill in (("software-dev", "fastapi"),
+                              ("software-dev", "java-springboot"),
                               ("software-dev", "vue-best-practices"),
-                              ("engineering-tools", "docker-build-strategies")):
+                              ("engineering-tools", "docker-build-strategies"),
+                              ("engineering-tools", "docker-compose-patterns")):
             with self.subTest(invocation=f"{plugin}:{skill}"):
                 _, explicit = self.context(
                     f"/{plugin}:{skill} 仅验证完整 Skill 正文已加载，不执行正文、不修改文件。"
@@ -142,7 +146,7 @@ class ClaudeLoaderTests(unittest.TestCase):
                          {"agent-manager:am-config"})
         for name in ("common-workflow:handoff", "agent-manager:am-config",
                      "personal-dev:dev-delegate", "personal-dev:dev-review",
-                     "personal-dev:dev-yagni", "personal-dev:dev-simplify",
+                     "personal-dev:dev-simplify",
                      "personal-dev:dev-runtime-check"):
             self.assertNotIn(name, context)
 
@@ -160,7 +164,7 @@ class ClaudeLoaderTests(unittest.TestCase):
     def test_personal_dev_explicit_invocation_and_native_agent_schema(self):
         self.install("personal-dev")
         init, context = self.context(tools="Agent,Skill")
-        for name in ("dev-delegate", "dev-review", "dev-yagni", "dev-simplify", "dev-runtime-check"):
+        for name in ("dev-delegate", "dev-review", "dev-simplify", "dev-runtime-check"):
             self.assertIn(f"personal-dev:{name}", init["slash_commands"])
             self.assertNotIn(f"personal-dev:{name}", context)
         agent = next(tool for payload in json.loads(context) for tool in payload.get("tools", [])
@@ -174,7 +178,7 @@ class ClaudeLoaderTests(unittest.TestCase):
             self.assertIn(marker, explicit)
             self.assertIn("Claude adapter", explicit)
 
-        for name, marker in (("dev-yagni", "# 按需实现"), ("dev-simplify", "# 精简当前改动")):
+        for name, marker in (("dev-simplify", "# 精简当前改动"),):
             _, explicit = self.context(f"/personal-dev:{name} 仅验证加载，不执行建议、不修改文件。")
             self.assertIn(marker, explicit)
 
@@ -184,13 +188,13 @@ class ClaudeLoaderTests(unittest.TestCase):
         self.assertIn("# 远端运行诊断", runtime_check)
 
         _, combined = self.context(
-            "/personal-dev:dev-yagni 与 /personal-dev:dev-simplify 仅验证组合加载，不执行建议、不修改文件。"
+            "/personal-dev:dev-simplify 与 /personal-dev:dev-runtime-check 仅验证组合加载，不执行建议、不修改文件。"
         )
-        self.assertIn("# 按需实现", combined)
+        self.assertIn("# 精简当前改动", combined)
         print(
             "Claude combined slash commands loaded:",
-            f"dev-yagni={'# 按需实现' in combined},",
-            f"dev-simplify={'# 精简当前改动' in combined}",
+            f"dev-simplify={'# 精简当前改动' in combined},",
+            f"dev-runtime-check={'# 远端运行诊断' in combined}",
             flush=True,
         )
 

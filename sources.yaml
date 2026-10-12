@@ -43,9 +43,9 @@ groups:
         repo: fastapi/fastapi
         path: fastapi/.agents/skills/fastapi
         ref: master
-      - name: java-spring-boot
-        repo: pluginagentmarketplace/custom-plugin-java
-        path: skills/java-spring-boot
+      - name: java-springboot
+        repo: github/awesome-copilot
+        path: skills/java-springboot
         ref: main
 
   engineering-tools:
@@ -55,14 +55,14 @@ groups:
         repo: docker/skills
         path: skills/docker-build-strategies
         ref: main
+      - name: docker-compose-patterns
+        repo: docker/skills
+        path: skills/docker-compose-patterns
+        ref: main
 
   testing-automation:
     displayName: 测试与自动化
     skills:
-      - name: webapp-testing
-        repo: anthropics/skills
-        path: skills/webapp-testing
-        ref: dbd4588f9e1033efb41dad4bef2f7947c8993d44
       - name: playwright-cli
         repo: microsoft/playwright-cli
         path: skills/playwright-cli
