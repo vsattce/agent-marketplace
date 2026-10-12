@@ -6,7 +6,7 @@
 
 当前支持 Codex 与 Claude Code；其他客户端暂不适配或维护。
 
-当前共 **6 个 Plugin、21 个 Skills**：四个第三方聚合 Plugin 收录 14 个 Skills；本仓库自有的 `agent-manager` 与 `personal-dev` 分别包含 2 个和 5 个 Skills。第三方来源、作者与许可证边界见 [README](../README.md)。
+Codex 与 Claude Code 均有 **6 个 Plugin**；Codex 共 **21 个 Skills**，Claude Code 共 **20 个**。四个第三方聚合 Plugin 收录 14 项；本仓库自有的 `agent-manager` 在 Codex / Claude Code 分别有 2 / 1 项，`personal-dev` 两端各有 5 项。第三方来源、作者与许可证边界见 [README](../README.md)。
 
 ## 日常调用
 
@@ -26,7 +26,6 @@
 ```text
 $common-workflow:handoff 整理当前进度，供新会话继续
 $agent-manager:am-context
-$agent-manager:am-context skills
 $agent-manager:am-config 只检查当前项目与全局规则的冲突，不修改
 $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”改为“只提交、不推送”
 ```
@@ -49,7 +48,7 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 | testing-automation | webapp-testing | 验证本地网页交互，查看截图与控制台日志 | 任务匹配 / 手动 |
 | testing-automation | playwright-cli | 通过 Playwright CLI 操作浏览器并验证交互 | 任务匹配 / 手动 |
 | testing-automation | playwright-best-practices | 指导 Playwright 测试、模拟、认证、调试与 CI | 任务匹配 / 手动 |
-| agent-manager | am-context | 自检本轮模型已见上下文；支持 all、skills、tools、rules、help | 仅手动 |
+| agent-manager | am-context | 粗略估算本轮当前仍可见的上下文；仅 Codex | 仅手动 |
 | agent-manager | am-config | 检查相关冲突后编辑项目指令、安装指定 Skill 或修改受支持的 Plugin 开关；也可只读查冲突 | 仅手动 |
 | personal-dev | dev-delegate | 主模型安排任务，独立编码与验收代理执行，主模型最终整体检查；Codex / Claude Code | 仅手动 |
 | personal-dev | dev-review | 只读审查当前项目或明确范围，独立复核高等级发现并生成报告；Codex / Claude Code | 仅手动 |
@@ -117,11 +116,9 @@ Codex 使用其原生终端能力，Claude Code 使用原生 Bash 工具。诊�
 
 ## Agent 管理工具
 
-### 本轮上下文自检
+### 本轮上下文估算（Codex）
 
-`am-context` 只在用户显式调用后分析当前模型本轮已经实际看见的内容。Codex 使用 `$agent-manager:am-context`，Claude Code 使用 `/agent-manager:am-context`；不附加模式时显示简短摘要，可附加一个精确小写模式 `all`、`skills`、`tools`、`rules` 或 `help`。显式 `summary`、大小写变化、多个值或其他参数会显示中文用法和未知参数；不会从自然语言中提取模式。自检不主动调用工具、不读取文件、会话、目录或配置，也不调用其他 Skill。
-
-摘要仅按当前仍可见的类别说明来源并给出粗估。实际加载的 Skill 正文、当前工具 / MCP / Plugin 信息和本轮工具结果只按当前注入内容判断；提及名称、磁盘清单、缓存或历史摘要不能证明正文已加载或 Plugin 已启用。压缩前原文不可见时只计当前摘要。只有 Harness 直接提供且明确属于本轮请求的 input / window 才标“实测”；没有此类数据就标“未知”。组成量级仅可由模型粗估，不是实际总输入，不填假零，也不以不完整组成反推总量。只有 input 和 window 均可靠时才标“推导近似”占用和剩余；冲突时推导保持未知。所有状态和说明用中文呈现，详见 [Skill 正文](../plugins/agent-manager/skills/am-context/SKILL.md)。
+`am-context` 只在用户显式调用 `$agent-manager:am-context` 后运行，不接受参数、模式或子命令。它按当前对话仍可见的内容分类并给出宽松、取整的区间；不调用工具、Python 或 tokenizer，不读取文件、会话、项目规则或配置。压缩前不可见的内容不计入，只估算当前摘要；隐藏指令只估算类别，不复述。分项区间上下界分别相加得到可见内容合计，不能当作真实总输入、窗口占用或剩余容量。Claude Code 不发现此入口。
 
 ### 编辑项目与冲突检查
 

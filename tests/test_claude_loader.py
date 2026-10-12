@@ -139,7 +139,7 @@ class ClaudeLoaderTests(unittest.TestCase):
                 )
                 self.assertTrue(contains_text(json.loads(explicit), skill_body(plugin, skill)))
         self.assertEqual({name for name in commands if name.startswith("agent-manager:")},
-                         {"agent-manager:am-config", "agent-manager:am-context"})
+                         {"agent-manager:am-config"})
         for name in ("common-workflow:handoff", "agent-manager:am-config",
                      "personal-dev:dev-delegate", "personal-dev:dev-review",
                      "personal-dev:dev-yagni", "personal-dev:dev-simplify",
@@ -150,19 +150,12 @@ class ClaudeLoaderTests(unittest.TestCase):
         self.install("agent-manager")
         init, context = self.context()
         self.assertEqual({name for name in init["slash_commands"] if name.startswith("agent-manager:")},
-                         {"agent-manager:am-config", "agent-manager:am-context"})
+                         {"agent-manager:am-config"})
         self.assertNotIn("agent-manager:am-config", context)
-        self.assertNotIn("agent-manager:am-context", context)
         _, explicit = self.context(
             "/agent-manager:am-config 仅验证入口加载，不检查冲突、不执行编辑、不修改文件。"
         )
         self.assertTrue(contains_text(json.loads(explicit), skill_body("agent-manager", "am-config")))
-        _, context_explicit = self.context(
-            "/agent-manager:am-context 仅验证入口加载，不扫描、不调用工具、不修改文件。"
-        )
-        self.assertTrue(contains_text(
-            json.loads(context_explicit), skill_body("agent-manager", "am-context")
-        ))
 
     def test_personal_dev_explicit_invocation_and_native_agent_schema(self):
         self.install("personal-dev")

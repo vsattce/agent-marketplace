@@ -51,9 +51,9 @@ agent-marketplace/
 └── README.md                      # 概览与文档入口
 ```
 
-六个 Plugin 共享 `skills/<name>/`，提供 Codex `plugin.json` 与 Claude Code `.claude-plugin/plugin.json`。四个第三方分类另存 `licenses/<name>/`；两个 Marketplace 均指向 `./plugins/<plugin>`。当前共 20 个 Skills：第三方四类共 14 个，`agent-manager` 与 `personal-dev` 是本仓库自有 Plugin，分别包含 1 个和 5 个。`personal-dev` 中的 `dev-delegate` / `dev-review` 使用 `references/codex.md` / `references/claude.md` 适配原生委派工具。
+六个 Plugin 都提供 Claude Code `.claude-plugin/plugin.json`；Codex 侧除 `agent-manager` 外使用便携 `plugin.json`，该 Plugin 使用原生 `.codex-plugin/plugin.json` 并显式发现 `skills/` 与 `codex-skills/`。`am-context` 放在后者，因此仅 Codex 可发现；`am-config` 仍共享。四个第三方分类另存 `licenses/<name>/`，两个 Marketplace 均指向 `./plugins/<plugin>`。当前 Codex 有 21 个 Skills、Claude Code 有 20 个：第三方四类共 14 个，`agent-manager` 在两端分别有 2 / 1 个，`personal-dev` 两端各有 5 个。`personal-dev` 中的 `dev-delegate` / `dev-review` 使用 `references/codex.md` / `references/claude.md` 适配原生委派工具。
 
-Codex 使用便携 manifest，中文信息位于 `extensions.com.openai.interface`。Claude manifest / catalog 有意不写 version，GitHub 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
+Codex 便携 manifest 的中文信息位于 `extensions.com.openai.interface`；原生 Codex manifest 的中文信息使用根级 `interface`。Claude manifest / catalog 有意不写 version，GitHub 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
 
 ## 第三方来源与维护边界
 
@@ -81,7 +81,7 @@ lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，�
 
 ### 使用项目 Skill
 
-在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入六个 Plugin 的 20 个 Skills。
+在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入两个客户端 Marketplace 的 21 / 20 个 Skills。
 
 Agent 核对目标、Git 状态与运行时后，按 sources 的既定来源 / ref 同步，保留用户改动，检查差异并运行相关验证。按 [AGENTS.md](../AGENTS.md) 默认提交、推送当前分支；当前任务明确不提交或不推送时遵从该要求。环境、同步或验证失败时停止，零差异不制造提交。
 
@@ -127,16 +127,17 @@ git diff --check
 
 ## 自有 Agent 管理工具
 
-源码在 [plugins/agent-manager](../plugins/agent-manager)，仅保留 `am-config` 一个手动入口，合并编辑预检和只读冲突检查。用户行为与支持范围见[使用手册](usage.md#agent-管理工具)，这里保留维护入口：
+源码在 [plugins/agent-manager](../plugins/agent-manager)。Codex 有 `am-context` 与 `am-config` 两个手动入口，Claude Code 仅发现 `am-config`；用户行为与支持范围见[使用手册](usage.md#agent-管理工具)，这里保留维护入口：
 
 | 内容 | 入口 |
 | --- | --- |
+| 当前对话可见上下文的粗略估算（仅 Codex） | [am-context](../plugins/agent-manager/codex-skills/am-context/SKILL.md) |
 | 项目编辑、只读检查与开关编辑器 | [am-config](../plugins/agent-manager/skills/am-config/SKILL.md) |
 | 冲突识别、检查范围与分级输出 | [conflicts.md](../plugins/agent-manager/skills/am-config/references/conflicts.md) |
 | Codex / Claude 来源与加载机制 | [Codex](../plugins/agent-manager/references/codex.md)、[Claude](../plugins/agent-manager/references/claude.md) |
 | 项目文件预检、开关能力与输入契约 | [project-edits.md](../plugins/agent-manager/skills/am-config/references/project-edits.md)、[Codex](../plugins/agent-manager/skills/am-config/references/codex-support.md)、[Claude](../plugins/agent-manager/skills/am-config/references/claude-support.md)、[editor-input.md](../plugins/agent-manager/skills/am-config/references/editor-input.md) |
 
-自有 Skill 命名规则：`personal-dev` 采用 `dev-{action}`，`agent-manager` 采用 `am-{action}`。插件身份和 `skills/` 发现目录保持现有结构；重命名后的入口使用新完整调用名。
+自有 Skill 命名规则：`personal-dev` 采用 `dev-{action}`，`agent-manager` 采用 `am-{action}`。`am-config` 保持共享 `skills/` 目录；仅 Codex 的 `am-context` 使用 `codex-skills/`。入口使用完整调用名。
 
 Plugin 开关编辑器仅在 Windows 运行；其他平台在配置读写前返回 `BLOCKED / PLUGIN SWITCH CONFIGURATION REQUIRES WINDOWS`，该限制不影响 AGENTS.md 与 standalone Skill 操作。Codex 分支使用 tomlkit 0.13.3+（<1）保留注释与排版；Claude 分支使用标准库增量替换 JSON 值，拒绝重复键和损坏配置。编辑器只处理 Plugin 开关；AGENTS.md 与 standalone Skill 文件操作由 Skill 层完成，并在混合请求写入前统一预检。现有开关事务保留无关字节，具备幂等、锁、原子替换、二次读取和失败恢复；Windows 路径、symlink、junction、hardlink 与非普通目标文件的拒绝行为有测试覆盖。
 

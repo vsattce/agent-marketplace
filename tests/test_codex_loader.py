@@ -18,8 +18,8 @@ from temp_paths import temporary_test_directory
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def skill_body(plugin: str, skill: str) -> str:
-    text = (ROOT / "plugins" / plugin / "skills" / skill / "SKILL.md").read_text(encoding="utf-8")
+def skill_body(plugin: str, skill: str, directory: str = "skills") -> str:
+    text = (ROOT / "plugins" / plugin / directory / skill / "SKILL.md").read_text(encoding="utf-8")
     parts = text.split("---", 2)
     if len(parts) != 3:
         raise AssertionError(f"Invalid Skill frontmatter: {plugin}:{skill}")
@@ -224,20 +224,33 @@ class CodexLoaderTests(unittest.TestCase):
         ordinary = self.capture("请讨论当前项目的 Plugin / Skill 冲突、版本更新和项目开关配置，不调用任何 Skill。")
         for marker in (
             "# 编辑项目 Agent 指令 / Skill / Plugin",
-            "# 检查当前上下文组成与来源",
+            "# 本轮上下文估算",
             "Only use when explicitly invoked by the user.",
         ):
             self.assertNotIn(marker, ordinary)
         for name, marker in (
             ("am-config", "# 编辑项目 Agent 指令 / Skill / Plugin"),
-            ("am-context", "# 当前上下文自检"),
+            ("am-context", "# 本轮上下文估算"),
         ):
-            with self.subTest(invocation=name):
-                context = self.capture(f"${name} 仅验证 Skill 加载，本轮无需执行任何操作。")
-                print(f"\nBare ${name} injected: {marker in context}", flush=True)
+            if name == "am-config":
+                with self.subTest(invocation=name):
+                    context = self.capture(f"${name} 仅验证 Skill 加载，本轮无需执行任何操作。")
+                    print(f"\nBare ${name} injected: {marker in context}", flush=True)
             with self.subTest(invocation=f"agent-manager:{name}"):
                 context = self.capture(f"$agent-manager:{name} 仅验证 Skill 加载，本轮无需执行任何操作。")
                 self.assertTrue(marker in context, "Namespaced explicit invocation did not inject Skill instructions")
+                if name == "am-context":
+                    request = json.loads(context)
+                    source = ROOT / "plugins/agent-manager/codex-skills/am-context/SKILL.md"
+                    source_text = source.read_text(encoding="utf-8")
+                    captured = captured_skill_source(request, "agent-manager:am-context")
+                    self.assertIsNotNone(captured, "Codex did not inject the am-context Skill body")
+                    captured_path, injected_source = captured
+                    self.assertTrue(source_text.startswith(injected_source),
+                                    f"Codex injected content is not a prefix of am-context: {captured_path}")
+                    body = skill_body("agent-manager", name, "codex-skills")
+                    body_offset = injected_source.find(body[:40])
+                    self.assertGreaterEqual(body_offset, 0, "Codex explicit invocation omitted the am-context body")
 
     def test_new_third_party_plugins_discover_and_inject_skills(self):
         run(["codex", "plugin", "add", "software-dev@agent-marketplace", "--json"], self.env, self.project)

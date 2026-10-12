@@ -1,6 +1,0 @@
-interface:
-  display_name: "上下文自检"
-  short_description: "只分析本轮模型已见上下文，粗略估算组成与可确认用量；不读取外部来源，仅手动调用。"
-  default_prompt: "$agent-manager:am-context"
-policy:
-  allow_implicit_invocation: false

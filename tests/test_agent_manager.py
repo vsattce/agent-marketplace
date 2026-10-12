@@ -28,17 +28,19 @@ class PackagingTests(unittest.TestCase):
         entries = [entry for entry in catalog["plugins"] if entry["name"] == "agent-manager"]
         self.assertEqual(len(entries), 1)
         self.assertEqual(entries[0]["source"]["path"], "./plugins/agent-manager")
-        manifest = json.loads((PLUGIN / "plugin.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifest["version"], "0.8.1")
+        manifest = json.loads((PLUGIN / ".codex-plugin/plugin.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["version"], "0.8.2")
+        self.assertFalse((PLUGIN / "plugin.json").exists())
+        self.assertEqual(manifest["skills"], ["./skills/", "./codex-skills/"])
         self.assertEqual(entries[0]["description"], manifest["description"])
-        self.assertEqual(entries[0]["interface"], manifest["extensions"]["com.openai"]["interface"])
+        self.assertEqual(entries[0]["interface"], manifest["interface"])
+        self.assertEqual(entries[0]["skills"], manifest["skills"])
         claude = json.loads((PLUGIN / ".claude-plugin/plugin.json").read_text(encoding="utf-8"))
         claude_catalog = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
         claude_entry = next(entry for entry in claude_catalog["plugins"] if entry["name"] == "agent-manager")
-        self.assertEqual(claude["description"], manifest["description"])
-        self.assertEqual(claude_entry["description"], manifest["description"])
+        self.assertEqual(claude_entry["description"], claude["description"])
         skill_entries = list((PLUGIN / "skills").glob("*/SKILL.md"))
-        self.assertEqual({skill.parent.name for skill in skill_entries}, {"am-config", "am-context"})
+        self.assertEqual({skill.parent.name for skill in skill_entries}, {"am-config"})
         for entry in skill_entries:
             skill_name = entry.parent.name
             policy = yaml.safe_load((entry.parent / "agents/openai.yaml").read_text(encoding="utf-8"))
@@ -48,6 +50,15 @@ class PackagingTests(unittest.TestCase):
             self.assertEqual(frontmatter["name"], skill_name)
             self.assertIs(frontmatter["disable-model-invocation"], True)
             self.assertIn(f"$agent-manager:{skill_name}", policy["interface"]["default_prompt"])
+        codex_entries = list((PLUGIN / "codex-skills").glob("*/SKILL.md"))
+        self.assertEqual({skill.parent.name for skill in codex_entries}, {"am-context"})
+        policy = yaml.safe_load((PLUGIN / "codex-skills/am-context/agents/openai.yaml").read_text(encoding="utf-8"))
+        self.assertIs(policy["policy"]["allow_implicit_invocation"], False)
+        context_text = (PLUGIN / "codex-skills/am-context/SKILL.md").read_text(encoding="utf-8")
+        context_frontmatter = yaml.safe_load(context_text.split("---", 2)[1])
+        self.assertEqual(context_frontmatter["name"], "am-context")
+        self.assertNotIn("disable-model-invocation", context_frontmatter)
+        self.assertIn("$agent-manager:am-context", policy["interface"]["default_prompt"])
         sources = yaml.safe_load((ROOT / "sources.yaml").read_text(encoding="utf-8"))
         self.assertNotIn("agent-manager", sources["groups"])
         lock = json.loads((ROOT / "sources.lock.json").read_text(encoding="utf-8"))
@@ -65,6 +76,7 @@ class PackagingTests(unittest.TestCase):
             "common-workflow", "software-dev", "engineering-tools", "testing-automation", "agent-manager", "personal-dev",
         })
         count = 0
+        codex_count = 0
         for entry in claude["plugins"]:
             counterpart = next(item for item in codex["plugins"] if item["name"] == entry["name"])
             self.assertEqual(entry["source"], counterpart["source"]["path"])
@@ -75,7 +87,10 @@ class PackagingTests(unittest.TestCase):
             self.assertNotIn("version", entry)
             self.assertNotIn("skills", manifest)  # Default directory discovery, one shared copy.
             count += len(list((root / "skills").glob("*/SKILL.md")))
-        self.assertEqual(count, 21)
+            codex_count += len(list((root / "skills").glob("*/SKILL.md")))
+            codex_count += len(list((root / "codex-skills").glob("*/SKILL.md")))
+        self.assertEqual(count, 20)
+        self.assertEqual(codex_count, 21)
         software = next(entry for entry in claude["plugins"] if entry["name"] == "software-dev")
         software_manifest = json.loads((ROOT / "plugins/software-dev/.claude-plugin/plugin.json").read_text(encoding="utf-8"))
         codex_software = next(entry for entry in codex["plugins"] if entry["name"] == "software-dev")
