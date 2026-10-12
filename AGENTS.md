@@ -32,7 +32,7 @@
 
 8. **文档工具：** 近期变化、版本敏感或不确定的行为优先查当前官方资料或已有真实测试；稳定的本地小改动无需每次查文档。OpenAI Docs MCP 用于 Codex / OpenAI plugin、MCP、Skill 与配置行为；Claude Code plugin 行为以官方文档及 `.agents/plugin-dev/upstream/` 中固定版本的参考为准；Context7 用于外部库、框架、SDK、CLI 的 API、配置格式或版本差异。两者均按需调用，复用本任务结果；不可用时查官方网页，查询不发送凭据、私有源码或会话内容。
 
-9. **Git 收尾：** 本仓库的提交、推送、拉取和同步统一使用 Gitee，唯一远端 `origin` 指向 `git@gitee.com:vsattce/agent-marketplace.git`；当前分支跟踪 `origin` 的对应分支，GitHub 不再作为本仓库远端。普通开发任务在必要验证和 diff 检查后，仅暂存任务文件，以 Conventional Commits 提交并推送 `origin` 的当前分支；显式调用的管理、只读或审查 Skill 规定不提交或不推送时，遵守该次调用边界，用户另有明确授权时以用户要求为准。禁止 force push。远端收到提交才算同步；失败如实报告，并汇报变更、测试、分支、提交哈希、推送状态及未验证的客户端。
+9. **Git 收尾：** 本仓库使用 Gitee 和 GitHub 双远端：`origin` 指向 `git@gitee.com:vsattce/agent-marketplace.git` 并作为当前分支跟踪远端，`github` 指向 `git@github.com:vsattce/agent-marketplace.git`。普通开发任务在必要验证和 diff 检查后，仅暂存任务文件，以 Conventional Commits 提交；推送时优先推送 `origin` 的当前分支，Gitee 成功后再推送 `github` 的同名分支。Gitee 推送失败时按常规 Git 规则处理并如实报告；GitHub 推送失败可暂缓，不回滚 Gitee、不阻塞任务完成，并报告失败状态。显式调用的管理、只读或审查 Skill 规定不提交或不推送时，遵守该次调用边界，用户另有明确授权时以用户要求为准。禁止 force push。汇报变更、测试、分支、提交哈希、两个远端的推送状态及未验证的客户端。
 
 10. **Skill 描述与展示：** 本仓库自有 Skill（含项目级开发 Skill 及客户端入口）的 `SKILL.md` frontmatter `description` 统一使用中文，按“中文名称＋用途＋调用条件”编写，保留适用范围、只读与手动调用边界及必要技术关键词。`name` 保持稳定的英文调用标识；Codex 的 `agents/openai.yaml` 中 `display_name`、`short_description` 同样使用中文，并与共享描述含义一致。第三方上游快照遵循来源与同步规则，不为本地化直接修改。
 
