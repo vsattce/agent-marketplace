@@ -20,6 +20,6 @@
 
 ## 其他入口
 
-- `dev-yagni` 与 `dev-simplify` 不要求创建任务文档。
+- `dev-simplify` 不要求创建任务文档。
 - `am-conflict` 与 `am-update` 只在聊天中输出，不创建临时文件或报告。
 - `am-config` 的目标旁 `.am-config-*` 原子替换临时文件和 `.configure-project.lock` 保持原位，继续遵守其现有事务与并发约定。
