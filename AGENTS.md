@@ -4,13 +4,13 @@
 
 ## 默认工作流程
 
-1. **Superpowers 默认入口：** 本项目默认按照已安装的 Superpowers 执行。每次任务开始先使用 `using-superpowers`，按当前任务匹配相关 Skill 并遵循其流程；用户明确指定 Skill 时优先使用指定入口。本规则覆盖通用的“普通任务默认不调用 Skill”策略。
+1. **小问题小改与 Superpowers 调用：** 按全局规则根据任务风险与影响选择快速、标准或深入模式。边界明确的小问题和小改动按快速模式处理，只做必要分析、最小改动和针对性验证。Superpowers 及其 Skills 默认不自动调用，只有用户明确手动指定时才调用；即使指定，也按任务规模和风险选择必要步骤，不为简单任务扩展完整流程。
 
-2. **按任务选择流程：** 新功能和行为变更先用 `brainstorming` 明确需求与设计；多步骤实现使用 `writing-plans`，计划执行按任务依赖和当前工具能力选择 `subagent-driven-development` 或 `executing-plans`。Bug 和异常行为先用 `systematic-debugging` 定位原因；代码实现与修复按 `test-driven-development` 执行。隔离开发、代码审查和分支收尾分别按对应 Skill 的触发条件处理；完成声明前使用 `verification-before-completion` 核对证据。
+2. **指定后的流程选择：** 用户明确指定使用 Superpowers 或某个 Superpowers Skill 后，可按任务类型、风险和依赖关系组合适用流程：新功能和行为变更使用 `brainstorming` 明确需求与设计；多步骤实现使用 `writing-plans`，再按任务依赖和当前工具能力选择 `subagent-driven-development` 或 `executing-plans`。Bug 和异常行为使用 `systematic-debugging` 定位原因；代码实现与修复按任务规模使用 `test-driven-development`。隔离开发、代码审查和分支收尾按对应 Skill 的触发条件处理；完成声明前使用 `verification-before-completion` 核对证据。
 
 3. **深度匹配任务：** 按风险、影响和不确定性控制读取范围、计划、产物与验证深度，不机械执行全部 Superpowers Skills。适用 Skill 要求的确认、审查和验证步骤按其触发条件执行；纯文案、文档、只读检查和常规 Git 操作不强制套用完整开发链。用户已明确的目标、取舍与授权不重复询问。
 
-4. **手动入口与授权：** `am-config`、`personal-dev` 等仅手动调用的 Skill 仍须用户显式调用，不因 Superpowers 默认流程而自动触发。显式调用的 Skill 规定只读、不提交或不推送时，按该次调用边界执行；用户另有明确授权时以用户要求为准。任何 Skill 不扩大任务范围或文件系统、运行时、客户端配置及外部服务权限。
+4. **手动入口与授权：** `am-config`、`personal-dev` 等仅手动调用的 Skill 仍须用户显式调用，不因其他 Skill 流程而自动触发。显式调用的 Skill 规定只读、不提交或不推送时，按该次调用边界执行；用户另有明确授权时以用户要求为准。任何 Skill 不扩大任务范围或文件系统、运行时、客户端配置及外部服务权限。
 
 5. **客户端与可用性：** Codex / Claude Code 只使用各自当前会话实际可用的 Skill、工具和入口，不把磁盘文件或安装缓存当作已加载。所需能力缺失时说明缺项及受影响步骤，不自行安装、修改全局配置或声称新规则已在当前会话热加载。
 
