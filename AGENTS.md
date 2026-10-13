@@ -41,5 +41,5 @@
 - 临时同步、测试和任务日志按需放入 `.agent-tmp/sync/<run-id>/`、`.agent-tmp/tests/<run-id>/`、`.agent-tmp/tasks/<task-id>/`，由 Git 忽略。测试进程需要 `TMP` / `TEMP` 时，只指向本次测试运行目录。
 - 委派任务仅在需要跨步骤恢复或保留验收证据时使用 `docs/personal-dev/tasks/<task-id>/`；设计、计划、进度和验收记录按需创建，普通小任务不强制建文档。
 - 增强审查报告默认写入 `docs/personal-dev/reviews/<review-id>/report.md`，长审查的轻量进度记录与报告同目录。审查只写报告和必要进度记录，不自动提交或推送。
-- 远端诊断默认在聊天中汇报，只有用户要求保存时写入 `docs/personal-dev/runtime/<diagnostic-id>/report.md`。`dev-simplify` 不要求文档，`am-conflict` / `am-update` 不创建文件。
+- 远端诊断默认在聊天中汇报，只有用户要求保存时写入 `docs/personal-dev/runtime/<diagnostic-id>/report.md`。`dev-simplify` 不要求文档。
 - ID 使用用户时区的日期、时间和主题；冲突追加唯一后缀且不覆盖。目标项目规则和用户指定位置优先。`am-config` 的目标旁 `.am-config-*` 原子替换临时文件与 `.configure-project.lock` 保持原位。
