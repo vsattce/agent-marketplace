@@ -80,8 +80,8 @@ def select_models(payload: dict) -> dict:
             return _blocked("model efforts contain duplicates")
         models_by_id[model_id] = item
 
-    coding_effort = payload.get("coding_effort", "xhigh")
-    review_effort = payload.get("review_effort", "max")
+    coding_effort = payload.get("coding_effort", "high")
+    review_effort = payload.get("review_effort", "xhigh")
     for field, effort in (("coding_effort", coding_effort), ("review_effort", review_effort)):
         if not isinstance(effort, str) or not effort.strip():
             return _blocked(f"{field} must be a non-empty string")

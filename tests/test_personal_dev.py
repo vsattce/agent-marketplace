@@ -46,60 +46,60 @@ class SelectModelsTests(unittest.TestCase):
     def test_selects_highest_numeric_same_major_model(self) -> None:
         result = select_models(
             payload_with(
-                model("gpt-6.2-luna", "xhigh", "max"),
-                model("gpt-6.10-luna", "xhigh", "max"),
+                model("gpt-6.2-luna", "high", "xhigh"),
+                model("gpt-6.10-luna", "high", "xhigh"),
             )
         )
 
         self.assertEqual(result["status"], "READY")
-        self.assertEqual(result["coding"], {"model": "gpt-6.10-luna", "effort": "xhigh"})
-        self.assertEqual(result["review"], {"model": "gpt-6.10-luna", "effort": "max"})
+        self.assertEqual(result["coding"], {"model": "gpt-6.10-luna", "effort": "high"})
+        self.assertEqual(result["review"], {"model": "gpt-6.10-luna", "effort": "xhigh"})
         self.assertEqual(
             result["display"],
             [
-                "编码模型：gpt-6.10-luna｜思考强度：xhigh",
-                "验收模型：gpt-6.10-luna｜思考强度：max",
+                "编码模型：gpt-6.10-luna｜思考强度：high",
+                "验收模型：gpt-6.10-luna｜思考强度：xhigh",
             ],
         )
 
     def test_selects_major_only_model_for_minor_primary(self) -> None:
-        result = select_models(payload_with(model("gpt-6-luna", "xhigh", "max")))
+        result = select_models(payload_with(model("gpt-6-luna", "high", "xhigh")))
 
         self.assertEqual(result["status"], "READY")
         self.assertEqual(result["coding"]["model"], "gpt-6-luna")
 
     def test_rejects_models_from_an_older_major(self) -> None:
-        self.assert_blocked(payload_with(model("gpt-6.10-luna", "xhigh", "max")) | {"primary_model": "gpt-7-sol"})
+        self.assert_blocked(payload_with(model("gpt-6.10-luna", "high", "xhigh")) | {"primary_model": "gpt-7-sol"})
 
     def test_rejects_unknown_primary_and_unapproved_coding_series(self) -> None:
-        unknown_primary = payload_with(model("gpt-6.2-luna", "xhigh", "max"))
+        unknown_primary = payload_with(model("gpt-6.2-luna", "high", "xhigh"))
         unknown_primary["primary_model"] = "codex-next-sol"
         self.assert_blocked(unknown_primary)
 
-        self.assert_blocked(payload_with(model("gpt-6.2-foo", "xhigh", "max")))
+        self.assert_blocked(payload_with(model("gpt-6.2-foo", "high", "xhigh")))
 
     def test_rejects_distinct_ids_with_the_same_numeric_version(self) -> None:
         self.assert_blocked(
             payload_with(
-                model("gpt-6-luna", "xhigh", "max"),
-                model("gpt-6.0-luna", "xhigh", "max"),
+                model("gpt-6-luna", "high", "xhigh"),
+                model("gpt-6.0-luna", "high", "xhigh"),
             )
         )
 
     def test_rejects_duplicate_model_ids(self) -> None:
         self.assert_blocked(
             payload_with(
-                model("gpt-6.2-luna", "xhigh", "max"),
-                model("gpt-6.2-luna", "xhigh", "max"),
+                model("gpt-6.2-luna", "high", "xhigh"),
+                model("gpt-6.2-luna", "high", "xhigh"),
             )
         )
 
     def test_rejects_malformed_inventory_and_effort_fields(self) -> None:
-        self.assert_blocked(payload_with({"id": "gpt-6.2-luna", "efforts": "xhigh,max"}))
-        self.assert_blocked(payload_with({"id": 62, "efforts": ["xhigh", "max"]}))
+        self.assert_blocked(payload_with({"id": "gpt-6.2-luna", "efforts": "high,xhigh"}))
+        self.assert_blocked(payload_with({"id": 62, "efforts": ["high", "xhigh"]}))
 
     def test_rejects_non_string_source_fields(self) -> None:
-        payload = payload_with(model("gpt-6.2-luna", "xhigh", "max"))
+        payload = payload_with(model("gpt-6.2-luna", "high", "xhigh"))
         payload["primary_model_source"] = ["current-turn"]
 
         self.assert_blocked(payload)
@@ -110,15 +110,15 @@ class SelectModelsTests(unittest.TestCase):
             payload_with({"id": "gpt-6.2-luna", "efforts": ["xhigh", None]}),
         ]
 
-        invalid_override = payload_with(model("codex-custom-preview", "xhigh", "max"))
+        invalid_override = payload_with(model("codex-custom-preview", "high", "xhigh"))
         invalid_override.update(model_override=["codex-custom-preview"], override_confirmed=True)
         invalid_payloads.append(invalid_override)
 
-        invalid_confirmation = payload_with(model("codex-custom-preview", "xhigh", "max"))
+        invalid_confirmation = payload_with(model("codex-custom-preview", "high", "xhigh"))
         invalid_confirmation.update(model_override="codex-custom-preview", override_confirmed="yes")
         invalid_payloads.append(invalid_confirmation)
 
-        invalid_effort = payload_with(model("gpt-6.2-luna", "xhigh", "max"))
+        invalid_effort = payload_with(model("gpt-6.2-luna", "high", "xhigh"))
         invalid_effort["coding_effort"] = ["xhigh"]
         invalid_payloads.append(invalid_effort)
 
@@ -127,20 +127,22 @@ class SelectModelsTests(unittest.TestCase):
                 self.assert_blocked(payload)
 
     def test_rejects_missing_required_effort(self) -> None:
-        for efforts in (("max",), ("xhigh",)):
+        for efforts in (("xhigh",), ("high",)):
             with self.subTest(efforts=efforts):
                 self.assert_blocked(payload_with(model("gpt-6.2-luna", *efforts)))
 
     def test_does_not_fall_back_when_highest_model_lacks_effort(self) -> None:
-        self.assert_blocked(
-            payload_with(
-                model("gpt-6.2-luna", "xhigh", "max"),
-                model("gpt-6.10-luna", "max"),
-            )
-        )
+        for supported_effort in ("high", "xhigh"):
+            with self.subTest(supported_effort=supported_effort):
+                self.assert_blocked(
+                    payload_with(
+                        model("gpt-6.2-luna", "high", "xhigh"),
+                        model("gpt-6.10-luna", supported_effort),
+                    )
+                )
 
     def test_confirmed_exact_override_can_use_a_renamed_model_series(self) -> None:
-        payload = payload_with(model("codex-custom-preview", "xhigh", "max"))
+        payload = payload_with(model("codex-custom-preview", "high", "xhigh"))
         payload.update(
             primary_model="codex-new-generation",
             model_override="codex-custom-preview",
@@ -154,13 +156,13 @@ class SelectModelsTests(unittest.TestCase):
         self.assertEqual(result["review"]["model"], "codex-custom-preview")
 
     def test_unconfirmed_override_is_blocked(self) -> None:
-        payload = payload_with(model("codex-custom-preview", "xhigh", "max"))
+        payload = payload_with(model("codex-custom-preview", "high", "xhigh"))
         payload.update(model_override="codex-custom-preview", override_confirmed=False)
 
         self.assert_blocked(payload)
 
     def test_confirmed_override_still_requires_a_reliable_primary_source(self) -> None:
-        payload = payload_with(model("codex-custom-preview", "xhigh", "max"))
+        payload = payload_with(model("codex-custom-preview", "high", "xhigh"))
         payload.update(
             primary_model="codex-new-generation",
             primary_model_source="global-default",
@@ -171,7 +173,7 @@ class SelectModelsTests(unittest.TestCase):
         self.assert_blocked(payload)
 
     def test_confirmed_override_still_requires_primary_model_identity(self) -> None:
-        payload = payload_with(model("codex-custom-preview", "xhigh", "max"))
+        payload = payload_with(model("codex-custom-preview", "high", "xhigh"))
         payload.update(
             primary_model="",
             model_override="codex-custom-preview",
@@ -181,19 +183,21 @@ class SelectModelsTests(unittest.TestCase):
         self.assert_blocked(payload)
 
     def test_uses_explicit_effort_overrides_and_checks_them(self) -> None:
-        payload = payload_with(model("gpt-6.2-luna", "low", "high"))
-        payload.update(coding_effort="low", review_effort="high")
+        for coding_effort, review_effort in (("low", "high"), ("xhigh", "max")):
+            with self.subTest(coding_effort=coding_effort, review_effort=review_effort):
+                payload = payload_with(model("gpt-6.2-luna", coding_effort, review_effort))
+                payload.update(coding_effort=coding_effort, review_effort=review_effort)
 
-        result = select_models(payload)
+                result = select_models(payload)
 
-        self.assertEqual(result["status"], "READY")
-        self.assertEqual(result["coding"]["effort"], "low")
-        self.assertEqual(result["review"]["effort"], "high")
+                self.assertEqual(result["status"], "READY")
+                self.assertEqual(result["coding"]["effort"], coding_effort)
+                self.assertEqual(result["review"]["effort"], review_effort)
 
     def test_single_role_override_preserves_other_role_default(self) -> None:
         for overrides, coding_effort, review_effort in (
-            ({"coding_effort": "high"}, "high", "max"),
-            ({"review_effort": "low"}, "xhigh", "low"),
+            ({"coding_effort": "low"}, "low", "xhigh"),
+            ({"review_effort": "low"}, "high", "low"),
         ):
             with self.subTest(overrides=overrides):
                 payload = payload_with(model("gpt-6.2-luna", "low", "high", "xhigh", "max"))
@@ -208,13 +212,13 @@ class SelectModelsTests(unittest.TestCase):
     def test_unsupported_user_effort_does_not_fall_back_to_default(self) -> None:
         for field in ("coding_effort", "review_effort"):
             with self.subTest(field=field):
-                payload = payload_with(model("gpt-6.2-luna", "xhigh", "max"))
+                payload = payload_with(model("gpt-6.2-luna", "high", "xhigh"))
                 payload[field] = "medium"
 
                 self.assert_blocked(payload)
 
     def test_does_not_mutate_input_payload(self) -> None:
-        payload = payload_with(model("gpt-6.2-luna", "xhigh", "max"))
+        payload = payload_with(model("gpt-6.2-luna", "high", "xhigh"))
         original = copy.deepcopy(payload)
 
         select_models(payload)
@@ -240,7 +244,7 @@ class SelectModelsCliTests(unittest.TestCase):
         return parsed
 
     def test_ready_cli_prints_json_and_exits_zero(self) -> None:
-        payload = payload_with(model("gpt-6.2-luna", "xhigh", "max"))
+        payload = payload_with(model("gpt-6.2-luna", "high", "xhigh"))
 
         process = self.run_cli(json.dumps(payload))
 
@@ -249,7 +253,7 @@ class SelectModelsCliTests(unittest.TestCase):
         self.assertEqual(self.parse_single_json_line(process.stdout)["status"], "READY")
 
     def test_blocked_cli_prints_json_and_exits_two(self) -> None:
-        payload = payload_with(model("gpt-6.2-luna", "max"))
+        payload = payload_with(model("gpt-6.2-luna", "xhigh"))
 
         process = self.run_cli(json.dumps(payload))
 

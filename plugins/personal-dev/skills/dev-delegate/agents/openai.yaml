@@ -1,6 +1,6 @@
 interface:
   display_name: "委派开发与独立验收"
-  short_description: "仅手动调用；编排依赖、安全并行与进度恢复，独立验收并由主模型终审。"
+  short_description: "仅手动调用；按完整功能委派，精简小任务交接，独立验收后核对整体联动。"
   default_prompt: "使用 $personal-dev:dev-delegate 完成当前开发任务；开始前显示实际编码、验收模型及思考强度。"
 policy:
   allow_implicit_invocation: false
