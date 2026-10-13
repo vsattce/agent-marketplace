@@ -30,7 +30,7 @@
     {
       "name": "personal-dev",
       "source": "./plugins/personal-dev",
-      "description": "仅手动调用的个人开发委派、独立验收、增强代码审查与远端运行诊断，支持 Claude Code 和 Codex。"
+      "description": "仅手动调用的个人开发委派编排、安全并行、进度恢复、独立验收、增强审查与远端诊断，支持 Claude Code 和 Codex。"
     },
     {
       "name": "engineering-tools",

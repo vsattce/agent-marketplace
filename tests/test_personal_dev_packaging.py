@@ -1,6 +1,8 @@
 """Shared registration and manual invocation of the owned development plugin."""
 
 import json
+import re
+import subprocess
 from pathlib import Path
 import unittest
 
@@ -14,6 +16,27 @@ RUNTIME_CHECK = PLUGIN / "skills/dev-runtime-check"
 
 
 class PersonalDevPackagingTests(unittest.TestCase):
+    def test_delegate_orchestration_resources_resolve_inside_plugin(self):
+        orchestration = SKILL / "references/orchestration.md"
+        self.assertTrue(orchestration.is_file())
+        for source in (SKILL / "SKILL.md", orchestration):
+            references = re.findall(r"\[[^\]]+\]\(([^)]+\.md)\)", source.read_text(encoding="utf-8"))
+            self.assertTrue(references, source)
+            for reference in references:
+                with self.subTest(source=source.name, reference=reference):
+                    target = (source.parent / reference).resolve()
+                    self.assertTrue(target.is_relative_to(PLUGIN.resolve()), reference)
+                    self.assertTrue(target.is_file(), reference)
+
+    def test_delegate_temporary_ledger_is_ignored_by_git(self):
+        ledger = ".agent-tmp/dev-delegate/fixture/progress.md"
+        result = subprocess.run(
+            ["git", "check-ignore", "--", ledger],
+            cwd=ROOT, capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), ledger)
+
     def test_registered_in_codex_and_claude_with_bundled_resources(self):
         codex = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text(encoding="utf-8"))
         entries = [entry for entry in codex["plugins"] if entry["name"] == "personal-dev"]
@@ -26,7 +49,7 @@ class PersonalDevPackagingTests(unittest.TestCase):
             {"dev-delegate", "dev-review", "dev-simplify", "dev-runtime-check"},
         )
         self.assertEqual(manifest["name"], entries[0]["name"])
-        self.assertEqual(manifest["version"], "0.7.0")
+        self.assertEqual(manifest["version"], "0.8.0")
         self.assertEqual(manifest["extensions"]["com.openai"]["interface"], entries[0]["interface"])
         self.assertTrue((SKILL / "scripts/select_models.py").is_file())
         self.assertTrue((SKILL / "references/roles.md").is_file())

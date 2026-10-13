@@ -1,5 +1,6 @@
 """Opt-in native discovery and injection, isolated from daily Codex state."""
 
+import json
 import unittest
 
 import test_codex_loader as codex_loader
@@ -31,6 +32,9 @@ class PersonalDevLoaderTests(codex_loader.CodexLoaderTests):
             self.assertNotIn(marker, ordinary)
         explicit = self.capture("$personal-dev:dev-delegate 仅验证加载，本轮不执行正文、不派发模型、不修改文件。")
         self.assertIn("# 委派开发与独立验收", explicit)
+        injected = codex_loader.captured_skill_source(json.loads(explicit), "personal-dev:dev-delegate")
+        self.assertIsNotNone(injected)
+        self.assertIn(codex_loader.skill_body("personal-dev", "dev-delegate"), injected[1].replace("\r\n", "\n"))
         self.assertIn("编码模型：", explicit)
         self.assertIn("验收模型：", explicit)
         review = self.capture("$personal-dev:dev-review 仅验证加载，本轮不执行正文、不派发模型、不修改文件。")

@@ -177,6 +177,7 @@ class ClaudeLoaderTests(unittest.TestCase):
             _, explicit = self.context(f"/personal-dev:{name} 仅验证加载，不执行正文、不派发、不修改文件。")
             self.assertIn(marker, explicit)
             self.assertIn("Claude adapter", explicit)
+            self.assertTrue(contains_text(json.loads(explicit), skill_body("personal-dev", name)))
 
         for name, marker in (("dev-simplify", "# 精简当前改动"),):
             _, explicit = self.context(f"/personal-dev:{name} 仅验证加载，不执行建议、不修改文件。")

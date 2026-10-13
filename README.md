@@ -51,6 +51,8 @@ Codex / Claude Code 按分类安装，完整身份为 `<plugin>@agent-marketplac
 
 `dev-delegate` 由当前主模型安排任务、最终整体检查；Codex 自动选择同大版本最新可用 Luna，默认 `xhigh` 编码，另一个同型号代理以 `max`（最强）验收；用户可分别指定强度，未指定的角色使用默认值。Claude Code 沿用当前子代理模型与思考配置，用户指定时按原生工具能力核验。开始前显示模型策略与已确认的实际值，再直接执行；判断不明确或两轮修复仍阻塞时中断，由用户决定。改名系列须明确确认，不自动猜测或跨代降级。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code)。
 
+委派前明确任务依赖与写入范围，默认一个编码代理；安全独立任务可并行两个，最多三个，能力不支持则串行。两个及以上开发任务自动使用被 Git 忽略的 `.agent-tmp/dev-delegate/<task-id>/progress.md` 恢复进度，避免重复派发和重置返工轮次；单个简单任务不建 ledger。独立验收期间冻结相关写入，不改变原模型和两轮返工策略。
+
 `dev-review` 仅在显式调用后审查，默认覆盖当前项目全部自有代码，即使没有 diff；指定范围时严格遵守。它只读源码与配置，先集中预检，再派发审查和必要的独立复核；没有生产证据时仍可完成代码层审查。问题按证据与影响分级，报告保存在项目的 `docs/personal-dev/reviews/<review-id>/report.md`，审查过程不自动提交或推送。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code)。
 
 `dev-runtime-check` 仅在显式调用后通过当前 Harness 的原生 Shell / SSH 工具检查指定的主机、容器或服务；默认只读并在聊天中汇报，用户明确要求修复时仅处理授权范围内的操作。只有用户要求保存结果时才写入 `docs/personal-dev/runtime/<diagnostic-id>/report.md`。报告以目标证据、采样间隔和单位为准，不记录凭据。使用与边界见[使用手册](docs/usage.md#远端运行诊断)。

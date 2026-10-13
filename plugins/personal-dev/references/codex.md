@@ -23,4 +23,6 @@ JSON stdin 必填 `primary_model`、`primary_model_source`（`current-turn` / `u
 
 V2 原编码代理返工优先用 `followup_task`，运行中补充信息可用 `send_message`；V1 或其他接口按实际声明使用 resume / follow-up，不编造参数。等待、状态和中断分别用当前可用的 wait / list / interrupt 工具。代理无法恢复时才重建任务上下文，累计修复次数不清零。不得用 Codex 聊天管理工具创建用户可见的新聊天来替代子代理。
 
+`dev-delegate` 的有限并行仅使用本轮已确认的原生并发能力和实际槽位；缺失或不明则串行，不改配置补能力。多任务将工具返回的 Agent/task id、实际模型与强度、阶段及轮次写回 ledger；恢复先核对当前代理状态，不能因通知延迟再派发重叠写代理。模型选择与覆写策略保持不变。
+
 当前 CLI 包装与加载证据记在 [维护指南](../../../docs/maintenance.md)；实际模型权限、额度与委派接口仍按本轮工具核对。
