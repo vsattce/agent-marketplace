@@ -4,7 +4,7 @@
 
 代码托管使用 [Gitee](https://gitee.com/vsattce/agent-marketplace) 和 [GitHub](https://github.com/vsattce/agent-marketplace) 双远端：`origin` 为 Gitee（`git@gitee.com:vsattce/agent-marketplace.git`），`github` 为 GitHub（`git@github.com:vsattce/agent-marketplace.git`）。提交后优先推送 Gitee，再推送 GitHub；GitHub 推送失败不阻塞任务。提交、推送与拉取约定见 [AGENTS.md](AGENTS.md#仓库维护规则)。
 
-Codex 与 Claude Code 均包含 **6 个 Plugin**；Codex 有 **20 个 Skills**，Claude Code 有 **19 个**。四个第三方聚合 Plugin 共 14 项；本仓库自有的 `agent-manager` 在 Codex / Claude Code 分别有 2 / 1 项，`personal-dev` 两端各有 4 项。
+Codex 与 Claude Code 均包含 **6 个 Plugin**；Codex 有 **19 个 Skills**，Claude Code 有 **18 个**。四个第三方聚合 Plugin 共 13 项；本仓库自有的 `agent-manager` 在 Codex / Claude Code 分别有 2 / 1 项，`personal-dev` 两端各有 4 项。
 
 `software-dev` 收录第三方上游项目的 Skills，仅供个人使用与整理；原作者署名、上游内容及许可证均按原样保留。该说明只适用于 `software-dev`；`agent-manager` 和 `personal-dev` 是本仓库自有并直接维护的 Plugin。
 
@@ -13,9 +13,9 @@ Codex 与 Claude Code 均包含 **6 个 Plugin**；Codex 有 **20 个 Skills**�
 | Plugin | 用途 | Skills |
 | --- | --- | --- |
 | `common-workflow` | 通用工作流 | handoff、diagnosing-bugs、research、writing-for-agents、find-skills |
-| `software-dev` | 软件开发 | frontend-design、web-design-guidelines、vue-best-practices、fastapi、java-springboot |
+| `software-dev` | 软件开发 | frontend-design、web-design-guidelines、vue、fastapi、java-springboot |
 | `engineering-tools` | 跨技术栈工程工具 | docker-build-strategies、docker-compose-patterns |
-| `testing-automation` | 测试与自动化 | playwright-cli、playwright-best-practices |
+| `testing-automation` | 测试与自动化 | playwright-cli |
 | `agent-manager` | Agent 管理工具 | am-config；am-context（仅 Codex） |
 | `personal-dev` | 个人开发工具，Codex / Claude Code | dev-delegate、dev-review、dev-simplify、dev-runtime-check |
 
@@ -35,7 +35,7 @@ Codex / Claude Code 按分类安装，完整身份为 `<plugin>@agent-marketplac
 
 | 操作 | Codex | Claude Code |
 | --- | --- | --- |
-| 使用 Vue 开发规范 | `$software-dev:vue-best-practices` | `/software-dev:vue-best-practices` |
+| 使用 Vue 3 基础 Skill | `$software-dev:vue` | `/software-dev:vue` |
 | 使用 FastAPI Skill | `$software-dev:fastapi` | `/software-dev:fastapi` |
 | 使用 Docker 构建策略 | `$engineering-tools:docker-build-strategies` | `/engineering-tools:docker-build-strategies` |
 | 编排 Docker Compose 服务 | `$engineering-tools:docker-compose-patterns` | `/engineering-tools:docker-compose-patterns` |

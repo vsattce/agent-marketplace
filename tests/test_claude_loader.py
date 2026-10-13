@@ -122,19 +122,19 @@ class ClaudeLoaderTests(unittest.TestCase):
         for entry in catalog["plugins"]:
             for skill_entry in (ROOT / entry["source"] / "skills").glob("*/SKILL.md"):
                 self.assertIn(f'{entry["name"]}:{skill_entry.parent.name}', commands)
-        self.assertNotIn("software-dev:vue", commands)
+        self.assertIn("software-dev:vue", commands)
         for obsolete in ("software-dev:java-spring-boot", "testing-automation:webapp-testing", "personal-dev:dev-yagni"):
             self.assertNotIn(obsolete, commands)
         self.assertEqual(
             {name for name in commands if name.startswith("software-dev:")},
             {f"software-dev:{name}" for name in (
-                "frontend-design", "web-design-guidelines", "vue-best-practices", "fastapi", "java-springboot",
+                "frontend-design", "web-design-guidelines", "vue", "fastapi", "java-springboot",
             )},
         )
-        self.assertIn("software-dev:vue-best-practices", context)
+        self.assertIn("software-dev:vue", context)
         for plugin, skill in (("software-dev", "fastapi"),
                               ("software-dev", "java-springboot"),
-                              ("software-dev", "vue-best-practices"),
+                              ("software-dev", "vue"),
                               ("engineering-tools", "docker-build-strategies"),
                               ("engineering-tools", "docker-compose-patterns")):
             with self.subTest(invocation=f"{plugin}:{skill}"):
@@ -226,8 +226,8 @@ class ClaudeLoaderTests(unittest.TestCase):
         before = user_config.read_bytes()
         editor.configure(payload, self.project)
         init, context = self.context()
-        self.assertNotIn("software-dev:vue-best-practices", init["slash_commands"])
-        self.assertNotIn("software-dev:vue-best-practices", context)
+        self.assertNotIn("software-dev:vue", init["slash_commands"])
+        self.assertNotIn("software-dev:vue", context)
         self.assertEqual(user_config.read_bytes(), before)
         user = json.loads(before)
         user["enabledPlugins"]["software-dev@agent-marketplace"] = False
@@ -235,15 +235,15 @@ class ClaudeLoaderTests(unittest.TestCase):
         payload["requests"][0]["enabled"] = True
         editor.configure(payload, self.project)
         init, context = self.context()
-        self.assertIn("software-dev:vue-best-practices", init["slash_commands"])
-        self.assertIn("software-dev:vue-best-practices", context)
+        self.assertIn("software-dev:vue", init["slash_commands"])
+        self.assertIn("software-dev:vue", context)
         local = config.parent / "settings.local.json"
         local.write_text('{"enabledPlugins":{"software-dev@agent-marketplace":false}}')
         with self.assertRaisesRegex(editor.Blocked, "LOCAL SETTINGS OVERRIDE"):
             editor.configure(payload, self.project)
         init, context = self.context()
-        self.assertNotIn("software-dev:vue-best-practices", init["slash_commands"])
-        self.assertNotIn("software-dev:vue-best-practices", context)
+        self.assertNotIn("software-dev:vue", init["slash_commands"])
+        self.assertNotIn("software-dev:vue", context)
 
 
 if __name__ == "__main__":

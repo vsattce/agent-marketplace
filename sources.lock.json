@@ -63,15 +63,6 @@
       "commit": "063bee94c3f4df8453406c830b0a7df0f2860278",
       "syncedAt": "2026-10-10T04:02:19+00:00"
     },
-    "vue-best-practices": {
-      "name": "vue-best-practices",
-      "repo": "antfu/skills",
-      "path": "skills/vue-best-practices",
-      "ref": "a74f281a27dadc02397bc1a174b0f2c97531b6ae",
-      "group": "software-dev",
-      "commit": "a74f281a27dadc02397bc1a174b0f2c97531b6ae",
-      "syncedAt": "2026-10-10T04:02:23+00:00"
-    },
     "playwright-cli": {
       "name": "playwright-cli",
       "repo": "microsoft/playwright-cli",
@@ -80,15 +71,6 @@
       "group": "testing-automation",
       "commit": "b85c7a736bb473bf55b584e54a09ffa698d6d871",
       "syncedAt": "2026-10-10T04:02:28+00:00"
-    },
-    "playwright-best-practices": {
-      "name": "playwright-best-practices",
-      "repo": "currents-dev/playwright-best-practices-skill",
-      "path": "playwright-best-practices",
-      "ref": "main",
-      "group": "testing-automation",
-      "commit": "283d5cbc5d11aac1abda058b16ad22c317d54dc0",
-      "syncedAt": "2026-10-10T04:02:30+00:00"
     },
     "fastapi": {
       "name": "fastapi",
@@ -125,6 +107,15 @@
       "group": "engineering-tools",
       "commit": "f79172733725e2fd236343ee7b963c446ed85d09",
       "syncedAt": "2026-10-12T13:35:44+00:00"
+    },
+    "vue": {
+      "name": "vue",
+      "repo": "antfu/skills",
+      "path": "skills/vue",
+      "ref": "a74f281a27dadc02397bc1a174b0f2c97531b6ae",
+      "group": "software-dev",
+      "commit": "a74f281a27dadc02397bc1a174b0f2c97531b6ae",
+      "syncedAt": "2026-10-12T23:59:48+00:00"
     }
   }
 }

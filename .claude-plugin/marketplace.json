@@ -20,7 +20,7 @@
     {
       "name": "testing-automation",
       "source": "./plugins/testing-automation",
-      "description": "网页测试、Playwright 浏览器自动化与测试最佳实践。"
+      "description": "网页测试与 Playwright 浏览器自动化。"
     },
     {
       "name": "agent-manager",

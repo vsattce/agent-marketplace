@@ -35,9 +35,9 @@ groups:
         repo: vercel-labs/agent-skills
         path: skills/web-design-guidelines
         ref: main
-      - name: vue-best-practices
+      - name: vue
         repo: antfu/skills
-        path: skills/vue-best-practices
+        path: skills/vue
         ref: a74f281a27dadc02397bc1a174b0f2c97531b6ae
       - name: fastapi
         repo: fastapi/fastapi
@@ -66,8 +66,4 @@ groups:
       - name: playwright-cli
         repo: microsoft/playwright-cli
         path: skills/playwright-cli
-        ref: main
-      - name: playwright-best-practices
-        repo: currents-dev/playwright-best-practices-skill
-        path: playwright-best-practices
         ref: main

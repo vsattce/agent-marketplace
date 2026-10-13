@@ -89,8 +89,8 @@ class PackagingTests(unittest.TestCase):
             count += len(list((root / "skills").glob("*/SKILL.md")))
             codex_count += len(list((root / "skills").glob("*/SKILL.md")))
             codex_count += len(list((root / "codex-skills").glob("*/SKILL.md")))
-        self.assertEqual(count, 19)
-        self.assertEqual(codex_count, 20)
+        self.assertEqual(count, 18)
+        self.assertEqual(codex_count, 19)
         software = next(entry for entry in claude["plugins"] if entry["name"] == "software-dev")
         software_manifest = json.loads((ROOT / "plugins/software-dev/.claude-plugin/plugin.json").read_text(encoding="utf-8"))
         codex_software = next(entry for entry in codex["plugins"] if entry["name"] == "software-dev")
@@ -102,7 +102,7 @@ class PackagingTests(unittest.TestCase):
         self.assertIn("OWNED Plugin", codex_manifest["extensions"]["com.openai"]["interface"]["longDescription"])
         self.assertEqual(
             {path.parent.name for path in (ROOT / "plugins/software-dev/skills").glob("*/SKILL.md")},
-            {"frontend-design", "web-design-guidelines", "vue-best-practices", "fastapi", "java-springboot"},
+            {"frontend-design", "web-design-guidelines", "vue", "fastapi", "java-springboot"},
         )
         for obsolete in ("frontend-dev", "backend-dev"):
             obsolete_root = ROOT / "plugins" / obsolete

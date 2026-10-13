@@ -261,17 +261,17 @@ class CodexLoaderTests(unittest.TestCase):
         expected = (
             "software-dev:frontend-design",
             "software-dev:web-design-guidelines",
-            "software-dev:vue-best-practices",
+            "software-dev:vue",
             "software-dev:fastapi",
             "software-dev:java-springboot",
             "engineering-tools:docker-build-strategies",
             "engineering-tools:docker-compose-patterns",
             "testing-automation:playwright-cli",
-            "testing-automation:playwright-best-practices",
         )
-        self.assertNotIn("software-dev:vue", by_name)
+        self.assertIn("software-dev:vue", by_name)
         self.assertNotIn("software-dev:java-spring-boot", by_name)
         self.assertNotIn("testing-automation:webapp-testing", by_name)
+        self.assertNotIn("testing-automation:playwright-best-practices", by_name)
         for name in expected:
             with self.subTest(skill=name):
                 entry = by_name.get(name)
@@ -281,7 +281,7 @@ class CodexLoaderTests(unittest.TestCase):
         ordinary = json.loads(self.capture("请用两句话说明当前目录用途，不调用任何 Skill，也不运行命令。"))
         for plugin, skill in (("software-dev", "frontend-design"),
                               ("software-dev", "web-design-guidelines"),
-                              ("software-dev", "vue-best-practices"),
+                              ("software-dev", "vue"),
                               ("software-dev", "fastapi"),
                               ("software-dev", "java-springboot"),
                               ("engineering-tools", "docker-build-strategies"),
@@ -294,7 +294,7 @@ class CodexLoaderTests(unittest.TestCase):
 
         for plugin, skill in (("software-dev", "frontend-design"),
                               ("software-dev", "web-design-guidelines"),
-                              ("software-dev", "vue-best-practices"),
+                              ("software-dev", "vue"),
                               ("software-dev", "fastapi"),
                               ("software-dev", "java-springboot"),
                               ("engineering-tools", "docker-build-strategies"),

@@ -67,17 +67,19 @@ class PersonalDevPackagingTests(unittest.TestCase):
         sources = yaml.safe_load((ROOT / "sources.yaml").read_text(encoding="utf-8"))["groups"]
         lock = json.loads((ROOT / "sources.lock.json").read_text(encoding="utf-8"))["skills"]
         self.assertEqual(set(sources), {"common-workflow", "software-dev", "engineering-tools", "testing-automation"})
-        self.assertEqual(sum(len(group["skills"]) for group in sources.values()), 14)
-        self.assertEqual(len(lock), 14)
-        self.assertNotIn("vue", lock)
+        self.assertEqual(sum(len(group["skills"]) for group in sources.values()), 13)
+        self.assertEqual(len(lock), 13)
+        self.assertIn("vue", lock)
         self.assertEqual(
             {item["name"] for item in sources["software-dev"]["skills"]},
-            {"frontend-design", "web-design-guidelines", "vue-best-practices", "fastapi", "java-springboot"},
+            {"frontend-design", "web-design-guidelines", "vue", "fastapi", "java-springboot"},
         )
         self.assertEqual(
             {item["name"] for item in sources["engineering-tools"]["skills"]},
             {"docker-build-strategies", "docker-compose-patterns"},
         )
+        self.assertNotIn("vue-best-practices", lock)
+        self.assertNotIn("playwright-best-practices", lock)
         self.assertNotIn("webapp-testing", lock)
         self.assertEqual(lock["fastapi"]["group"], "software-dev")
         self.assertEqual(lock["docker-build-strategies"]["group"], "engineering-tools")
