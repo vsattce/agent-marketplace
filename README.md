@@ -59,7 +59,7 @@ Codex / Claude Code 按分类安装，完整身份为 `<plugin>@agent-marketplac
 
 `dev-simplify` 默认先检查当前工作区差异，只读提出行为等价的精简建议；确认或明确要求执行后才修改。该 Skill 限当前项目与任务，依照目标项目规则和既有授权处理，详见[使用手册](docs/usage.md#精简当前改动)。
 
-`agent-manager` 有两个 Codex 手动入口和一个 Claude Code 手动入口。Codex 的 `am-context` 只估算当前对话已可见内容，不读取外部来源；两端的 `am-config` 处理明确的项目 `AGENTS.md` 编辑、指定来源的 standalone Skill 安装和已支持的 Plugin 开关，也可只读查找冲突。编辑前检查本次操作相关的冲突、重复与加载边界；轻微差异简述，实质冲突详细报告，未明确取舍前停止写入。Plugin 项目安装及单个 Skill 开关暂不支持，其他 Harness 会拒绝，见[使用手册](docs/usage.md#agent-管理工具)。
+`agent-manager` 有两个 Codex 手动入口和一个 Claude Code 手动入口。Codex 的 `am-context` 只估算当前对话已可见内容，不读取外部来源；两端的 `am-config` 处理明确的项目 `AGENTS.md` 编辑、指定来源的 standalone Skill 安装、项目 Plugin 准备/注册及项目开关，也可只读查找冲突。编辑前检查本次操作相关的冲突、重复与加载边界；轻微差异简述，实质冲突详细报告，未明确取舍前停止写入。新 Plugin 不因尚未安装就拒绝合法准备；必要时在项目内隔离验证，分别报告配置已保存与实际加载状态。默认不改日常用户配置、不转向全局安装；单个 Skill 项目开关暂不支持，其他 Harness 会拒绝，见[使用手册](docs/usage.md#agent-管理工具)。
 
 Marketplace 第三方来源以 [sources.yaml](sources.yaml) 为准，同步 commit 记录在 [sources.lock.json](sources.lock.json)。本仓库自有脚本与 metadata 使用 [MIT License](LICENSE)，第三方内容遵守各自附带的许可证。
 

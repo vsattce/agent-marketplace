@@ -18,6 +18,6 @@
 - [配置层级与信任](https://learn.chatgpt.com/docs/config-file/config-basic)
 - [配置字段](https://learn.chatgpt.com/docs/config-file/config-reference)
 
-优先读已有会话的清单与文件。若现有工具可无副作用地返回 `skills/list`、`config/read` 或 Plugin 状态，再按实际协议查询；不猜请求格式，不输出可能含密钥的完整配置。不启动新 Codex / app-server，不安装测试 Plugin，不写临时 CODEX_HOME，也不执行 disable filtering 验证。无法取得加载证据时，相关项为 `UNKNOWN`，静态分析继续。
+优先读已有会话的清单与文件。若现有工具可无副作用地返回 `skills/list`、`config/read` 或 Plugin 状态，再按实际协议查询；不猜请求格式，不输出可能含密钥的完整配置。独立只读检查不启动新 Codex / app-server、不安装测试 Plugin、不建临时 CODEX_HOME。编辑请求需要加载证据时，可按 [隔离加载验证](../skills/am-config/references/project-edits.md#隔离加载验证) 在项目内独立 fixture 查询真实加载器，不调用模型，不写日常用户配置。无法取得证据时标 `UNKNOWN`，不将未知误判为客户端不支持。
 
 调用使用完整入口 `$agent-manager:am-config`；裸别名是否可用以当前会话为准，不通过复制 standalone Skill 或修改配置补别名。项目开关写入能力见 [Codex 支持证据](../skills/am-config/references/codex-support.md)。

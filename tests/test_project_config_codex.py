@@ -71,7 +71,8 @@ class ProjectConfigurationCodexTests(unittest.TestCase):
                 present = [item for item in inventory if item["name"].startswith("agent-manager:")]
                 self.assertEqual(bool(present), enabled)
                 if enabled:
-                    self.assertEqual(len(present), 1)
+                    self.assertEqual({item["name"] for item in present}, {
+                        "agent-manager:am-config", "agent-manager:am-context"})
                 self.assertEqual(self.user_config.read_bytes(), before)
 
     def test_skill_project_fields_are_loaded_but_ignored_and_cannot_override_user(self):
@@ -97,6 +98,52 @@ class ProjectConfigurationCodexTests(unittest.TestCase):
         self.config.write_text('[plugins."agent-manager@agent-marketplace"]\nenabled = false\n', encoding="utf-8")
         inventory, _ = rpc_skills(self.project, self.env)
         self.assertTrue(any(item["name"].startswith("agent-manager:") for item in inventory))
+
+
+@unittest.skipUnless(os.environ.get("AGENT_MANAGER_CODEX_TESTS") == "1", "Opt-in isolated Codex loader validation")
+class ProjectLocalPreparationCodexTests(unittest.TestCase):
+    def test_saved_project_catalog_and_switch_do_not_prove_actual_loading(self):
+        with temporary_test_directory("codex-project-preparation") as directory:
+            base = Path(directory).resolve()
+            project = base / "project"
+            home = base / "codex-home"
+            project.mkdir()
+            home.mkdir()
+            env = {**os.environ, "CODEX_HOME": str(home), "GIT_TERMINAL_PROMPT": "0",
+                   "TMP": str(base), "TEMP": str(base)}
+            self.assertEqual(run(["codex", "--version"], env, project).strip(), editor.VERIFIED_CODEX)
+            user_config = home / "config.toml"
+            user_config.write_text(
+                '[features]\nremote_plugin = false\n'
+                f'[projects.{json.dumps(str(project))}]\ntrust_level = "trusted"\n', encoding="utf-8")
+            run(["git", "init", "--quiet"], env, project)
+            plugin = project / "plugins/local-probe"
+            (plugin / ".codex-plugin").mkdir(parents=True)
+            (plugin / "skills/hello").mkdir(parents=True)
+            (plugin / ".codex-plugin/plugin.json").write_text(json.dumps({
+                "name": "local-probe", "version": "1.0.0", "skills": "./skills/", "hooks": {}}), encoding="utf-8")
+            (plugin / "skills/hello/SKILL.md").write_text(
+                "---\nname: hello\ndescription: Isolated project plugin fixture\n---\nFixture", encoding="utf-8")
+            catalog = project / ".agents/plugins/marketplace.json"
+            catalog.parent.mkdir(parents=True)
+            catalog.write_text(json.dumps({"name": "local-probe-marketplace", "plugins": [{
+                "name": "local-probe", "source": {"source": "local", "path": "./plugins/local-probe"},
+                "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+                "category": "Developer Tools"}]}), encoding="utf-8")
+            config = project / ".codex/config.toml"
+            config.parent.mkdir()
+            config.write_text('[plugins."local-probe@local-probe-marketplace"]\nenabled = true\n', encoding="utf-8")
+            before = user_config.read_bytes()
+            inventory = json.loads(run(["codex", "plugin", "list", "--available", "--json"], env, project))
+            listed = inventory["installed"] + inventory["available"]
+            self.assertFalse(any(item["name"] == "local-probe" for item in listed),
+                             "Discovery capability changed: update the project preparation evidence")
+            skills, _ = rpc_skills(project, env)
+            self.assertFalse(any(item["name"].startswith("local-probe:") for item in skills),
+                             "Loading capability changed: update the project preparation evidence")
+            self.assertEqual(user_config.read_bytes(), before)
+            self.assertIs(tomlkit.parse(config.read_text(encoding="utf-8"))["plugins"][
+                "local-probe@local-probe-marketplace"]["enabled"], True)
 
 
 if __name__ == "__main__":

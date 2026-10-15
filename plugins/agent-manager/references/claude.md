@@ -13,7 +13,7 @@
 
 ## 只读取证
 
-先读现有 receipt / catalog / manifest，不运行 Claude Code 进程或 `/plugin` 界面做探测。`plugin list` / `details` 虽能查询信息，但不能保证初始化不写日志、注册或缓存，严格只读流程不调用；缺证据标 UNKNOWN。用户已有命令输出可作为证据。
+先读现有 receipt / catalog / manifest。独立只读检查不运行 Claude Code 进程或 `/plugin` 界面做探测；`plugin list` / `details` 不能保证初始化不写日志、注册或缓存，严格只读流程不调用。编辑请求需要加载证据时，可按 [隔离加载验证](../skills/am-config/references/project-edits.md#隔离加载验证) 使用项目内独立 CLAUDE_CONFIG_DIR，核对实际写入范围，不调用真实模型、不写日常用户配置。缺证据标 UNKNOWN；用户已有命令输出也可作为证据。
 
 只读检查不运行 marketplace update / plugin update / add / install / enable / disable，也不修改用户状态。standalone 从现有会话、项目 `.claude/skills`、配置根 `skills` 和已确认额外目录发现，按实际来源去重；先核对 manifest，避免把 Plugin 缓存或源码误认为 standalone 入口。来源未知时标 `UNKNOWN`，不按同名 upstream 认领。
 

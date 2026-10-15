@@ -25,7 +25,7 @@
     {
       "name": "agent-manager",
       "source": "./plugins/agent-manager",
-      "description": "仅手动编辑 Codex / Claude 项目指令、安装指定 standalone Skill、修改受支持的 Plugin 开关；支持只读冲突检查。"
+      "description": "仅手动编辑 Codex / Claude 项目指令、安装指定 Skill、准备注册项目 Plugin 与配置开关；支持只读冲突检查。"
     },
     {
       "name": "personal-dev",

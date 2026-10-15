@@ -1,17 +1,19 @@
 # Claude Code 项目开关能力
 
-当前目标版本：Windows `2.1.291 (Claude Code)`；保留已验证的 `2.1.296 (Claude Code)`。开发验收入口为 `tests/test_claude_loader.py`，配置编辑测试为 `tests/test_configure_project_claude.py`。隔离 `CLAUDE_CONFIG_DIR`、临时 Git 项目、插件安装及 localhost 请求捕获，不使用真实模型或日常用户配置。开发测试与 Skill 执行流程独立；Skill 运行时只读取现有证据，不启动 Claude 验证能力。
+已验证的开关编辑器版本：Windows `2.1.291 (Claude Code)` / `2.1.296 (Claude Code)`。加载验收入口为 `tests/test_claude_loader.py`，配置编辑测试为 `tests/test_configure_project_claude.py`。隔离 `CLAUDE_CONFIG_DIR`、临时项目、插件安装及 localhost 请求捕获，不使用真实模型或日常用户配置。编辑请求可按 [隔离加载验证](project-edits.md#隔离加载验证) 补充证据；独立只读检查不启动 fixture。
 
 | 操作 | 支持边界 |
 | --- | --- |
 | 已安装 Marketplace Plugin 项目开关 | 根 `.claude/settings.json` 的 `enabledPlugins["name@marketplace"] = true/false`；项目值覆盖用户值 |
+| 项目 Plugin 文件准备与注册配置 | 来源和格式确认后可准备完整 Plugin、项目 catalog / 已核实的发现入口及项目开关；不要求预先已安装，实际安装/加载另行核验 |
 | `.claude/settings.local.json` 覆盖 | local 高于 project；同一目标存在反向值就整批 BLOCKED，不改 local 或全局兜底 |
 | managed / CLI / excluded settings source / 未受信任项目 | 需要现有会话证明项目层有效、请求能决定最终状态，否则 BLOCKED |
 | 单个 Plugin Skill | BLOCKED；官方说明 `skillOverrides` 不应用于 Plugin Skills |
 | standalone Skill 项目安装 | 手动复制用户明确指定来源至 `.claude/skills/` 可用；仅只读来源，写入限于当前项目；不使用可能写用户 cache 的安装器 |
-| 未安装或身份不明 Plugin / 未验证版本 | BLOCKED，不安装、不探测、不刷新 |
+| 未安装 Plugin | 不通过已安装开关编辑器，按项目文件准备和隔离验证路径处理；不据此结束整个请求 |
+| 身份不明 Plugin / 未验证版本 | 身份不明时停止相关写入；未知版本不调用该编辑器，按当前官方说明或隔离证据判断文件准备与加载能力 |
 
-Skill 目录复制是项目文件操作，不是单个 Skill 开关，也不证明 Plugin 可项目安装。按 [项目文件预检](project-edits.md) 核验真实目录、来源、冲突和重复。
+Skill / Plugin 目录准备是项目文件操作，不证明 Plugin 已安装或加载。原生安装的项目 scope 可能与缓存、receipt 的写入位置不同；按实际写入范围决定是否执行，不自动写用户配置或改成全局安装。按 [项目文件预检](project-edits.md) 核验来源、项目发现入口、冲突和重复。
 
 Claude Code `2.1.277+` 可按版本、当前 Project instructions 设置及工作目录祖先中的 `CLAUDE.md` / `CLAUDE.local.md` 选择是否读取 `AGENTS.md`；编辑前检查实际加载证据，不自动添加 import。官方加载细节见 [memory / AGENTS.md](https://code.claude.com/docs/en/memory)。
 

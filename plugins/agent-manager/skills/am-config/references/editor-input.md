@@ -1,6 +1,6 @@
 # 编辑器输入
 
-编辑器只处理 Codex 与 Claude Code 已支持的 Plugin 项目开关，不处理 AGENTS.md 编辑、Skill / Plugin 安装或一般配置。编辑器仅在 Windows 运行；其他平台返回 `BLOCKED / PLUGIN SWITCH CONFIGURATION REQUIRES WINDOWS`。其他 Harness 整批 `BLOCKED / UNSUPPORTED AGENT`。其他文件操作不通过本编辑器。
+编辑器只处理 Codex 与 Claude Code **已安装** Plugin 的已验证项目开关，不处理 AGENTS.md、Skill / Plugin 文件准备、catalog 注册或安装。编辑器仅在 Windows 运行；其他平台返回 `BLOCKED / PLUGIN SWITCH CONFIGURATION REQUIRES WINDOWS`。其他 Harness 为 `BLOCKED / UNSUPPORTED AGENT`。新准备 Plugin 的项目 catalog 和开关按 [项目文件路径](project-edits.md#项目-plugin-准备与注册) 用文件工具编辑，不伪造 `installed=true`，也不把该编辑器的拒绝推广成整个项目 Plugin 请求不可执行。
 
 Codex 使用下方示例。Claude Code 保持相同请求结构，改为 `agent: "claude"`、`inventory.claude_version: "2.1.296 (Claude Code)"`，Plugin targets 使用 `configuration: "marketplace"`，path 为含 `.claude-plugin/plugin.json` 的真实已安装目录。无需 codex_version。能力与高层覆盖证据见 [Claude 支持边界](claude-support.md)。发给此编辑器的 `requests` 只接受 Plugin 开关；单个 Skill 开关或其他文件动作不能放入输入。混合用户批次由 Skill 层先完整预检，再单独传递其受支持的 Plugin 开关子集。
 
@@ -53,6 +53,6 @@ Codex 使用下方示例。Claude Code 保持相同请求结构，改为 `agent:
 
 complete、project_config_active、project_overrides_effective 是调用者的**证据断言**，不能凭用户意愿或文件存在填 true。必须依据已有会话/官方只读接口及有效层级，确认完整清单、trusted 项目和根配置能决定本次最终状态。无法确认时保留 false 并报告 BLOCKED。编辑器核对 Git root、实际 Agent `--version`、manifest name 与 Plugin identity、安装范围和文件可编辑性，但不会替代调用者对 live discovery / trust / managed / CLI 限制的取证。Claude 分支另检查项目 settings.local.json 的反向覆盖。
 
-path 只用于只读定位目标。唯一持久化写入位置由 Git root 和 agent 固定为 Codex `.codex/config.toml` 或 Claude `.claude/settings.json`，没有 config-path override。settings.local.json 永远只读。same-name 不按 id 优先消歧；当 selector 同时是另一候选的名字或路径，仍报告多个 Matches。相同目标相同状态去重，相反状态整批拒绝。调用本编辑器前，Skill 层须先对混合批次的所有文件操作完成冲突、路径和支持预检；若任何一步不支持，不调用且不写入。
+path 只用于只读定位目标。唯一持久化写入位置由 Git root 和 agent 固定为 Codex `.codex/config.toml` 或 Claude `.claude/settings.json`，没有 config-path override。settings.local.json 永远只读。same-name 不按 id 优先消歧；当 selector 同时是另一候选的名字或路径，仍报告多个 Matches。相同目标相同状态去重，相反状态整批拒绝。调用本编辑器前，Skill 层先完成相关冲突、路径和支持预检；前提不满足时不调用编辑器。新 Plugin 的合法文件准备独立按阶段执行，不借此跳过冲突检查，也不修改此编辑器契约。
 
 Codex 依赖 tomlkit 保留 TOML 注释与排版；Claude JSON 分支使用标准库，无需 target 项目的包清单。使用已准备的 Agent 工具环境，缺失时 BLOCKED；不运行会向用户缓存写入的 uv 自动依赖安装流程。shell 调用保持 stdin 真正 JSON 与真实换行，不能拼接不可信 shell 文本。
