@@ -40,6 +40,8 @@
 - fixture 放在项目规则指定的临时目录；无规则时使用项目 `.agent-tmp/tests/<run-id>/`，先确认路径未被链接重定向。临时项目、`CODEX_HOME` 或 `CLAUDE_CONFIG_DIR`、`TMP` / `TEMP`、安装记录、缓存和日志均指向本次目录，变量只作用于本次测试进程，不改日常环境或配置。检查实际客户端仍有无条件写用户目录的副作用，不能仅设置环境变量就认定安全。
 - 使用最小、可信的测试 Plugin 和测试配置复现待验证的项目 catalog/开关，不执行未知来源脚本或 hooks、不连接真实业务 MCP、不调用真实模型。Codex 可在受限 fixture 查询 `skills/list`、`config/read` 和 Plugin 发现信息；Claude 按当前实际支持的隔离 CLI/加载入口验证。隔离安装所得 receipt 仅作为能力证据，不能充作目标项目的安装清单。
 - 区分解析成功、catalog 发现、安装和 Skill 实际加载。保存 fixture 基线并检查日常用户配置未变；测试失败时保留具体错误和已完成阶段，不将一个未验证或失败的路径推广为所有项目 Plugin 都不可用。只清理本次 fixture，不触碰其他任务目录。
+- 删除 fixture 前核实目标由本次任务创建，解析后的绝对路径位于当前项目允许的本次临时目录内（默认 `.agent-tmp/tests/<run-id>/`），目录链未被 symlink / junction 重定向；不得扩大到临时根目录、项目根目录、父目录、用户目录、其他项目或其他任务。Windows / PowerShell 使用独立命令 `Remove-Item -LiteralPath <已核实的绝对路径> -Recurse -ErrorAction Stop`；禁止 `Remove-Item` 及 `rm`、`ri` 等别名使用 `-Force`（含参数缩写），不与其他含 `-Force` 的命令拼接在同一 Shell 调用中。
+- 普通删除因占用、只读、权限或执行策略拒绝而失败时，停止清理、保留目录，并在最终结果报告路径及原因；除非残留影响实际功能或测试正确性，否则不判定任务失败。不得继续强制删除，或改用 `cmd /c rd /s /q`、Python `shutil.rmtree`、其他 Shell 包装器规避检查；不得为清理修改全局 Codex 安全策略、用户级配置或系统权限。此规则只针对隔离验证临时目录，不改变 `.am-config-*` 原子替换文件和 `.configure-project.lock` 的事务语义。
 
 ## 执行与恢复
 
