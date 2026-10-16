@@ -35,6 +35,17 @@ def model(model_id: str, *efforts: str) -> dict:
     return {"id": model_id, "efforts": list(efforts)}
 
 
+def payload_for_final_review(effort: str = "high") -> dict:
+    return payload_with(
+        model("gpt-6-luna", "high", "xhigh"),
+        model("gpt-6.1-sol", "none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"),
+    ) | {
+        "final_review_required": True,
+        "primary_effort": effort,
+        "primary_effort_source": "current-turn",
+    }
+
+
 class SelectModelsTests(unittest.TestCase):
     def assert_blocked(self, payload: dict) -> dict:
         result = select_models(payload)
@@ -225,6 +236,88 @@ class SelectModelsTests(unittest.TestCase):
 
         self.assertEqual(payload, original)
 
+    def test_final_review_defaults_one_level_below_current_session(self) -> None:
+        for session, expected in (
+            ("ultra", "max"), ("max", "xhigh"), ("xhigh", "high"),
+            ("high", "medium"), ("medium", "low"), ("low", "minimal"),
+            ("minimal", "none"), ("none", "none"),
+        ):
+            with self.subTest(session=session):
+                result = select_models(payload_for_final_review(session))
+                self.assertEqual(result["status"], "READY")
+                self.assertEqual(result["final_review"], {"model": "gpt-6.1-sol", "effort": expected})
+                self.assertEqual(result["coding"], {"model": "gpt-6-luna", "effort": "high"})
+                self.assertEqual(result["review"], {"model": "gpt-6-luna", "effort": "xhigh"})
+                self.assertIn(f"会话上限：{session}", result["display"][2])
+
+    def test_difficult_final_review_escalates_to_session_limit(self) -> None:
+        for effort in ("high", "xhigh", "max", "ultra"):
+            with self.subTest(effort=effort):
+                payload = payload_for_final_review(effort) | {"final_review_escalated": True}
+                result = select_models(payload)
+                self.assertEqual(result["status"], "READY")
+                self.assertEqual(result["final_review"], {"model": "gpt-6.1-sol", "effort": effort})
+
+    def test_final_review_missing_adjacent_level_only_moves_lower(self) -> None:
+        payload = payload_for_final_review("xhigh")
+        payload["models"][1]["efforts"] = ["medium", "xhigh", "ultra"]
+        self.assertEqual(select_models(payload)["final_review"]["effort"], "medium")
+        payload["models"][1]["efforts"] = ["xhigh", "ultra"]
+        self.assert_blocked(payload)
+
+    def test_final_review_blocks_unavailable_session_model(self) -> None:
+        payload = payload_for_final_review()
+        payload["models"] = [model("gpt-6-luna", "high", "xhigh")]
+        self.assert_blocked(payload)
+
+    def test_final_review_escalation_requires_the_exact_supported_limit(self) -> None:
+        payload = payload_for_final_review() | {"final_review_escalated": True}
+        payload["models"][1]["efforts"] = ["medium", "xhigh", "ultra"]
+        self.assert_blocked(payload)
+        self.assert_blocked(payload_for_final_review("none") | {"final_review_escalated": True})
+
+    def test_final_review_requires_verified_effort_and_source(self) -> None:
+        for field, value in (
+            ("primary_effort", None), ("primary_effort", []),
+            ("primary_effort", "private-marker"), ("primary_effort_source", None),
+            ("primary_effort_source", []), ("primary_effort_source", "global-default"),
+        ):
+            with self.subTest(field=field, value=value):
+                result = self.assert_blocked(payload_for_final_review() | {field: value})
+                self.assertNotIn("private-marker", json.dumps(result))
+        for field in ("primary_effort", "primary_effort_source"):
+            payload = payload_for_final_review()
+            payload.pop(field)
+            self.assert_blocked(payload)
+        self.assertEqual(
+            select_models(payload_for_final_review() | {"primary_effort_source": "user"})["status"],
+            "READY",
+        )
+
+    def test_final_review_validates_flags_and_rejects_unused_metadata(self) -> None:
+        for field in ("final_review_required", "final_review_escalated"):
+            for value in (None, 1, "false", []):
+                with self.subTest(field=field, value=value):
+                    self.assert_blocked(payload_for_final_review() | {field: value})
+        self.assert_blocked(payload_for_final_review() | {"final_review_required": False})
+
+    def test_final_review_cannot_switch_to_a_different_model(self) -> None:
+        self.assert_blocked(payload_for_final_review() | {"final_review_model": "gpt-6-astra"})
+        payload = payload_for_final_review() | {
+            "model_override": "gpt-6-luna", "override_confirmed": True,
+        }
+        self.assertEqual(select_models(payload)["final_review"]["model"], payload["primary_model"])
+
+    def test_optional_final_review_preserves_existing_contract_and_input(self) -> None:
+        payload = payload_with(model("gpt-6-luna", "high", "xhigh"))
+        baseline = select_models(payload)
+        self.assertEqual(select_models(payload | {"final_review_required": False}), baseline)
+        self.assertNotIn("final_review", baseline)
+        payload = payload_for_final_review()
+        original = copy.deepcopy(payload)
+        select_models(payload)
+        self.assertEqual(payload, original)
+
 
 class SelectModelsCliTests(unittest.TestCase):
     def run_cli(self, input_text: str) -> subprocess.CompletedProcess[str]:
@@ -251,6 +344,14 @@ class SelectModelsCliTests(unittest.TestCase):
         self.assertEqual(process.returncode, 0)
         self.assertEqual(process.stderr, "")
         self.assertEqual(self.parse_single_json_line(process.stdout)["status"], "READY")
+
+    def test_final_review_cli_reports_actual_effort_and_session_limit(self) -> None:
+        process = self.run_cli(json.dumps(payload_for_final_review("high")))
+        self.assertEqual(process.returncode, 0)
+        self.assertEqual(process.stderr, "")
+        result = self.parse_single_json_line(process.stdout)
+        self.assertEqual(result["final_review"], {"model": "gpt-6.1-sol", "effort": "medium"})
+        self.assertIn("会话上限：high", result["display"][2])
 
     def test_blocked_cli_prints_json_and_exits_two(self) -> None:
         payload = payload_with(model("gpt-6.2-luna", "xhigh"))
