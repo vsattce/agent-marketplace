@@ -172,6 +172,20 @@ class SelectModelsTests(unittest.TestCase):
 
         self.assert_blocked(payload)
 
+    def test_explicit_final_reviewer_uses_existing_selector_without_extra_role_requirements(self) -> None:
+        payload = payload_with(model("user-chosen-reviewer", "xhigh"))
+        payload.update(
+            model_override="user-chosen-reviewer",
+            override_confirmed=True,  # Records the user's existing request, not a new confirmation.
+            coding_effort="xhigh",
+            review_effort="xhigh",
+        )
+
+        result = select_models(payload)
+
+        self.assertEqual(result["status"], "READY")
+        self.assertEqual(result["review"], {"model": "user-chosen-reviewer", "effort": "xhigh"})
+
     def test_confirmed_override_still_requires_a_reliable_primary_source(self) -> None:
         payload = payload_with(model("codex-custom-preview", "high", "xhigh"))
         payload.update(
@@ -263,12 +277,19 @@ class SelectModelsTests(unittest.TestCase):
         payload["models"][1]["efforts"] = ["medium", "xhigh", "ultra"]
         self.assertEqual(select_models(payload)["final_review"]["effort"], "medium")
         payload["models"][1]["efforts"] = ["xhigh", "ultra"]
-        self.assert_blocked(payload)
+        self.assertEqual(select_models(payload)["final_review"], {"model": "gpt-6-luna", "effort": "xhigh"})
 
-    def test_final_review_blocks_unavailable_session_model(self) -> None:
+    def test_final_review_reuses_task_review_when_session_model_is_unavailable(self) -> None:
         payload = payload_for_final_review()
         payload["models"] = [model("gpt-6-luna", "high", "xhigh")]
-        self.assert_blocked(payload)
+        self.assertEqual(select_models(payload)["final_review"], {"model": "gpt-6-luna", "effort": "xhigh"})
+
+    def test_final_review_missing_session_effort_does_not_require_configuration_question(self) -> None:
+        payload = payload_with(model("gpt-6-luna", "high", "xhigh")) | {"final_review_required": True}
+        result = select_models(payload)
+        self.assertEqual(result["status"], "READY")
+        self.assertEqual(result["final_review"], result["review"])
+        self.assertIn("沿用任务验收", result["display"][2])
 
     def test_final_review_escalation_requires_the_exact_supported_limit(self) -> None:
         payload = payload_for_final_review() | {"final_review_escalated": True}
@@ -301,8 +322,35 @@ class SelectModelsTests(unittest.TestCase):
                     self.assert_blocked(payload_for_final_review() | {field: value})
         self.assert_blocked(payload_for_final_review() | {"final_review_required": False})
 
-    def test_final_review_cannot_switch_to_a_different_model(self) -> None:
-        self.assert_blocked(payload_for_final_review() | {"final_review_model": "gpt-6-astra"})
+    def test_explicit_final_review_configuration_takes_precedence(self) -> None:
+        payload = payload_for_final_review()
+        payload["models"].append(model("gpt-6-astra", "high", "max"))
+        result = select_models(payload | {"final_review_model": "gpt-6-astra", "final_review_effort": "max"})
+        self.assertEqual(result["status"], "READY")
+        self.assertEqual(result["final_review"], {"model": "gpt-6-astra", "effort": "max"})
+        self.assertEqual(result["coding"], {"model": "gpt-6-luna", "effort": "high"})
+
+    def test_final_review_partial_user_override_preserves_automatic_other_setting(self) -> None:
+        effort_only = select_models(payload_for_final_review() | {"final_review_effort": "max"})
+        self.assertEqual(effort_only["final_review"], {"model": "gpt-6.1-sol", "effort": "max"})
+        model_only_session = select_models(payload_for_final_review() | {"final_review_model": "gpt-6.1-sol"})
+        self.assertEqual(model_only_session["final_review"], {"model": "gpt-6.1-sol", "effort": "medium"})
+        payload = payload_for_final_review()
+        payload["models"].append(model("user-review-model", "high"))
+        model_only = select_models(payload | {"final_review_model": "user-review-model"})
+        self.assertEqual(model_only["final_review"], {"model": "user-review-model", "effort": "high"})
+
+    def test_final_review_rejects_invalid_or_unavailable_user_configuration(self) -> None:
+        for overrides in (
+            {"final_review_model": None}, {"final_review_model": []}, {"final_review_model": ""},
+            {"final_review_model": "private-marker"}, {"final_review_effort": None},
+            {"final_review_effort": []}, {"final_review_effort": "private-marker"},
+        ):
+            with self.subTest(overrides=overrides):
+                result = self.assert_blocked(payload_for_final_review() | overrides)
+                self.assertNotIn("private-marker", json.dumps(result))
+
+    def test_coding_override_does_not_silently_replace_final_review_model(self) -> None:
         payload = payload_for_final_review() | {
             "model_override": "gpt-6-luna", "override_confirmed": True,
         }

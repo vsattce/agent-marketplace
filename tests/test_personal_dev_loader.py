@@ -17,7 +17,9 @@ class PersonalDevLoaderTests(codex_loader.CodexLoaderTests):
         self.assertEqual(
             {item["name"] for item in skills},
             {
+                "personal-dev:dev-prepare",
                 "personal-dev:dev-delegate",
+                "personal-dev:dev-auto",
                 "personal-dev:dev-review",
                 "personal-dev:dev-simplify",
                 "personal-dev:dev-runtime-check",
@@ -25,6 +27,8 @@ class PersonalDevLoaderTests(codex_loader.CodexLoaderTests):
         )
         self.assertTrue(all(item.get("enabled", True) for item in skills))
         ordinary = self.capture("远端 Linux 服务最近负载升高，请讨论可能原因，但本轮不调用 Skill。")
+        self.assertNotIn("# 需求与计划准备", ordinary)
+        self.assertNotIn("# 自动准备与委派开发", ordinary)
         self.assertNotIn("# 委派开发与独立验收", ordinary)
         self.assertNotIn("# 增强代码审查", ordinary)
         self.assertNotIn("# 远端运行诊断", ordinary)
@@ -37,6 +41,14 @@ class PersonalDevLoaderTests(codex_loader.CodexLoaderTests):
         self.assertIn(codex_loader.skill_body("personal-dev", "dev-delegate"), injected[1].replace("\r\n", "\n"))
         self.assertIn("编码模型：", explicit)
         self.assertIn("验收模型：", explicit)
+        for name in ("dev-prepare", "dev-auto"):
+            with self.subTest(invocation=name):
+                loaded = self.capture(
+                    f"$personal-dev:{name} 仅验证加载，不生成文件、不开发、不派发、不修改文件。"
+                )
+                source = codex_loader.captured_skill_source(json.loads(loaded), f"personal-dev:{name}")
+                self.assertIsNotNone(source)
+                self.assertIn(codex_loader.skill_body("personal-dev", name), source[1].replace("\r\n", "\n"))
         review = self.capture("$personal-dev:dev-review 仅验证加载，本轮不执行正文、不派发模型、不修改文件。")
         self.assertIn("# 增强代码审查", review)
         self.assertIn("审查模型：", review)

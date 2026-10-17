@@ -13,14 +13,18 @@ PLUGIN = ROOT / "plugins/personal-dev"
 SKILL = PLUGIN / "skills/dev-delegate"
 REVIEW = PLUGIN / "skills/dev-review"
 RUNTIME_CHECK = PLUGIN / "skills/dev-runtime-check"
+DEVELOPMENT_SKILLS = ("dev-prepare", "dev-delegate", "dev-auto")
 
 
 class PersonalDevPackagingTests(unittest.TestCase):
     def test_delegate_orchestration_resources_resolve_inside_plugin(self):
         orchestration = SKILL / "references/orchestration.md"
         self.assertTrue(orchestration.is_file())
-        for source in (SKILL / "SKILL.md", orchestration):
-            references = re.findall(r"\[[^\]]+\]\(([^)]+\.md)\)", source.read_text(encoding="utf-8"))
+        sources = [PLUGIN / "skills" / name / "SKILL.md" for name in DEVELOPMENT_SKILLS]
+        sources += [orchestration, SKILL / "references/roles.md",
+                    PLUGIN / "references/preparation.md", PLUGIN / "references/artifacts.md"]
+        for source in sources:
+            references = re.findall(r"\[[^\]]+\]\(([^)]+\.md)(?:#[^)]*)?\)", source.read_text(encoding="utf-8"))
             self.assertTrue(references, source)
             for reference in references:
                 with self.subTest(source=source.name, reference=reference):
@@ -29,13 +33,43 @@ class PersonalDevPackagingTests(unittest.TestCase):
                     self.assertTrue(target.is_file(), reference)
 
     def test_delegate_temporary_ledger_is_ignored_by_git(self):
-        ledger = ".agent-tmp/dev-delegate/fixture/progress.md"
+        paths = [f".agent-tmp/dev-delegate/fixture/{name}.md" for name in ("spec", "plan", "progress")]
         result = subprocess.run(
-            ["git", "check-ignore", "--", ledger],
+            ["git", "check-ignore", "--", *paths],
             cwd=ROOT, capture_output=True, text=True, check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(result.stdout.strip(), ledger)
+        self.assertEqual(result.stdout.splitlines(), paths)
+
+    def test_development_entries_are_manual_only_and_fit_native_loading_budget(self):
+        for name in DEVELOPMENT_SKILLS:
+            with self.subTest(skill=name):
+                directory = PLUGIN / "skills" / name
+                source = directory / "SKILL.md"
+                frontmatter = yaml.safe_load(source.read_text(encoding="utf-8").split("---", 2)[1])
+                metadata = yaml.safe_load((directory / "agents/openai.yaml").read_text(encoding="utf-8"))
+                self.assertEqual(frontmatter["name"], name)
+                self.assertIs(frontmatter["disable-model-invocation"], True)
+                self.assertIs(metadata["policy"]["allow_implicit_invocation"], False)
+                self.assertIn(f"$personal-dev:{name}", metadata["interface"]["default_prompt"])
+                for value in (frontmatter["description"], metadata["interface"]["display_name"],
+                              metadata["interface"]["short_description"]):
+                    self.assertRegex(value, r"[\u4e00-\u9fff]")
+                # Protect against the observed native Codex 8000-byte prefix boundary.
+                self.assertLessEqual(len(source.read_bytes()), 8000)
+
+    def test_auto_routes_to_shared_preparation_and_the_existing_executor(self):
+        auto = PLUGIN / "skills/dev-auto"
+        links = re.findall(r"\[[^\]]+\]\(([^)]+\.md)\)", (auto / "SKILL.md").read_text(encoding="utf-8"))
+        self.assertEqual(
+            {(auto / target).resolve() for target in links},
+            {(PLUGIN / "references/preparation.md").resolve(), (SKILL / "SKILL.md").resolve()},
+        )
+        # The composition entry must not acquire a second selector, role contract or scheduler.
+        self.assertEqual(
+            {path.relative_to(auto).as_posix() for path in auto.rglob("*") if path.is_file()},
+            {"SKILL.md", "agents/openai.yaml"},
+        )
 
     def test_registered_in_codex_and_claude_with_bundled_resources(self):
         codex = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text(encoding="utf-8"))
@@ -46,10 +80,10 @@ class PersonalDevPackagingTests(unittest.TestCase):
         manifest = json.loads((PLUGIN / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(
             {path.parent.name for path in (PLUGIN / "skills").glob("*/SKILL.md")},
-            {"dev-delegate", "dev-review", "dev-simplify", "dev-runtime-check"},
+            {"dev-prepare", "dev-delegate", "dev-auto", "dev-review", "dev-simplify", "dev-runtime-check"},
         )
         self.assertEqual(manifest["name"], entries[0]["name"])
-        self.assertEqual(manifest["version"], "0.8.1")
+        self.assertEqual(manifest["version"], "0.9.0")
         self.assertEqual(manifest["extensions"]["com.openai"]["interface"], entries[0]["interface"])
         self.assertTrue((SKILL / "scripts/select_models.py").is_file())
         self.assertTrue((SKILL / "references/roles.md").is_file())

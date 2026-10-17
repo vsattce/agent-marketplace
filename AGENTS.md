@@ -39,7 +39,7 @@
 ## 任务产物目录
 
 - 临时同步、测试和任务日志按需放入 `.agent-tmp/sync/<run-id>/`、`.agent-tmp/tests/<run-id>/`、`.agent-tmp/tasks/<task-id>/`，由 Git 忽略。测试进程需要 `TMP` / `TEMP` 时，只指向本次测试运行目录。
-- `dev-delegate` 拆出两个及以上开发任务时，自动创建被 Git 忽略的 `.agent-tmp/dev-delegate/<task-id>/progress.md`，包括串行依赖任务；单个简单任务不创建。中断保留，恢复核对代码、证据与代理状态，全部验收、整体检查和已授权收尾完成后只清理本次目录。
+- `dev-prepare` / `dev-auto` 默认在被 Git 忽略的 `.agent-tmp/dev-delegate/<task-id>/` 保存 `spec.md` 与 `plan.md`，单任务也保存；prepare 确认后只交接，不开发、不清理。`dev-delegate` 消费既定文件，两个及以上开发任务时在同目录自动创建 `progress.md`，包括串行依赖任务；单个简单任务默认不建 ledger，只读 PLAN 确需裁决或恢复记录时按需复用同一文件。中断或部分失败保留，恢复核对文件、代码、证据与代理状态，全部验收、整体检查和已授权收尾完成后只清理本次目录。
 - 任务完成后清理本次临时目录。删除前核实目标由本次任务创建，解析后的绝对路径位于当前仓库上述 `.agent-tmp/<类别>/<本次ID>/` 范围内，且未被符号链接或 junction 重定向；不得扩大到整个 `.agent-tmp/`、类别目录、仓库根目录、父目录、用户目录、其他项目或其他任务。
 - Windows / PowerShell 优先使用 `Remove-Item -LiteralPath <已核实的绝对路径> -Recurse -ErrorAction Stop` 普通递归删除；禁止 `Remove-Item` 及 `rm`、`ri` 等别名使用 `-Force`（含参数缩写）。删除动作保持独立、简单，不与其他含 `-Force` 的命令拼接在同一 Shell 调用中。
 - 普通删除因占用、只读、权限或 Codex 执行策略拒绝而失败时，停止清理、保留目录，并在最终结果报告路径及原因；除非残留影响实际功能或测试正确性，否则不判定开发任务失败。不得继续强制删除，或改用 `cmd /c rd /s /q`、Python `shutil.rmtree`、其他 Shell 包装器规避检查；不得为清理修改全局 Codex 安全策略、用户级配置或系统权限。

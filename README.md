@@ -4,7 +4,7 @@
 
 代码托管使用 [Gitee](https://gitee.com/vsattce/agent-marketplace) 和 [GitHub](https://github.com/vsattce/agent-marketplace) 双远端：`origin` 为 Gitee（`git@gitee.com:vsattce/agent-marketplace.git`），`github` 为 GitHub（`git@github.com:vsattce/agent-marketplace.git`）。提交后优先推送 Gitee，再推送 GitHub；GitHub 推送失败不阻塞任务。提交、推送与拉取约定见 [AGENTS.md](AGENTS.md#仓库维护规则)。
 
-Codex 与 Claude Code 均包含 **6 个 Plugin**；Codex 有 **19 个 Skills**，Claude Code 有 **18 个**。四个第三方聚合 Plugin 共 13 项；本仓库自有的 `agent-manager` 在 Codex / Claude Code 分别有 2 / 1 项，`personal-dev` 两端各有 4 项。
+Codex 与 Claude Code 均包含 **6 个 Plugin**；Codex 有 **21 个 Skills**，Claude Code 有 **20 个**。四个第三方聚合 Plugin 共 13 项；本仓库自有的 `agent-manager` 在 Codex / Claude Code 分别有 2 / 1 项，`personal-dev` 两端各有 6 项。
 
 `software-dev` 收录第三方上游项目的 Skills，仅供个人使用与整理；原作者署名、上游内容及许可证均按原样保留。该说明只适用于 `software-dev`；`agent-manager` 和 `personal-dev` 是本仓库自有并直接维护的 Plugin。
 
@@ -17,7 +17,7 @@ Codex 与 Claude Code 均包含 **6 个 Plugin**；Codex 有 **19 个 Skills**�
 | `engineering-tools` | 跨技术栈工程工具 | docker-build-strategies、docker-compose-patterns |
 | `testing-automation` | 测试与自动化 | playwright-cli |
 | `agent-manager` | Agent 管理工具 | am-config；am-context（仅 Codex） |
-| `personal-dev` | 个人开发工具，Codex / Claude Code | dev-delegate、dev-review、dev-simplify、dev-runtime-check |
+| `personal-dev` | 个人开发工具，Codex / Claude Code | dev-prepare、dev-delegate、dev-auto、dev-review、dev-simplify、dev-runtime-check |
 
 Codex / Claude Code 按分类安装，完整身份为 `<plugin>@agent-marketplace`。
 
@@ -42,16 +42,18 @@ Codex / Claude Code 按分类安装，完整身份为 `<plugin>@agent-marketplac
 | 交接当前任务 | `$common-workflow:handoff` | `/common-workflow:handoff` |
 | 估算本轮可见上下文（仅 Codex） | `$agent-manager:am-context` | — |
 | 编辑项目配置 / 只读查冲突 | `$agent-manager:am-config` | `/agent-manager:am-config` |
-| 委派开发与独立验收 | `$personal-dev:dev-delegate` | `/personal-dev:dev-delegate` |
+| 准备 SPEC / PLAN，确认后结束 | `$personal-dev:dev-prepare` | `/personal-dev:dev-prepare` |
+| 按既定 SPEC / PLAN 执行 SDD | `$personal-dev:dev-delegate` | `/personal-dev:dev-delegate` |
+| 自动准备并连续委派开发 | `$personal-dev:dev-auto` | `/personal-dev:dev-auto` |
 | 增强代码审查 | `$personal-dev:dev-review` | `/personal-dev:dev-review` |
 | 精简当前改动 | `$personal-dev:dev-simplify` | `/personal-dev:dev-simplify` |
 | 诊断远端运行问题 | `$personal-dev:dev-runtime-check` | `/personal-dev:dev-runtime-check` |
 
 `handoff`、`agent-manager` 和 `personal-dev` 中的 Skills **仅手动调用**；其余 Skill 可按任务匹配，也可显式调用。启用 Plugin 不会自行执行任务。
 
-`dev-delegate` 由当前主模型安排任务、最终整体检查；Codex 自动选择同大版本最新可用 Luna，默认 `high` 编码，另一个同型号代理以 `xhigh` 验收；用户可分别指定强度，未指定的角色使用默认值。Claude Code 沿用当前子代理模型与思考配置，用户指定时按原生工具能力核验。开始前显示模型策略与已确认的实际值，再直接执行；判断不明确或两轮修复仍阻塞时中断，由用户决定。改名系列须明确确认，不自动猜测或跨代降级。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code)。
+`dev-prepare` 结合项目规则和现有代码生成 `spec.md` / `plan.md`，统一确认一次后结束，不开发；`dev-delegate` 只消费已确定的文件执行 SDD，缺失时提示先准备；`dev-auto` 复用同一准备契约和执行器，自动检查后连续开发，正常需求不确认，仅重大歧义、未授权破坏性操作、安全边界不清允许集中询问一次。始终遵循 `SPEC > PLAN > Coder interpretation`。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code)。
 
-按可独立验收的完整功能拆任务，同一功能的技术层优先合并；单个简单任务精简交接，不填写多任务编排字段、建 ledger 或生成报告文件。多任务、复杂或高风险任务先检查计划与已确认需求、接口和验证要求的冲突，并判断默认模型是否适配。多任务默认一个编码代理；安全独立任务可并行两个，最多三个，能力不支持则串行。两个及以上开发任务自动使用被 Git 忽略的 `.agent-tmp/dev-delegate/<task-id>/progress.md` 恢复进度，避免重复派发和重置返工轮次；独立验收期间冻结相关写入。额外整体终审仅用于用户明确要求或具体的安全 / 权限、并发 / 事务一致性、破坏性迁移、接口不兼容风险，普通前后端联动由主模型整体检查。终审使用当前会话同型号，默认思考强度低一档；明确判断困难时可自动升至会话当前强度一次，不选更强型号或更高强度。Codex 由脚本校验，Claude 按原生能力核验；无法确认上限则停止。所有代码返工沿用相关任务两轮上限，不依赖 Superpowers。
+SPEC / PLAN 默认保存在 `.agent-tmp/dev-delegate/<task-id>/`，单任务也保存；多任务在同目录加 `progress.md`。Codex 沿用同代 Luna 默认 `high` 编码、`xhigh` 独立验收；Claude 沿用原生子代理配置；用户指定优先，展示后执行，不确认模型 / effort。每任务最多三轮修复加收敛裁决，失败只冻结依赖链及受风险影响的任务，其他任务继续。默认单写，满足现有安全条件才有限并行。主模型始终整体检查；独立 Final Reviewer 仅在用户要求、安全权限、并发事务、破坏性迁移或明显公共 API 不兼容风险时触发，不按改动量或复杂度触发。
 
 `dev-review` 仅在显式调用后审查，默认覆盖当前项目全部自有代码，即使没有 diff；指定范围时严格遵守。它只读源码与配置，先集中预检，再派发审查和必要的独立复核；没有生产证据时仍可完成代码层审查。问题按证据与影响分级，报告保存在项目的 `docs/personal-dev/reviews/<review-id>/report.md`，审查过程不自动提交或推送。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code)。
 

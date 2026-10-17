@@ -1,6 +1,6 @@
 interface:
   display_name: "委派开发与独立验收"
-  short_description: "仅手动调用；按完整功能委派，精简小任务交接，独立验收后核对整体联动。"
-  default_prompt: "使用 $personal-dev:dev-delegate 完成当前开发任务；开始前显示实际编码、验收模型及思考强度。"
+  short_description: "仅手动调用；消费既定 SPEC、PLAN 执行委派与独立验收，有限修复并隔离失败依赖。"
+  default_prompt: "使用 $personal-dev:dev-delegate 按已确定的 SPEC / PLAN 执行 SDD；自动选择并展示配置，无需模型确认。"
 policy:
   allow_implicit_invocation: false

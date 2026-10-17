@@ -145,7 +145,7 @@ class ClaudeLoaderTests(unittest.TestCase):
         self.assertEqual({name for name in commands if name.startswith("agent-manager:")},
                          {"agent-manager:am-config"})
         for name in ("common-workflow:handoff", "agent-manager:am-config",
-                     "personal-dev:dev-delegate", "personal-dev:dev-review",
+                     "personal-dev:dev-prepare", "personal-dev:dev-delegate", "personal-dev:dev-auto", "personal-dev:dev-review",
                      "personal-dev:dev-simplify",
                      "personal-dev:dev-runtime-check"):
             self.assertNotIn(name, context)
@@ -164,7 +164,7 @@ class ClaudeLoaderTests(unittest.TestCase):
     def test_personal_dev_explicit_invocation_and_native_agent_schema(self):
         self.install("personal-dev")
         init, context = self.context(tools="Agent,Skill")
-        for name in ("dev-delegate", "dev-review", "dev-simplify", "dev-runtime-check"):
+        for name in ("dev-prepare", "dev-delegate", "dev-auto", "dev-review", "dev-simplify", "dev-runtime-check"):
             self.assertIn(f"personal-dev:{name}", init["slash_commands"])
             self.assertNotIn(f"personal-dev:{name}", context)
         agent = next(tool for payload in json.loads(context) for tool in payload.get("tools", [])
@@ -178,6 +178,13 @@ class ClaudeLoaderTests(unittest.TestCase):
             self.assertIn(marker, explicit)
             self.assertIn("Claude adapter", explicit)
             self.assertTrue(contains_text(json.loads(explicit), skill_body("personal-dev", name)))
+
+        for name in ("dev-prepare", "dev-auto"):
+            with self.subTest(invocation=name):
+                _, explicit = self.context(
+                    f"/personal-dev:{name} 仅验证加载，不生成文件、不开发、不派发、不修改文件。"
+                )
+                self.assertTrue(contains_text(json.loads(explicit), skill_body("personal-dev", name)))
 
         for name, marker in (("dev-simplify", "# 精简当前改动"),):
             _, explicit = self.context(f"/personal-dev:{name} 仅验证加载，不执行建议、不修改文件。")

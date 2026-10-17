@@ -22,12 +22,20 @@ _INPUT_FIELDS = {
     "primary_effort",
     "primary_effort_source",
     "final_review_escalated",
+    "final_review_model",
+    "final_review_effort",
 }
 _EFFORT_LEVELS = ("none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra")
 
 
 def _blocked(reason: str) -> dict:
     return {"status": "BLOCKED", "reasons": [reason]}
+
+
+def _with_final_review(result: dict, model_id: str, effort: str, note: str) -> dict:
+    result["final_review"] = {"model": model_id, "effort": effort}
+    result["display"].append(f"终审模型：{model_id}｜思考强度：{effort}｜{note}")
+    return result
 
 
 def _version_key(version: str) -> tuple[str, ...]:
@@ -57,7 +65,8 @@ def select_models(payload: dict) -> dict:
     final_required = payload.get("final_review_required", False)
     if not isinstance(final_required, bool):
         return _blocked("final_review_required must be a boolean")
-    final_fields = {"primary_effort", "primary_effort_source", "final_review_escalated"}
+    final_fields = {"primary_effort", "primary_effort_source", "final_review_escalated",
+                    "final_review_model", "final_review_effort"}
     if not final_required and final_fields.intersection(payload):
         return _blocked("final review fields require final_review_required")
 
@@ -155,17 +164,46 @@ def select_models(payload: dict) -> dict:
     if not final_required:
         return result
 
-    primary_effort = payload.get("primary_effort")
-    if not isinstance(primary_effort, str) or primary_effort not in _EFFORT_LEVELS:
-        return _blocked("primary_effort must be a recognized current session effort")
-    effort_source = payload.get("primary_effort_source")
-    if not isinstance(effort_source, str) or effort_source not in {"current-turn", "user"}:
-        return _blocked("primary_effort_source must be current-turn or user")
     escalated = payload.get("final_review_escalated", False)
     if not isinstance(escalated, bool):
         return _blocked("final_review_escalated must be a boolean")
-    if primary_model not in models_by_id:
-        return _blocked("current session model is unavailable for final review")
+
+    primary_effort = payload.get("primary_effort")
+    has_session_effort = bool({"primary_effort", "primary_effort_source"}.intersection(payload))
+    if has_session_effort:
+        if not isinstance(primary_effort, str) or primary_effort not in _EFFORT_LEVELS:
+            return _blocked("primary_effort must be a recognized current session effort")
+        effort_source = payload.get("primary_effort_source")
+        if not isinstance(effort_source, str) or effort_source not in {"current-turn", "user"}:
+            return _blocked("primary_effort_source must be current-turn or user")
+
+    # These role-specific values come from an explicit user request, not a new confirmation.
+    if {"final_review_model", "final_review_effort"}.intersection(payload):
+        final_model = payload.get("final_review_model", primary_model if primary_model in models_by_id else selected_model_id)
+        if not isinstance(final_model, str) or final_model not in models_by_id:
+            return _blocked("requested final review model is unavailable")
+        supported = set(models_by_id[final_model]["efforts"])
+        final_effort = payload.get("final_review_effort")
+        if "final_review_effort" not in payload:
+            if final_model == primary_model and has_session_effort:
+                ceiling = _EFFORT_LEVELS.index(primary_effort)
+                candidates = [effort for effort in _EFFORT_LEVELS[:max(ceiling, 1)] if effort in supported]
+                final_effort = candidates[-1] if candidates else None
+            elif review_effort in supported:
+                final_effort = review_effort
+            else:
+                limit = _EFFORT_LEVELS.index(review_effort) if review_effort in _EFFORT_LEVELS else 0
+                candidates = [effort for effort in _EFFORT_LEVELS[:limit + 1] if effort in supported]
+                final_effort = candidates[-1] if candidates else None
+        if not isinstance(final_effort, str) or final_effort not in supported:
+            return _blocked("requested final review effort is unavailable")
+        return _with_final_review(result, final_model, final_effort, "用户指定优先")
+
+    # A hidden session effort or non-spawnable primary must not cause a configuration Q&A.
+    if not has_session_effort or primary_model not in models_by_id:
+        if escalated:
+            return _blocked("final review escalation requires a verified available session limit")
+        return _with_final_review(result, selected_model_id, review_effort, "沿用任务验收配置")
 
     supported = set(models_by_id[primary_model]["efforts"])
     ceiling = _EFFORT_LEVELS.index(primary_effort)
@@ -181,14 +219,10 @@ def select_models(payload: dict) -> dict:
             effort for effort in _EFFORT_LEVELS[: max(ceiling, 1)] if effort in supported
         ]
         if not candidates:
-            return _blocked("no lower final review effort is available within the session limit")
+            return _with_final_review(result, selected_model_id, review_effort, "沿用任务验收配置")
         final_effort = candidates[-1]
 
-    result["final_review"] = {"model": primary_model, "effort": final_effort}
-    result["display"].append(
-        f"终审模型：{primary_model}｜思考强度：{final_effort}｜会话上限：{primary_effort}"
-    )
-    return result
+    return _with_final_review(result, primary_model, final_effort, f"会话上限：{primary_effort}")
 
 
 def main() -> int:

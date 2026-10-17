@@ -6,7 +6,7 @@
 
 当前支持 Codex 与 Claude Code；其他客户端暂不适配或维护。
 
-Codex 与 Claude Code 均有 **6 个 Plugin**；Codex 共 **19 个 Skills**，Claude Code 共 **18 个**。四个第三方聚合 Plugin 收录 13 项；本仓库自有的 `agent-manager` 在 Codex / Claude Code 分别有 2 / 1 项，`personal-dev` 两端各有 4 项。第三方来源、作者与许可证边界见 [README](../README.md)。
+Codex 与 Claude Code 均有 **6 个 Plugin**；Codex 共 **21 个 Skills**，Claude Code 共 **20 个**。四个第三方聚合 Plugin 收录 13 项；本仓库自有的 `agent-manager` 在 Codex / Claude Code 分别有 2 / 1 项，`personal-dev` 两端各有 6 项。第三方来源、作者与许可证边界见 [README](../README.md)。
 
 ## 日常调用
 
@@ -48,8 +48,10 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 | engineering-tools | docker-compose-patterns | 指导 Compose 服务依赖、健康检查、卷、网络与开发覆盖配置 | 任务匹配 / 手动 |
 | testing-automation | playwright-cli | 通过 Playwright CLI 操作浏览器并验证交互 | 任务匹配 / 手动 |
 | agent-manager | am-context | 粗略估算本轮当前仍可见的上下文；仅 Codex | 仅手动 |
-| agent-manager | am-config | 检查相关冲突后编辑项目指令、安装指定 Skill、准备注册项目 Plugin 与配置开关；也可只读查冲突 | 仅手动 |
-| personal-dev | dev-delegate | 主模型安排任务，独立编码与验收代理执行，主模型最终整体检查；Codex / Claude Code | 仅手动 |
+| agent-manager | am-config | 检查相关冲突后编辑项目指令、安装指定 Skill 或修改受支持的 Plugin 开关；也可只读查冲突 | 仅手动 |
+| personal-dev | dev-prepare | 结合项目代码生成 SPEC / PLAN，统一确认一次后结束，不开发 | 仅手动 |
+| personal-dev | dev-delegate | 消费既定 SPEC / PLAN 执行 SDD、独立验收与有限修复 | 仅手动 |
+| personal-dev | dev-auto | 自动准备并检查 SPEC / PLAN，直接复用委派执行器连续开发 | 仅手动 |
 | personal-dev | dev-review | 只读审查当前项目或明确范围，独立复核高等级发现并生成报告；Codex / Claude Code | 仅手动 |
 | personal-dev | dev-simplify | 默认只读提出行为等价的精简建议，确认后再编辑 | 仅手动 |
 | personal-dev | dev-runtime-check | 使用当前 Harness 原生 Shell / SSH 对指定远端主机、容器或服务取证；默认只读 | 仅手动 |
@@ -58,48 +60,40 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 
 `webapp-testing` 与 `dev-yagni` 已移除：网页操作与验证可使用 `playwright-cli`；长期维护 Playwright 测试时，可将专用测试规范配置在对应项目中，普通开发直接按项目规则执行。
 
-单个简单任务直接在交接消息中提供目标、修改范围、必要约束、验收条件、最小验证和原有改动，不额外填写多任务编排字段、建 ledger 或生成报告文件。委派开发拆成两个及以上任务（含串行依赖任务）时，自动建立被 Git 忽略的 `.agent-tmp/dev-delegate/<task-id>/progress.md`；真正需要长期保留设计、复杂任务记录或验收证据时才使用 `docs/personal-dev/tasks/<task-id>/`。其他产物的路径和边界见[任务产物位置](../plugins/personal-dev/references/artifacts.md)。
+委派开发以文件形式的 SPEC / PLAN 为输入；单任务也保存，交接保持简短，不额外建 ledger 或长报告。两个及以上任务（含串行依赖任务）自动建立被 Git 忽略的 `.agent-tmp/dev-delegate/<task-id>/progress.md`；真正需要长期保留设计、复杂任务记录或验收证据时才使用 `docs/personal-dev/tasks/<task-id>/`。其他产物的路径和边界见[任务产物位置](../plugins/personal-dev/references/artifacts.md)。
 
 ## 个人开发工具（Codex / Claude Code）
 
-```text
-$personal-dev:dev-delegate 实现当前需求，保留现有接口和范围外行为
-$personal-dev:dev-delegate 实现当前需求，编码 medium，验收 xhigh
-$personal-dev:dev-review 检查当前项目的性能、资源、请求、磁盘和长期运行风险
-$personal-dev:dev-simplify 检查当前 diff，先提出行为等价的精简建议
-$personal-dev:dev-runtime-check 检查用户指定的远端主机和服务；默认只读
-```
+三个开发入口均只由用户手动触发；本文简称 `$dev-prepare` / `$dev-delegate` / `$dev-auto`，实际安装调用使用完整命名空间：
 
-Claude Code 使用 `/personal-dev:dev-delegate` 与 `/personal-dev:dev-review`，未指定时沿用当前子代理模型与思考配置，省略 `model` / `effort`；用户明确指定时按本轮原生工具能力核验，也不要求 Codex 的 Luna、`reasoning_effort` 或 Python 检查器。派发前显示模型策略；实际 ID 或强度无法确认时标 `UNKNOWN`，不冒充已验证值。独立验收、两轮修复上限与主模型终审流程和 Codex 相同。
-
-主模型按可独立验收的完整功能或修复点拆任务，同类小改动合并。同一功能的 DTO、Service、Controller 与前端调用优先交给一个编码代理完成后统一验收；确有独立交付边界或规模需要时才拆开。Codex 当前已确认的低成本编码系列为 Luna：从本轮派发工具实际允许的型号中选择与主模型同一大版本内数字版本最高者，默认 `high` 编码；另一个干净上下文的同型号代理默认 `xhigh` 验收。用户可分别指定本次编码与验收强度，明确指定的值优先，未指定的角色保留默认值，无需再次确认强度；不支持的值会说明原因并中断。
-
-多任务、复杂或高风险任务在首次派发前，对照已确认需求检查计划中的关键值、接口、上下游产出和验收 / 验证要求；没有计划文件时直接检查任务安排，不强制写文档。必要结论写入已有 ledger 或派发交接，编码和验收使用同一版要求。主模型先补齐关键设计；默认模型仍不适配时说明能力缺口，按本次已有授权和精确型号覆写规则处理，提高思考强度不等于更换更强模型。
-
-多任务或确需进度恢复时，每项派发前明确 `task_id`、目标、`depends_on`、`write_scope` 和 `can_parallel`。拆开的依赖包括接口、数据结构和调用链，前项的产出是后项输入时顺序执行；前项独立验收通过、契约确定后才启动下游。默认一个编码代理，仅在任务无依赖、写入不重叠、无变化中的共享契约、原生并发与槽位可用且合并风险低时允许两个，最多三个。范围含目录、测试和生成输出；同文件、目录包含、共享契约或不明边界均串行。共享端口、fixture 和测试输出的验证也须避免冲突，不支持安全并发时回退串行，不引入自动 worktree、merge 或 Agent Teams。
-
-多任务 ledger 由主模型单独维护，记录任务依赖、并行决定、实际 Agent/task id、模型与强度、状态、修复轮次、基线和必要证据。恢复先读当前执行 ledger，再核对实际代码、Git 和代理状态；不重派仍在运行或已验收完成的任务。修复派发前预记本轮和 `FIXING`，修复结束进入 `REVIEW`，同轮复验不再次加一；代理重建、任务改名或 compact 不清零计数。中断和阻塞保留记录；全部验收、主模型整体检查及已授权收尾完成后才清理本次临时目录，用户要求保留时遵从。
-
-独立验收使用区别于 Coder 的新干净上下文，仅提供需求、必要接口约束、实际改动、编码报告和验证证据，不复制完整思考或聊天。Coder 与 Reviewer 不直接交流，问题由主模型传递；验收期间冻结该范围和相关依赖的写入。独立任务可分别验收，不可分割功能单元可以合并，但每项保留独立结论与修复预算。完整契约见[任务编排与进度恢复](../plugins/personal-dev/skills/dev-delegate/references/orchestration.md)。
-
-Codex 需要本轮可靠的主模型身份、当前派发工具允许名单和支持强度信息。6.1 / 6.2 主模型可以用 6 Luna；7 主模型不能自动回退到 6 或 5.6。信息缺失、陌生命名、版本歧义、强度不支持或工具不能覆写时输出具体原因并中断。用户明确确认精确替代型号后可用于当前任务；持久接纳新系列需另行维护，不凭升级推荐或价格猜测选模型。
-
-编码开始前一定先显示实际结果，例如：
+| 入口 | Codex | Claude Code | 结果 |
+| --- | --- | --- | --- |
+| 先准备 | `$personal-dev:dev-prepare` | `/personal-dev:dev-prepare` | 结合项目规则和代码生成 SPEC / PLAN，统一人工确认一次后结束，不开发 |
+| 直接执行 | `$personal-dev:dev-delegate` | `/personal-dev:dev-delegate` | 消费既定 SPEC / PLAN，执行 SDD；缺失时提示 prepare / auto，不重新推导需求 |
+| 自动完成 | `$personal-dev:dev-auto` | `/personal-dev:dev-auto` | 复用准备流程，自动检查通过后直接进入同一委派执行器，正常需求不确认 |
 
 ```text
-编码模型：gpt-6-luna｜思考强度：high
-验收模型：gpt-6-luna｜思考强度：xhigh
+$personal-dev:dev-prepare 给现有列表增加状态筛选，保持分页和接口兼容
+# 确认 SPEC / PLAN 后，此入口结束；再单独调用：
+$personal-dev:dev-delegate 按 .agent-tmp/dev-delegate/<task-id>/spec.md 和 plan.md 执行
+$personal-dev:dev-delegate 按已确定的 SPEC / PLAN 执行，编码 medium，验收 xhigh
+# 或者从需求到开发连续完成：
+$personal-dev:dev-auto 给现有列表增加状态筛选，保持分页和接口兼容
 ```
 
-成功后直接执行，不额外确认是否开始。用户可明确覆写编码 / 任务验收的型号或强度；有变化先重新显示。独立验收检查需求、实现、相关调用点和验证证据，简单任务聚焦验收条件、实际差异和直接影响，阻塞问题完整汇总，风格建议不扩大返工。额外整体终审仅在用户明确要求，或改动存在具体的安全 / 权限、并发 / 事务一致性、破坏性迁移、公共接口不兼容风险时触发。普通页面、兼容接口新增和常规前后端联动由主模型整体检查；任务多或代码量大本身不增加终审代理。
+`SPEC > PLAN > Coder interpretation`。SPEC 记录目标、范围、不做项、现有约束、关键行为和验收标准；PLAN 记录任务、依赖、write_scope、目标、验证和完成标准。简单需求保持简短。默认写入同一 `.agent-tmp/dev-delegate/<task-id>/spec.md` / `plan.md`，prepare 确认后保留文件；后续 Agent 读取路径而非反复复制聊天。用户另有位置要求或需长期留存时遵从对应约定。PLAN 与 SPEC 冲突由主模型按 SPEC 修正并记录裁决，不让 Coder / Reviewer 改写明确需求。
 
-终审固定使用本轮已确认的会话型号，思考强度默认比会话低一档；紧邻档不可用时只可再降低，最低档不再降低，无可用档时停止。材料充分但终审仍明确报告判断困难时，可自动升到会话当前强度一次。例如会话 `gpt-6.1-sol / high`，初次终审为同型号 `medium`，困难升级最多到 `high`，不会因工具允许而选择 `ultra`。已确认的代码缺陷走原有修复流程；缺材料、权限、业务决策或仅测试失败不触发思考升级。
+`dev-auto` 直接读取共享准备规则和 dev-delegate 正文，无需嵌套调用手动 Skill，也无需用户再次输入 dev-delegate。它从准备到执行只允许因重大歧义、当前未授权的破坏性操作或安全边界不清集中询问一次；普通细节自行合理裁决，不确认 SPEC、PLAN、模型、effort，不在任务之间询问。必需能力缺失或环境不满足时如实报告限制；该入口不扩大平台或项目权限。共同定义见[准备与消费契约](../plugins/personal-dev/references/preparation.md)。
 
-Codex 在既有模型选择脚本中按需传 `final_review_required: true`、`primary_effort`、`primary_effort_source`；只有困难升级时传 `final_review_escalated: true`。使用脚本返回的 `final_review` 与展示行，编码 / 任务验收的既有调用保持兼容。Claude 按本轮原生能力核验同型号、低一档和上限，不套用 Codex 档位或参数；无法确认当前会话设置或有效控制强度时停止，不能把默认 `UNKNOWN` 当作预算满足。上限只取本轮可靠运行时信息或用户明确说明，不取默认配置或工具最高档。派发、升级和恢复前核验当前上限，展示实际设置；已有 ledger 记录触发风险、上限来源、代理、版本、结论及已用升级状态，不调用额外 Skill，不因代理重建或恢复重新获得升级次数。
+Codex 沿用同大版本最新可用 Luna，默认 high 编码、另一个干净上下文 xhigh 独立验收；用户明确指定型号 / effort 优先，指定本身即本次覆写授权，不重复确认。名单与支持强度按当前工具校验，不猜型号、不跨代降级。Claude Code 沿用当前原生子代理模型与思考配置，省略 model / effort；用户指定时按当前 schema 核验，不要求 Codex helper、Python 或 reasoning_effort。派发前展示实际策略与已确认值，未知值标 UNKNOWN；展示后直接执行，不询问最终审查的配置。
 
-主模型整合独立终审结论，并核对总需求、范围和最终代码版本；普通低风险单任务或互不关联的简单多任务保留原有轻量整体检查。已有内部验收结论有效时不重复全面审查，有具体疑点或后续改动时只检查受影响部分。初次实现后每个任务累计最多两轮修复，第二轮复验仍阻塞则全流程停止，由用户决定升级；主模型不自动接手编码。终审问题归属到相关任务，使用其剩余次数并独立复验；无法安全归属、预算耗尽或必要证据不足时停止，不通过新增终审任务重开预算。
+PLAN 按完整功能拆分，同一功能的技术层优先合并。默认单写；仅在无依赖、write_scope 不重叠、无变化中的共享契约、原生工具和槽位安全时可两个、最多三个，不能安全并发就串行。上游独立验收通过且契约确定后才启动下游。两个及以上任务（含串行依赖）在同一 task-id 目录建立 progress.md；单任务不强制 ledger 或长报告。恢复先核对文件、代码、Git 与实际代理状态，不重派已完成或仍运行的代理，不重置修复次数。
 
-Codex 随 Skill 提供的 Python 标准库检查器只校验主模型根据当前工具整理的模型信息，不连接服务、不验证输入来源、不修改配置，也不是原生派发工具的强制拦截器。使用已有且符合规则的 Agent 工具解释器；缺少环境时中断，不自动安装或切换。费用与 Codex 额度的实际节省需要实测，不按 API 标价推算固定比例。
+每个任务由独立 Coder 和干净只读 Reviewer 分工，验收期间冻结相关范围。初次实现后最多三轮修复：前两轮优先原 Coder，第三轮 fresh coder 或按已验证能力提升配置；携同一 SPEC / PLAN、当前实现与 blocker，不重新理解业务。每轮复验聚焦修复及影响；普通建议与偏好不阻塞，超出 SPEC 的要求拒绝。同根因重复或新 finding 不重开预算。第三轮后主模型 adjudication / convergence，真实核心 blocker 仍未解决则该任务 FAILED，冻结其直接 / 间接依赖及具体风险影响范围，其他独立安全任务继续，不默认全局熔断。完整规则见[角色契约](../plugins/personal-dev/skills/dev-delegate/references/roles.md)与[编排恢复](../plugins/personal-dev/skills/dev-delegate/references/orchestration.md)。
+
+主模型始终对照 SPEC 检查总需求、跨任务联动、范围和最终版本，即使部分失败也汇总未完成项。额外独立 Final Reviewer 只在用户明确要求、安全 / 权限、并发 / 事务一致性、破坏性数据迁移或明显公共 API 不兼容风险时默认触发。代码多、任务多、复杂本身不触发；普通页面、样式、常规联调、兼容性 API 增加与一般功能无需额外 Reviewer。触发时按 adapter 自动选择，保留可核验的同会话型号低一档策略；信息不足时自动沿用已验证验收配置，用户指定优先，不询问型号 / effort，不启动第二套全项目 dev-review。最终发现仍沿用任务剩余修复次数，不能产生第四轮。
+
+失败、中断或收尾未完成时保留 SPEC / PLAN 和 ledger。部分失败不宣称全部完成，不自动提交、推送或发布混合的失败实现；全部通过后只按目标项目已有授权收尾，安全清理本次临时目录。Codex 检查器只校验传入模型元数据，不发现型号、不验证来源、不拦截原生派发；使用已有工具环境，不安装或切换运行时。隔离加载测试不代表真实模型已完成 SDD，也不承诺固定 token 或额度节省。
 
 ### 精简当前改动
 
