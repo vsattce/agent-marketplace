@@ -53,7 +53,7 @@ Codex / Claude Code 按分类安装，完整身份为 `<plugin>@agent-marketplac
 
 `dev-prepare` 结合项目规则和现有代码生成 `spec.md` / `plan.md`，统一确认一次后结束，不开发；`dev-delegate` 只消费已确定的文件执行 SDD，缺失时提示先准备；`dev-auto` 复用同一准备契约和执行器，自动检查后连续开发，正常需求不确认，仅重大歧义、未授权破坏性操作、安全边界不清允许集中询问一次。始终遵循 `SPEC > PLAN > Coder interpretation`。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code)。
 
-SPEC / PLAN 默认保存在 `.agent-tmp/dev-delegate/<task-id>/`，单任务也保存；多任务在同目录加 `progress.md`。Codex 沿用同代 Luna 默认 `high` 编码、`xhigh` 独立验收；Claude 沿用原生子代理配置；用户指定优先，展示后执行，不确认模型 / effort。每任务最多三轮修复加收敛裁决，失败只冻结依赖链及受风险影响的任务，其他任务继续。默认单写，满足现有安全条件才有限并行。主模型始终整体检查；独立 Final Reviewer 仅在用户要求、安全权限、并发事务、破坏性迁移或明显公共 API 不兼容风险时触发，不按改动量或复杂度触发。
+SPEC / PLAN 默认保存在 `.agent-tmp/dev-delegate/<task-id>/`，单任务也保存；多任务在同目录加 `progress.md`。Codex 沿用同代 Luna 默认 `high` 编码、`xhigh` 独立验收；Claude 沿用原生子代理配置；用户指定优先，展示后执行，不确认模型 / effort。每任务最多三轮修复加收敛裁决，失败只冻结依赖链及受风险影响的任务，其他任务继续。两端自动识别独立任务，满足安全条件默认两个编码代理并行；有依赖、冲突或并发能力不明时串行，派发时说明理由。主模型始终整体检查；独立 Final Reviewer 仅在用户要求、安全权限、并发事务、破坏性迁移或明显公共 API 不兼容风险时触发，不按改动量或复杂度触发。
 
 `dev-review` 仅在显式调用后审查，默认覆盖当前项目全部自有代码，即使没有 diff；指定范围时严格遵守。它只读源码与配置，先集中预检，再派发审查和必要的独立复核；没有生产证据时仍可完成代码层审查。问题按证据与影响分级，报告保存在项目的 `docs/personal-dev/reviews/<review-id>/report.md`，审查过程不自动提交或推送。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code)。
 
