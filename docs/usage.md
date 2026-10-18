@@ -4,9 +4,9 @@
 
 已经安装并启用 Marketplace 的用户，从日常调用开始；安装步骤用于首次安装、换电脑或更新副本。
 
-当前支持 Codex 与 Claude Code；其他客户端暂不适配或维护。
+当前支持 Codex、Claude Code 与 Antigravity CLI（agy）。agy 的安装及作用域边界见[专用说明](#antigravity-cliagy)。
 
-Codex 与 Claude Code 均有 **6 个 Plugin**；Codex 共 **21 个 Skills**，Claude Code 共 **20 个**。四个第三方聚合 Plugin 收录 13 项；本仓库自有的 `agent-manager` 在 Codex / Claude Code 分别有 2 / 1 项，`personal-dev` 两端各有 6 项。第三方来源、作者与许可证边界见 [README](../README.md)。
+三个客户端均有 **6 个 Plugin**；Codex 共 **21 个 Skills**，Claude Code / agy 各有 **20 个**。四个第三方聚合 Plugin 收录 13 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，Claude Code / agy 各有 1 项，`personal-dev` 三端各有 6 项。第三方来源、作者与许可证边界见 [README](../README.md)。
 
 ## 日常调用
 
@@ -16,6 +16,7 @@ Codex 与 Claude Code 均有 **6 个 Plugin**；Codex 共 **21 个 Skills**，Cl
 | --- | --- | --- |
 | Codex | `$<plugin>:<skill>` | `$software-dev:vue 帮我实现这个组件` |
 | Claude Code | `/<plugin>:<skill>` | `/software-dev:vue 帮我实现这个组件` |
+| agy | `/<skill>`（以实际命令清单为准） | `/vue 帮我实现这个组件` |
 
 可用入口以当前会话实际显示的清单为准。Skill 改名发布后，刷新客户端安装副本并开启新会话或重载 Plugin；旧完整调用名不作为别名保留。
 
@@ -62,7 +63,7 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 
 委派开发以文件形式的 SPEC / PLAN 为输入；单任务也保存，交接保持简短，不额外建 ledger 或长报告。两个及以上任务（含串行依赖任务）自动建立被 Git 忽略的 `.agent-tmp/dev-delegate/<task-id>/progress.md`；真正需要长期保留设计、复杂任务记录或验收证据时才使用 `docs/personal-dev/tasks/<task-id>/`。其他产物的路径和边界见[任务产物位置](../plugins/personal-dev/references/artifacts.md)。
 
-## 个人开发工具（Codex / Claude Code）
+## 个人开发工具（Codex / Claude Code / agy）
 
 三个开发入口均只由用户手动触发；本文简称 `$dev-prepare` / `$dev-delegate` / `$dev-auto`，实际安装调用使用完整命名空间：
 
@@ -163,6 +164,25 @@ standalone Skill 的项目安装与 Skill 开关不同：用户须指定准确�
 ## 安装与更新
 
 Plugin 提供 Skill 内容，不代装 Playwright、Java、Vue 等运行依赖；使用时遵循目标项目的环境约束。
+
+### Antigravity CLI（agy）
+
+agy 1.4.2 支持六个产品 Plugin、20 个 Skills；`am-context` 仍仅 Codex。同步使用本仓库项目 Skill：Codex `$sync-agy`，Claude Code / agy `/sync-agy`。它只服务仓库维护，不进入产品目录或全局 Skills。
+
+在仓库根也可直接运行 PowerShell 7 脚本：
+
+```powershell
+# 只读检查，不安装
+pwsh -NoProfile -File .agents/skills/sync-agy/scripts/sync.ps1 -CheckOnly
+# 安装或刷新当前工作区的全部产品插件到 agy 全局
+pwsh -NoProfile -File .agents/skills/sync-agy/scripts/sync.ps1
+```
+
+脚本使用原生 `agy plugin validate / install / list`；默认从 PATH 查找，Windows 可回退到 `%LOCALAPPDATA%/agy/bin/agy.exe`，也可显式传 `-AgyPath`。它不执行 Git pull、不改其他客户端配置，保留其他来源的插件与已有禁用状态。仓库内容更新后重复同步即可刷新安装副本；不是实时同步。安装路径以 `agy plugin list --json` 返回值为准，本机 1.4.2 实际使用 `~/.gemini/config/plugins/`，不硬编码旧文档路径。
+
+安装后开启新 agy 会话或按客户端提供的入口重载，确认 `/vue`、`/am-config`、`/dev-prepare`、`/dev-auto` 等命令。手动 Skills 仍需明确调用；不要仅凭 frontmatter 声称客户端已强制门控。静态校验、安装清单及资源一致性不代表已运行真实模型、SSH 或子代理业务流程。
+
+`personal-dev` 的准备、简化与远端诊断使用共享流程；委派与审查使用 [agy 原生适配](../plugins/personal-dev/references/agy.md)，默认继承原生子代理配置，必要工具缺失时报具体限制。`am-config` 使用 [agy 项目编辑适配](../plugins/agent-manager/references/agy.md)，支持项目指令、standalone Skill、Plugin 文件准备与只读冲突检查；当前未验证项目 Plugin 开关，不能用全局 `enable / disable / install` 代替仅项目操作。
 
 ### Codex
 

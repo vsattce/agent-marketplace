@@ -1,12 +1,12 @@
 ---
 name: dev-runtime-check
-description: 远端运行诊断：通过当前 Harness 支持的 Shell 与 SSH 工具检查用户指定的主机、容器或服务；仅在用户显式调用 `$personal-dev:dev-runtime-check` 或 `/personal-dev:dev-runtime-check` 时启用，明确要求修复时执行授权范围内的操作。
+description: 远端运行诊断：通过当前 Harness 支持的 Shell 与 SSH 工具检查指定远端；仅在用户显式调用 Codex、Claude Code 或 agy 的 dev-runtime-check 时启用，明确要求修复时执行授权范围内的操作。
 disable-model-invocation: true
 ---
 
 # 远端运行诊断
 
-仅在用户明确调用 `$personal-dev:dev-runtime-check`（Codex）或 `/personal-dev:dev-runtime-check`（Claude Code）后使用。普通故障描述、日志或性能问题不会自动启用本 Skill。
+仅在用户明确调用 `$personal-dev:dev-runtime-check`（Codex）、`/personal-dev:dev-runtime-check`（Claude Code）或 `/dev-runtime-check`（agy）后使用。普通故障描述、日志或性能问题不会自动启用本 Skill。
 
 临时与可选保存位置按需遵循[任务产物位置](../../references/artifacts.md)。诊断结论默认在聊天中汇报；只有用户明确要求保存时，才在目标项目的 `docs/personal-dev/runtime/<diagnostic-id>/report.md` 写报告。
 
@@ -18,7 +18,7 @@ disable-model-invocation: true
 
 ## 使用当前 Harness 的原生工具
 
-仅支持 Codex 与 Claude Code。由当前模型使用当前 Harness 可用的 Shell / 终端工具和已有 SSH 配置、Agent 或密钥：Codex 使用其当前可用终端执行能力；Claude Code 使用原生 Bash 工具。不要把一个 Harness 的参数、Python helper、子代理或客户端命令要求套到另一个 Harness；默认不委派、不嵌套启动客户端。
+支持 Codex、Claude Code 与 agy。由当前模型使用当前 Harness 可用的 Shell / 终端工具和已有 SSH 配置、Agent 或密钥：Codex 使用其当前可用终端执行能力；Claude Code 使用原生 Bash 工具；agy 使用当前原生命令工具（如 `run_command`，按实际 schema）。不要把一个 Harness 的参数、Python helper、子代理或客户端命令要求套到另一个 Harness；默认不委派、不嵌套启动客户端。
 
 连接信息与诊断目标明确后，使用有限连接超时直接连接，并为每条远端命令设置有限执行超时；按当前 Harness 工具支持的方式实现。连接或命令失败只在适用的暂时性故障下有限重试，不无限等待或循环重试。Linux 目标的只读起始示例：
 

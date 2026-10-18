@@ -4,7 +4,7 @@
 
 ## 范围与证据
 
-1. 固定调用时 cwd，按 Git 根或可信 workspace 元数据确认当前项目；非 Git 项目可用实际项目配置/构建文件确认。无法建立项目范围或 Harness 身份时报告 `BLOCKED`，不初始化项目、不猜测扫描范围。Codex 读取 [Codex 来源规则](../../../references/codex.md)，Claude Code 读取 [Claude 来源规则](../../../references/claude.md)，其他 Harness 为 `BLOCKED / UNSUPPORTED AGENT`。
+1. 固定调用时 cwd，按 Git 根或可信 workspace 元数据确认当前项目；非 Git 项目可用实际项目配置/构建文件确认。无法建立项目范围或 Harness 身份时报告 `BLOCKED`，不初始化项目、不猜测扫描范围。Codex 读取 [Codex 来源规则](../../../references/codex.md)，Claude Code 读取 [Claude 来源规则](../../../references/claude.md)，agy 读取 [agy 来源规则](../../../references/agy.md)，其他 Harness 为 `BLOCKED / UNSUPPORTED AGENT`。
 2. 编辑预检只检查完整请求批次相关的有效指令链、目标及拟安装/启用能力，以及可能与其冲突的项目/全局来源。独立只读检查按用户指定范围；未限定时覆盖当前项目适用的指令、Skills、Plugins 与相关全局来源。子目录规则标明适用路径，不把所有子目录视为当前已加载。不扫描其他项目或整个用户目录。
 3. 来源优先取自当前会话清单、加载信息、有效配置、manifest 和已有安装记录。区分磁盘存在、安装、配置启用、会话可用与正文已加载；源码或缓存不等于生效入口。按实际路径和来源去重，记录身份、namespace、类型、作用域、启用/加载证据与相关文件位置。无法核实的字段写 `UNKNOWN`，不混入已确认生效的冲突。
 4. 跟进适用规则的引用，记录缺失和循环引用。Skill 先读 name、description 与调用策略，再读取可能冲突的正文及必要资源；手动 Skill 正文只在调用条件下适用，不作为常驻指令。Plugin 卡片描述不能代替真实规则、配置或 hooks / MCP / agents 等能力。

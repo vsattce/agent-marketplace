@@ -72,6 +72,6 @@ auto 从准备到执行结束，只允许因以下三类无法自行合理裁决
 
 核对两个文件均可读、属于当前目标项目与同一需求，PLAN 指向正确 SPEC，且内容满足上面的必要信息；自有生成文件须为 CONFIRMED 或 AUTO_READY。用户本次明确指定文件并要求按它们执行，视为对这组文件的确认，可写自有 PLAN 记录此授权；外部只读文件以用户本次指定为依据，已有 ledger 时记录路径，否则无需仅为确认建档。明确标为草稿但未授权执行的文件不可消费。
 
-找不到可用 SPEC / PLAN 时，提示先用 `$dev-prepare` / `$personal-dev:dev-prepare`（Claude：`/personal-dev:dev-prepare`），或 `$dev-auto` / `$personal-dev:dev-auto`（Claude：`/personal-dev:dev-auto`）；列出缺失或不一致的文件并结束。**不从自然语言重新推导业务需求，不偷偷生成另一套 SPEC / PLAN。**多个无法区分的候选也按缺少明确输入处理。
+找不到可用 SPEC / PLAN 时，提示先用 `$dev-prepare` / `$personal-dev:dev-prepare`（Claude：`/personal-dev:dev-prepare`；agy：`/dev-prepare`），或 `$dev-auto` / `$personal-dev:dev-auto`（Claude：`/personal-dev:dev-auto`；agy：`/dev-auto`）；列出缺失或不一致的文件并结束。**不从自然语言重新推导业务需求，不偷偷生成另一套 SPEC / PLAN。**多个无法区分的候选也按缺少明确输入处理。
 
 已确定的 SPEC 不因 Reviewer 偏好变化。执行前发现 PLAN 的局部错误可据 SPEC 裁决并修正；无法在既定 SPEC 内修复的核心缺口按任务阻塞处理，不能通过改写业务要求让实现或审查通过。

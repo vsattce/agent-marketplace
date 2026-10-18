@@ -4,7 +4,7 @@
     "name": "hjy"
   },
   "metadata": {
-    "description": "共享 Skills，支持 Codex 与 Claude Code。"
+    "description": "共享 Skills，支持 Codex、Claude Code 与 agy。"
   },
   "plugins": [
     {
@@ -30,7 +30,7 @@
     {
       "name": "personal-dev",
       "source": "./plugins/personal-dev",
-      "description": "仅手动调用的需求准备、SPEC / PLAN 委派执行、自动开发、精简建议、增强审查与远端诊断，支持 Claude Code 和 Codex。"
+      "description": "仅手动调用的需求准备、SPEC / PLAN 委派执行、自动开发、精简建议、增强审查与远端诊断，支持 Claude Code、Codex 和 agy。"
     },
     {
       "name": "engineering-tools",

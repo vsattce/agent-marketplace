@@ -16,7 +16,7 @@
 
 ## 仓库维护规则
 
-1. **定位与客户端：** 当前仅支持 Claude Code 和 Codex，其他客户端暂不适配或维护。业务流程和 Skill 正文可共享，manifest、Skill 发现、项目配置、工具调用及客户端行为按 Harness 实际能力区分；双端修改时检查双方入口、加载、手动调用策略、随包资源和直接受影响行为。
+1. **定位与客户端：** 当前支持 Claude Code、Codex 和 Antigravity CLI（agy），其他客户端暂不适配或维护。业务流程和 Skill 正文可共享，manifest、Skill 发现、项目配置、工具调用及客户端行为按 Harness 实际能力区分；跨端修改时检查各端入口、加载、手动调用策略、随包资源和直接受影响行为。
 
 2. **产品与开发工具边界（repository development tooling）：** .agents/skills/ 中的 Superpowers、项目 upgrade、Claude Code plugin 开发 Skill 及未来项目级开发 Skill，.agents/plugin-dev/ 中的官方参考快照，以及项目 MCP 与 Codex / Claude 开发辅助配置默认只服务本仓库维护，不属于 Marketplace 产品。除非用户明确要求，不把它们注册到 .agents/plugins/marketplace.json、.claude-plugin/marketplace.json、sources.yaml 或对外安装目录，也不计入 Plugin / Skill 数量；README 保留 Superpowers 不计数说明。
 

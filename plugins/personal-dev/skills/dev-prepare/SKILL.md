@@ -1,12 +1,12 @@
 ---
 name: dev-prepare
-description: 需求与计划准备：仅在用户明确调用时，结合项目规则和代码生成 SPEC / PLAN，统一确认一次后结束，不执行开发；适用于 Codex 和 Claude Code。
+description: 需求与计划准备：仅在用户明确调用时，结合项目规则和代码生成 SPEC / PLAN，统一确认一次后结束，不执行开发；适用于 Codex、Claude Code 和 agy。
 disable-model-invocation: true
 ---
 
 # 需求与计划准备
 
-Only use when explicitly invoked by the user. Codex 使用 `$personal-dev:dev-prepare`，Claude Code 使用 `/personal-dev:dev-prepare`；`$dev-prepare` 是本文的入口简称。普通请求不自动触发。
+Only use when explicitly invoked by the user. Codex 使用 `$personal-dev:dev-prepare`，Claude Code 使用 `/personal-dev:dev-prepare`，agy 使用 `/dev-prepare`；`$dev-prepare` 是本文的入口简称。普通请求不自动触发。
 
 读取[准备与消费契约](../../references/preparation.md)，以 **prepare 模式**执行：读取当前需求、项目规则和相关代码，生成同一 task-id 下的 `spec.md` / `plan.md`，自行检查一致性后附文件路径，只请求一次“SPEC 是否正确、PLAN 是否正确”的统一人工确认。
 

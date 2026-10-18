@@ -1,12 +1,12 @@
 ---
 name: dev-delegate
-description: SPEC / PLAN 委派执行：仅在用户明确调用时，消费既定需求文件执行 SDD、独立验收与有限修复，支持依赖隔离和进度恢复；适用于 Codex 和 Claude Code。
+description: SPEC / PLAN 委派执行：仅在用户明确调用时，消费既定需求文件执行 SDD、独立验收与有限修复，支持依赖隔离和进度恢复；适用于 Codex、Claude Code 和 agy。
 disable-model-invocation: true
 ---
 
 # 委派开发与独立验收
 
-Only use when explicitly invoked by the user. Codex 使用 `$personal-dev:dev-delegate`，Claude Code 使用 `/personal-dev:dev-delegate`；`$dev-delegate` 是本文的入口简称。用户显式调用 dev-auto 时，也授权其读取本正文执行组合流程。普通开发请求不自动触发。
+Only use when explicitly invoked by the user. Codex 使用 `$personal-dev:dev-delegate`，Claude Code 使用 `/personal-dev:dev-delegate`，agy 使用 `/dev-delegate`；`$dev-delegate` 是本文的入口简称。用户显式调用 dev-auto 时，也授权其读取本正文执行组合流程。普通开发请求不自动触发。
 
 定位为轻量 SDD 执行器，只消费已确定的 SPEC / PLAN。`SPEC > PLAN > Coder interpretation`：SPEC 是业务需求最高约束，PLAN 冲突以 SPEC 为准，Coder / Reviewer 不重新解释明确需求。
 
@@ -14,11 +14,11 @@ Only use when explicitly invoked by the user. Codex 使用 `$personal-dev:dev-de
 
 先读取[准备与消费契约的执行入口](../../references/preparation.md#执行入口查找与校验)，定位并读取 spec.md / plan.md，核对项目、就绪状态与任务信息。找不到可用文件时明确提示 `$dev-prepare` 或 `$dev-auto`（使用客户端完整调用名），列出缺项并结束；**不从自然语言重新推导业务需求或生成另一套定义**。PLAN 局部错误由主模型按 SPEC 裁决，记录依据；重大缺口保留并报告。
 
-读取目标项目规则和直接相关实现，确认真实 Harness。Codex 读取 [Codex adapter](../../references/codex.md)，用本 Skill 的 `scripts/select_models.py` 核验当前工具、型号与强度；Claude Code 读取 [Claude adapter](../../references/claude.md)，沿用原生 Agent 配置，不运行 Codex helper。未知 Harness、缺少委派或干净上下文等必需能力时报告具体 BLOCKED；不安装、改全局配置或由主模型接手编码来绕过。
+确认真实 Harness，读取目标规则与直接实现。Codex 读取 [Codex adapter](../../references/codex.md)，用 `scripts/select_models.py` 核验工具、型号与强度；Claude Code 读取 [Claude adapter](../../references/claude.md)，agy 读取 [agy adapter](../../references/agy.md)，后两者沿用原生子代理配置，不运行 Codex helper。未知 Harness、缺少委派或干净上下文时报告具体 BLOCKED，不安装、改全局配置或由主模型接手编码绕过。
 
 ## 2. 自动选择并展示配置
 
-用户明确指定的模型 / effort 优先，明确指定本身就是本次覆写授权，不再要求确认。未指定时按 adapter 自动选择：Codex 同大版本最新可用 Luna，默认编码 high、独立验收 xhigh；Claude 沿用当前子代理配置。指定值仍须受当前工具真实能力约束；不支持时如实报告，不猜参数。
+用户明确指定的模型 / effort 优先，明确指定本身就是本次覆写授权，不再要求确认。未指定时按 adapter 自动选择：Codex 同大版本最新可用 Luna，默认编码 high、独立验收 xhigh；Claude / agy 沿用当前原生子代理配置。指定值仍须受当前工具真实能力约束；不支持时如实报告，不猜参数。
 
 代码编辑和编码派发前展示实际策略与已确认值，例如：
 
@@ -27,7 +27,7 @@ Only use when explicitly invoked by the user. Codex 使用 `$personal-dev:dev-de
 验收模型：gpt-6-luna｜思考强度：xhigh
 ```
 
-示例不是固定型号。Claude 实际值未确认时标 UNKNOWN。**展示后直接执行，不询问 Final Review 模型 / effort，不询问是否开始或 Task 之间是否继续。**型号变化时重新展示，无配置确认环节。
+示例不是固定型号。Claude / agy 实际值未确认时标 UNKNOWN。**展示后直接执行，不询问 Final Review 模型 / effort，不询问是否开始或 Task 之间是否继续。**型号变化时重新展示，无配置确认环节。
 
 ## 3. 按 PLAN 派发
 

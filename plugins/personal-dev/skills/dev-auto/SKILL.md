@@ -1,12 +1,12 @@
 ---
 name: dev-auto
-description: 自动准备与委派开发：仅在用户明确调用时，复用准备流程生成 SPEC / PLAN，自动检查后直接执行 SDD，普通需求无需确认；适用于 Codex 和 Claude Code。
+description: 自动准备与委派开发：仅在用户明确调用时，复用准备流程生成 SPEC / PLAN，自动检查后直接执行 SDD，普通需求无需确认；适用于 Codex、Claude Code 和 agy。
 disable-model-invocation: true
 ---
 
 # 自动准备与委派开发
 
-Only use when explicitly invoked by the user. Codex 使用 `$personal-dev:dev-auto`，Claude Code 使用 `/personal-dev:dev-auto`；`$dev-auto` 是本文的入口简称。显式调用本入口即授权本次准备与委派组合流程，普通开发请求不自动触发。
+Only use when explicitly invoked by the user. Codex 使用 `$personal-dev:dev-auto`，Claude Code 使用 `/personal-dev:dev-auto`，agy 使用 `/dev-auto`；`$dev-auto` 是本文的入口简称。显式调用本入口即授权本次准备与委派组合流程，普通开发请求不自动触发。
 
 1. 读取[准备与消费契约](../../references/preparation.md)，以 **auto 模式**执行 dev-prepare 等价流程：读取用户需求、项目规则和相关代码，生成文件形式的 SPEC / PLAN，自动检查需求、依赖、范围、验收及风险。
 2. 无重大问题时记为 AUTO_READY，**不确认 SPEC、PLAN、模型或 effort，直接继续**。仅重大歧义、未授权的破坏性操作、安全边界不清允许集中询问一次；整次流程共用这一次预算，等待明确答复后继续，规则见共用契约。

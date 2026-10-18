@@ -4,7 +4,9 @@
 
 本文用于维护仓库源码、第三方快照与开发验证；客户端安装、调用和刷新见使用手册。
 
-本仓库目前仅支持 Codex 与 Claude Code；其他客户端暂不适配或维护。项目规则、配置、能力、调用方式、支持范围或维护流程有变化时，同步检查并更新 README 与直接相关文档，维护要求以 [AGENTS.md](../AGENTS.md) 为准。
+本仓库支持 Codex、Claude Code 与 Antigravity CLI（agy）。项目规则、配置、能力、调用方式、支持范围或维护流程有变化时，同步检查并更新 README 与直接相关文档，维护要求以 [AGENTS.md](../AGENTS.md) 为准。
+
+agy 全局同步使用项目 Skill `.agents/skills/sync-agy/`，Claude 入口只引用共享正文；它从现有产品 catalog 读取目标，通过原生 CLI 校验、安装与验证，不进入 Marketplace 产品清单。各产品沿用原有 `plugin.json`；`agent-manager` 使用独立 `.antigravity-plugin/plugin.json`，保留 Codex 专用 `codex-skills/` 的发现边界。自有插件的 agy 行为只维护在随包 `references/agy.md` 及必要入口分支，第三方上游 Skills 不直接修改。安装与业务执行分开验证，具体用法见[agy 使用说明](usage.md#antigravity-cliagy)。
 
 ## Claude Code plugin 开发指导
 
