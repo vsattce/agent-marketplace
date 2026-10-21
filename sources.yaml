@@ -11,6 +11,14 @@ groups:
         repo: mattpocock/skills
         path: skills/engineering/diagnosing-bugs
         ref: main
+      - name: codebase-design
+        repo: mattpocock/skills
+        path: skills/engineering/codebase-design
+        ref: main
+      - name: tdd
+        repo: mattpocock/skills
+        path: skills/engineering/tdd
+        ref: main
       - name: research
         repo: mattpocock/skills
         path: skills/engineering/research

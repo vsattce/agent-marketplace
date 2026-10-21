@@ -6,7 +6,7 @@
 
 当前支持 Codex、Claude Code 与 Antigravity CLI（agy）。agy 的安装及作用域边界见[专用说明](#antigravity-cliagy)。
 
-三个客户端均有 **6 个 Plugin**；Codex 共 **21 个 Skills**，Claude Code / agy 各有 **20 个**。四个第三方聚合 Plugin 收录 13 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，Claude Code / agy 各有 1 项，`personal-dev` 三端各有 6 项。第三方来源、作者与许可证边界见 [README](../README.md)。
+三个客户端均有 **6 个 Plugin**；Codex 共 **23 个 Skills**，Claude Code / agy 各有 **22 个**。四个第三方聚合 Plugin 收录 15 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，Claude Code / agy 各有 1 项，`personal-dev` 三端各有 6 项。第三方来源、作者与许可证边界见 [README](../README.md)。
 
 ## 日常调用
 
@@ -37,6 +37,8 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 | --- | --- | --- | --- |
 | common-workflow | handoff | 整理进度、决定和后续工作，供新会话接续 | 仅手动 |
 | common-workflow | diagnosing-bugs | 排查复杂 Bug、报错、故障和性能回归 | 任务匹配 / 手动 |
+| common-workflow | codebase-design | 使用深模块原则设计接口、确定可替换与可测试的边界 | 任务匹配 / 手动 |
+| common-workflow | tdd | 先确认测试边界，再逐项执行失败测试与最小实现的循环 | 任务匹配 / 手动 |
 | common-workflow | research | 从可信来源收集资料和 API 文档，形成研究记录 | 任务匹配 / 手动 |
 | common-workflow | writing-for-agents | 编写 Skill、AGENTS.md、CLAUDE.md 等 Agent 文档 | 任务匹配 / 手动 |
 | common-workflow | find-skills | 按需求查找 Skill，了解能力与安装方式 | 任务匹配 / 手动 |
@@ -167,7 +169,7 @@ Plugin 提供 Skill 内容，不代装 Playwright、Java、Vue 等运行依赖�
 
 ### Antigravity CLI（agy）
 
-agy 1.4.2 支持六个产品 Plugin、20 个 Skills；`am-context` 仍仅 Codex。同步使用本仓库项目 Skill：Codex `$sync-agy`，Claude Code / agy `/sync-agy`。它只服务仓库维护，不进入产品目录或全局 Skills。
+agy 1.4.2 的产品目录支持六个 Plugin、22 个 Skills；`am-context` 仍仅 Codex。同步使用本仓库项目 Skill：Codex `$sync-agy`，Claude Code / agy `/sync-agy`。它只服务仓库维护，不进入产品目录或全局 Skills。
 
 在仓库根也可直接运行 PowerShell 7 脚本：
 

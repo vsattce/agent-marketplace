@@ -4,7 +4,7 @@
 
 代码托管使用 [Gitee](https://gitee.com/vsattce/agent-marketplace) 和 [GitHub](https://github.com/vsattce/agent-marketplace) 双远端：`origin` 为 Gitee（`git@gitee.com:vsattce/agent-marketplace.git`），`github` 为 GitHub（`git@github.com:vsattce/agent-marketplace.git`）。提交后优先推送 Gitee，再推送 GitHub；GitHub 推送失败不阻塞任务。提交、推送与拉取约定见 [AGENTS.md](AGENTS.md#仓库维护规则)。
 
-三个客户端均包含 **6 个 Plugin**；Codex 有 **21 个 Skills**，Claude Code / agy 各有 **20 个**。四个第三方聚合 Plugin 共 13 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，Claude Code / agy 各有 1 项，`personal-dev` 三端各有 6 项。
+三个客户端均包含 **6 个 Plugin**；Codex 有 **23 个 Skills**，Claude Code / agy 各有 **22 个**。四个第三方聚合 Plugin 共 15 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，Claude Code / agy 各有 1 项，`personal-dev` 三端各有 6 项。
 
 `software-dev` 收录第三方上游项目的 Skills，仅供个人使用与整理；原作者署名、上游内容及许可证均按原样保留。该说明只适用于 `software-dev`；`agent-manager` 和 `personal-dev` 是本仓库自有并直接维护的 Plugin。
 
@@ -12,7 +12,7 @@
 
 | Plugin | 用途 | Skills |
 | --- | --- | --- |
-| `common-workflow` | 通用工作流 | handoff、diagnosing-bugs、research、writing-for-agents、find-skills |
+| `common-workflow` | 通用工作流 | handoff、diagnosing-bugs、codebase-design、tdd、research、writing-for-agents、find-skills |
 | `software-dev` | 软件开发 | frontend-design、web-design-guidelines、vue、fastapi、java-springboot |
 | `engineering-tools` | 跨技术栈工程工具 | docker-build-strategies、docker-compose-patterns |
 | `testing-automation` | 测试与自动化 | playwright-cli |
@@ -42,6 +42,8 @@ agy 使用本地产品插件安装，进入本仓库后调用项目 Skill `$sync
 | 使用 Docker 构建策略 | `$engineering-tools:docker-build-strategies` | `/engineering-tools:docker-build-strategies` |
 | 编排 Docker Compose 服务 | `$engineering-tools:docker-compose-patterns` | `/engineering-tools:docker-compose-patterns` |
 | 交接当前任务 | `$common-workflow:handoff` | `/common-workflow:handoff` |
+| 设计模块接口与测试边界 | `$common-workflow:codebase-design` | `/common-workflow:codebase-design` |
+| 按测试先行开发 | `$common-workflow:tdd` | `/common-workflow:tdd` |
 | 估算本轮可见上下文（仅 Codex） | `$agent-manager:am-context` | — |
 | 编辑项目配置 / 只读查冲突 | `$agent-manager:am-config` | `/agent-manager:am-config` |
 | 准备 SPEC / PLAN，确认后结束 | `$personal-dev:dev-prepare` | `/personal-dev:dev-prepare` |

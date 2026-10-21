@@ -1,14 +1,14 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "common-workflow",
-  "version": "1.0.0",
-  "description": "任务交接、问题诊断、资料研究与 Agent 工作流工具。",
+  "version": "1.1.0",
+  "description": "任务交接、问题诊断、模块设计、测试先行与资料研究工具。",
   "extensions": {
     "com.openai": {
       "interface": {
         "displayName": "通用工作流",
-        "shortDescription": "任务交接、问题诊断、资料研究与 Agent 工作流工具。",
-        "longDescription": "任务交接、问题诊断、资料研究与 Agent 工作流工具。\n\nhandoff（任务交接）：将当前会话的进度、决定和后续工作整理成交接文档，供新会话继续。触发：被动（仅手动）。\ndiagnosing-bugs（问题诊断）：逐步排查复杂 Bug、报错、故障和性能回归，核验证据与原因。触发：主动（诊断任务）／被动（手动）。\nresearch（资料研究）：从可信来源收集资料和 API 文档，形成可追溯的研究记录。触发：主动（研究任务）／被动（手动）。\nwriting-for-agents（Agent 文档编写）：创建或修改 Skill、AGENTS.md、CLAUDE.md 等供 Agent 使用的文档。触发：主动（Agent 文档任务）／被动（手动）。\nfind-skills（Skill 查找）：按需求寻找可用 Skill，了解其能力与安装方式。触发：主动（查找 Skill 时）／被动（手动）。\n\n主动表示 Codex 可按当前任务自动选用；被动表示手动指定 Skill，例如 $common-workflow:handoff。启用插件不会自行执行任务。",
+        "shortDescription": "任务交接、问题诊断、模块设计、测试先行与资料研究工具。",
+        "longDescription": "任务交接、问题诊断、模块设计、测试先行与资料研究工具。\n\nhandoff（任务交接）：将当前会话的进度、决定和后续工作整理成交接文档，供新会话继续。触发：被动（仅手动）。\ndiagnosing-bugs（问题诊断）：逐步排查复杂 Bug、报错、故障和性能回归，核验证据与原因。触发：主动（诊断任务）／被动（手动）。\ncodebase-design（代码库设计）：用深模块原则设计接口、确定可替换与可测试的边界。触发：主动（模块设计任务）／被动（手动）。\ntdd（测试驱动开发）：先确认测试边界，再逐项执行失败测试与最小实现的循环。触发：主动（测试先行任务）／被动（手动）。\nresearch（资料研究）：从可信来源收集资料和 API 文档，形成可追溯的研究记录。触发：主动（研究任务）／被动（手动）。\nwriting-for-agents（Agent 文档编写）：创建或修改 Skill、AGENTS.md、CLAUDE.md 等供 Agent 使用的文档。触发：主动（Agent 文档任务）／被动（手动）。\nfind-skills（Skill 查找）：按需求寻找可用 Skill，了解其能力与安装方式。触发：主动（查找 Skill 时）／被动（手动）。\n\n主动表示 Codex 可按当前任务自动选用；被动表示手动指定 Skill，例如 $common-workflow:handoff。启用插件不会自行执行任务。",
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://gitee.com/vsattce/agent-marketplace",

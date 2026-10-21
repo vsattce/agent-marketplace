@@ -1,6 +1,6 @@
 {
   "name": "common-workflow",
-  "description": "任务交接、问题诊断、资料研究与 Agent 工作流工具。",
+  "description": "任务交接、问题诊断、模块设计、测试先行与资料研究工具。",
   "author": {
     "name": "hjy"
   },

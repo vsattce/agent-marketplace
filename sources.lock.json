@@ -116,6 +116,24 @@
       "group": "software-dev",
       "commit": "a74f281a27dadc02397bc1a174b0f2c97531b6ae",
       "syncedAt": "2026-10-12T23:59:48+00:00"
+    },
+    "codebase-design": {
+      "name": "codebase-design",
+      "repo": "mattpocock/skills",
+      "path": "skills/engineering/codebase-design",
+      "ref": "main",
+      "group": "common-workflow",
+      "commit": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+      "syncedAt": "2026-10-21T13:16:19+00:00"
+    },
+    "tdd": {
+      "name": "tdd",
+      "repo": "mattpocock/skills",
+      "path": "skills/engineering/tdd",
+      "ref": "main",
+      "group": "common-workflow",
+      "commit": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+      "syncedAt": "2026-10-21T13:16:19+00:00"
     }
   }
 }

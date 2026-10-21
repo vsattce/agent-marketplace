@@ -53,7 +53,7 @@ agent-marketplace/
 └── README.md                      # 概览与文档入口
 ```
 
-六个 Plugin 都提供 Claude Code `.claude-plugin/plugin.json`；Codex 侧除 `agent-manager` 外使用便携 `plugin.json`，该 Plugin 使用原生 `.codex-plugin/plugin.json` 并显式发现 `skills/` 与 `codex-skills/`。`am-context` 放在后者，因此仅 Codex 可发现；`am-config` 仍共享。四个第三方分类另存 `licenses/<name>/`，两个 Marketplace 均指向 `./plugins/<plugin>`。当前 Codex 有 21 个 Skills、Claude Code 有 20 个：第三方四类共 13 个，`agent-manager` 在两端分别有 2 / 1 个，`personal-dev` 两端各有 6 个。`dev-prepare` / `dev-auto` 复用 `references/preparation.md`；`dev-auto` 直接读取 `dev-delegate` 正文，执行端沿用 `references/codex.md` / `references/claude.md` 与现有模型检查器，不新增 Plugin 或调度系统。
+六个 Plugin 都提供 Claude Code `.claude-plugin/plugin.json`；Codex 侧除 `agent-manager` 外使用便携 `plugin.json`，该 Plugin 使用原生 `.codex-plugin/plugin.json` 并显式发现 `skills/` 与 `codex-skills/`。`am-context` 放在后者，因此仅 Codex 可发现；`am-config` 仍共享。四个第三方分类另存 `licenses/<name>/`，两个 Marketplace 均指向 `./plugins/<plugin>`。当前 Codex 有 23 个 Skills、Claude Code 有 22 个：第三方四类共 15 个，`agent-manager` 在两端分别有 2 / 1 个，`personal-dev` 两端各有 6 个。`dev-prepare` / `dev-auto` 复用 `references/preparation.md`；`dev-auto` 直接读取 `dev-delegate` 正文，执行端沿用 `references/codex.md` / `references/claude.md` 与现有模型检查器，不新增 Plugin 或调度系统。
 
 Codex 便携 manifest 的中文信息位于 `extensions.com.openai.interface`；原生 Codex manifest 的中文信息使用根级 `interface`。Claude manifest / catalog 有意不写 version，Git 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
 
@@ -83,7 +83,7 @@ lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，�
 
 ### 使用项目 Skill
 
-在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入两个客户端 Marketplace 的 21 / 20 个 Skills。
+在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入两个客户端 Marketplace 的 23 / 22 个 Skills。
 
 Agent 核对目标、Git 状态与运行时后，按 sources 的既定来源 / ref 同步，保留用户改动，检查差异并运行相关验证。按 [AGENTS.md](../AGENTS.md) 默认提交、推送当前分支；当前任务明确不提交或不推送时遵从该要求。环境、同步或验证失败时停止，零差异不制造提交。
 
