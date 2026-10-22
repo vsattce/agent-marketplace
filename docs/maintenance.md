@@ -16,7 +16,7 @@ agy 全局同步使用项目 Skill `.agents/skills/sync-agy/`，Claude 入口只
 
 ## 仓库开发工具
 
-仓库开发工具（repository development tooling）包括 .agents/skills/ 中的 Superpowers、项目 upgrade、现有 Claude Code plugin 开发 Skill 与未来项目级开发 Skill，.agents/plugin-dev/ 中的官方参考快照，以及项目 MCP 与 Codex / Claude 开发辅助配置。这些能力服务仓库维护，不进入 Marketplace 产品目录或数量；除明确要求，不注册到 .agents/plugins/marketplace.json、.claude-plugin/marketplace.json、sources.yaml 或对外安装目录。README 继续说明 Superpowers 不计入 Marketplace 数量。第三方快照与 OWNED 内容的维护方式见下文“第三方来源与维护边界”。
+仓库开发工具（repository development tooling）包括 .agents/skills/ 中的 Superpowers、项目 upgrade、sync-agy、Claude Code plugin 开发 Skill 与未来项目级开发 Skill，.agents/plugin-dev/ 中的官方参考快照，以及项目 MCP 与 Codex / Claude 开发辅助配置。这些能力服务仓库维护，不进入 Marketplace 产品目录或数量；除明确要求，不注册到 .agents/plugins/marketplace.json、.claude-plugin/marketplace.json、sources.yaml 或对外安装目录。Superpowers 仅在用户明确手动指定时调用，不作为日常维护的默认启动流程，且不计入 Marketplace 数量。第三方快照与 OWNED 内容的维护方式见下文“第三方来源与维护边界”。
 
 Codex 项目配置 .codex/config.toml 提供 OpenAI Docs MCP 和 Context7：OpenAI Docs 用于按需核对 Codex / OpenAI 的 plugin、MCP、Skill 与配置行为；Context7 用于外部库、框架、SDK、CLI 的 API、配置格式和版本差异。稳定的本地修改不必每次查文档；复用已有结果，查询不提交凭据、私有源码或会话内容。连接不可用时，转查对应官方网页。配置格式与加载边界见 [Codex 配置文件官方说明](https://learn.chatgpt.com/docs/config-file/config-basic)及 [OpenAI Docs MCP](https://developers.openai.com/learn/docs-mcp)。
 
@@ -30,9 +30,11 @@ agent-marketplace/
 │   ├── plugins/marketplace.json    # Codex Marketplace
 │   ├── skills/
 │   │   ├── upgrade/SKILL.md        # 项目升级入口
-│   │   └── claude-plugin-dev/      # Claude Code plugin 开发指导
+│   │   ├── sync-agy/              # agy 产品插件全局同步入口
+│   │   ├── claude-plugin-dev/      # Claude Code plugin 开发指导
+│   │   └── …                      # 项目 Superpowers Skills
 │   └── plugin-dev/upstream/        # 官方 plugin-dev 固定快照
-├── .claude/skills/upgrade/SKILL.md # Claude 入口，读取共享升级正文
+├── .claude/skills/                # Claude 的 upgrade / sync-agy 共享正文入口
 ├── .claude-plugin/marketplace.json # Claude Marketplace
 ├── AGENTS.md                      # 项目规则
 ├── CLAUDE.md                      # 导入 AGENTS.md
@@ -46,14 +48,14 @@ agent-marketplace/
 │   ├── engineering-tools/          # 第三方快照
 │   ├── testing-automation/        # 第三方快照
 │   ├── agent-manager/             # OWNED，直接维护
-│   └── personal-dev/              # OWNED，Codex / Claude、仅手动
+│   └── personal-dev/              # OWNED，Codex / Claude / agy、仅手动
 ├── docs/
 │   ├── usage.md
 │   └── maintenance.md
 └── README.md                      # 概览与文档入口
 ```
 
-六个 Plugin 都提供 Claude Code `.claude-plugin/plugin.json`；Codex 侧除 `agent-manager` 外使用便携 `plugin.json`，该 Plugin 使用原生 `.codex-plugin/plugin.json` 并显式发现 `skills/` 与 `codex-skills/`。`am-context` 放在后者，因此仅 Codex 可发现；`am-config` 仍共享。四个第三方分类另存 `licenses/<name>/`，两个 Marketplace 均指向 `./plugins/<plugin>`。当前 Codex 有 23 个 Skills、Claude Code 有 22 个：第三方四类共 15 个，`agent-manager` 在两端分别有 2 / 1 个，`personal-dev` 两端各有 6 个。`dev-prepare` / `dev-auto` 复用 `references/preparation.md`；`dev-auto` 直接读取 `dev-delegate` 正文，执行端沿用 `references/codex.md` / `references/claude.md` 与现有模型检查器，不新增 Plugin 或调度系统。
+六个 Plugin 都提供 Claude Code `.claude-plugin/plugin.json`；Codex 侧除 `agent-manager` 外使用便携 `plugin.json`，该 Plugin 使用原生 `.codex-plugin/plugin.json` 并显式发现 `skills/` 与 `codex-skills/`。`am-context` 放在后者，因此仅 Codex 可发现；`am-config` 仍共享。四个第三方分类另存 `licenses/<name>/`，两个 Marketplace 均指向 `./plugins/<plugin>`。当前 Codex 有 23 个 Skills、Claude Code / agy 各有 22 个：第三方四类共 15 个，`agent-manager` 分别有 2 / 1 / 1 个，`personal-dev` 三端各有 6 个。`dev-prepare` / `dev-auto` 复用 `references/preparation.md`；`dev-auto` 直接读取 `dev-delegate` 正文，执行端按 Harness 使用 `references/codex.md` / `references/claude.md` / `references/agy.md`，Codex 使用现有模型检查器，不新增 Plugin 或调度系统。
 
 Codex 便携 manifest 的中文信息位于 `extensions.com.openai.interface`；原生 Codex manifest 的中文信息使用根级 `interface`。Claude manifest / catalog 有意不写 version，Git 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
 
@@ -61,11 +63,11 @@ Codex 便携 manifest 的中文信息位于 `extensions.com.openai.interface`；
 
 [sources.yaml](../sources.yaml) 是第三方来源的唯一人工维护入口，记录 group / displayName 及各 Skill 的 name、repo、path、ref。新增、移除、换源、路径、分组或 ref 先改该文件，再同步；作者与 upstream 只表示来源，不决定分类。`sync.py` 会在 fetch 或发布前拒绝来源 YAML 与 lock JSON 中的重复映射键，同时保留合法 YAML merge 覆盖。
 
-准确 repo / path / ref 查看配置，实际完整 commit 查看 [sources.lock.json](../sources.lock.json)。当前 Anthropic 与 antfu 来源固定在 commit，其余配置跟随 main；分支同步到当前内容，固定 commit 保持固定，改变固定版本需明确修改 ref。
+准确 repo / path / ref 查看配置，实际完整 commit 查看 [sources.lock.json](../sources.lock.json)。当前 Anthropic 与 antfu 来源固定在 commit，FastAPI 跟随 master，其余配置跟随 main；分支同步到当前内容，固定 commit 保持固定，改变固定版本需明确修改 ref。
 
 lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，不参与版本选择，不手工维护。
 
-当前来源包含四个分类、13 个第三方 Skill；`software-dev` 合并前端与后端开发入口，包含五个 Skill。`engineering-tools` 新增 Docker 官方 `docker-compose-patterns`，Java 入口替换为 GitHub `awesome-copilot` 的 `java-springboot`；已移除 `webapp-testing`、旧 `java-spring-boot` 的快照与锁记录。本次 personal-dev 增量不修改第三方来源或锁文件。
+当前来源包含四个分类、15 个第三方 Skill：`common-workflow` 7 个、`software-dev` 5 个、`engineering-tools` 2 个、`testing-automation` 1 个。`common-workflow` 包含 Matt Pocock 的 `codebase-design` 与 `tdd`；Docker Compose 使用 Docker 官方 `docker-compose-patterns`，Java 使用 GitHub `awesome-copilot` 的 `java-springboot`。准确来源、路径与固定策略以 sources 配置为准。
 
 `software-dev` 收录第三方上游项目的 Skills，仅由本仓库汇集、整理供个人使用；作者署名、上游内容及许可证均按原样保留。该说明不适用于 `agent-manager`、`personal-dev` 等本仓库自有 Plugin。
 
@@ -129,14 +131,14 @@ git diff --check
 
 ## 自有 Agent 管理工具
 
-源码在 [plugins/agent-manager](../plugins/agent-manager)。Codex 有 `am-context` 与 `am-config` 两个手动入口，Claude Code 仅发现 `am-config`；用户行为与支持范围见[使用手册](usage.md#agent-管理工具)，这里保留维护入口：
+源码在 [plugins/agent-manager](../plugins/agent-manager)。Codex 有 `am-context` 与 `am-config` 两个手动入口，Claude Code / agy 仅发现 `am-config`；用户行为与支持范围见[使用手册](usage.md#agent-管理工具)，这里保留维护入口：
 
 | 内容 | 入口 |
 | --- | --- |
 | 当前对话可见上下文的粗略估算（仅 Codex） | [am-context](../plugins/agent-manager/codex-skills/am-context/SKILL.md) |
 | 项目编辑、只读检查与开关编辑器 | [am-config](../plugins/agent-manager/skills/am-config/SKILL.md) |
 | 冲突识别、检查范围与分级输出 | [conflicts.md](../plugins/agent-manager/skills/am-config/references/conflicts.md) |
-| Codex / Claude 来源与加载机制 | [Codex](../plugins/agent-manager/references/codex.md)、[Claude](../plugins/agent-manager/references/claude.md) |
+| 各客户端来源与加载机制 | [Codex](../plugins/agent-manager/references/codex.md)、[Claude](../plugins/agent-manager/references/claude.md)、[agy](../plugins/agent-manager/references/agy.md) |
 | 项目文件预检、开关能力与输入契约 | [project-edits.md](../plugins/agent-manager/skills/am-config/references/project-edits.md)、[Codex](../plugins/agent-manager/skills/am-config/references/codex-support.md)、[Claude](../plugins/agent-manager/skills/am-config/references/claude-support.md)、[editor-input.md](../plugins/agent-manager/skills/am-config/references/editor-input.md) |
 
 自有 Skill 命名规则：`personal-dev` 采用 `dev-{action}`，`agent-manager` 采用 `am-{action}`。`am-config` 保持共享 `skills/` 目录；仅 Codex 的 `am-context` 使用 `codex-skills/`。入口使用完整调用名。
@@ -178,6 +180,7 @@ uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,
 | --- | --- |
 | `tests/test_sync.py` | 重复同步、快照恢复、upstream 更新、许可证、失败不写入、路径与重名拒绝、回滚和移出配置项保留 |
 | `tests/test_agent_manager.py` | Codex / Claude Plugin 包装、手动策略与只读来源比较 |
+| `tests/test_agy_sync.py` | 模拟 agy CLI 检查只读预检、产品同步、禁用状态保留、资源核对与失败停止；不修改真实 agy 配置 |
 | `tests/test_personal_dev.py` / `tests/test_personal_dev_review.py` / `tests/test_personal_dev_packaging.py` | 开发与审查模型选择、阻塞与安全 CLI 输出，以及六个 Skill 的双端包装、共享资源、加载长度和手动策略 |
 | `tests/test_configure_project.py` | Codex 事务编辑、路径安全与不支持能力的拒绝 |
 | `tests/test_configure_project_claude.py` | Claude JSON 增量编辑、覆盖检查与失败恢复 |
@@ -240,4 +243,4 @@ Claude `2.1.291` 捕获到的 Agent 参数为 `description`、`isolation`、`mod
 
 修改后核对实际 diff、无关改动与文档一致性，按风险执行必要验证，并运行 `git diff --check`。影响用户使用时更新使用手册；影响概览或入口时更新 README。
 
-按 [AGENTS.md](../AGENTS.md) 默认在同一收尾流程提交并推送当前分支，遵循 Conventional Commits，以远端收到提交为完成条件；推送失败如实报告。管理 Skill 在用户项目内执行时不 commit / push。
+按 [AGENTS.md](../AGENTS.md) 默认在同一收尾流程提交并推送当前分支，遵循 Conventional Commits；先推送 Gitee `origin`，成功后再推送 GitHub `github` 的同名分支。GitHub 失败不回滚 Gitee、不阻塞任务完成，分别报告两端结果。管理 Skill 在用户项目内执行时不 commit / push。

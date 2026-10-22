@@ -4,7 +4,7 @@
 
 代码托管使用 [Gitee](https://gitee.com/vsattce/agent-marketplace) 和 [GitHub](https://github.com/vsattce/agent-marketplace) 双远端：`origin` 为 Gitee（`git@gitee.com:vsattce/agent-marketplace.git`），`github` 为 GitHub（`git@github.com:vsattce/agent-marketplace.git`）。提交后优先推送 Gitee，再推送 GitHub；GitHub 推送失败不阻塞任务。提交、推送与拉取约定见 [AGENTS.md](AGENTS.md#仓库维护规则)。
 
-三个客户端均包含 **6 个 Plugin**；Codex 有 **23 个 Skills**，Claude Code / agy 各有 **22 个**。四个第三方聚合 Plugin 共 15 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，Claude Code / agy 各有 1 项，`personal-dev` 三端各有 6 项。
+三个客户端均包含 **6 个 Plugin**；Codex 有 **23 个 Skills**，Claude Code / agy 各有 **22 个**。以上为仓库产品入口数量，不代表当前会话已加载。四个第三方聚合 Plugin 共 15 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，Claude Code / agy 各有 1 项，`personal-dev` 三端各有 6 项。
 
 `software-dev` 收录第三方上游项目的 Skills，仅供个人使用与整理；原作者署名、上游内容及许可证均按原样保留。该说明只适用于 `software-dev`；`agent-manager` 和 `personal-dev` 是本仓库自有并直接维护的 Plugin。
 
@@ -55,11 +55,11 @@ agy 使用本地产品插件安装，进入本仓库后调用项目 Skill `$sync
 
 `handoff`、`agent-manager` 和 `personal-dev` 中的 Skills **仅手动调用**；其余 Skill 可按任务匹配，也可显式调用。启用 Plugin 不会自行执行任务。
 
-`dev-prepare` 结合项目规则和现有代码生成 `spec.md` / `plan.md`，统一确认一次后结束，不开发；`dev-delegate` 只消费已确定的文件执行 SDD，缺失时提示先准备；`dev-auto` 复用同一准备契约和执行器，自动检查后连续开发，正常需求不确认，仅重大歧义、未授权破坏性操作、安全边界不清允许集中询问一次。始终遵循 `SPEC > PLAN > Coder interpretation`。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code)。
+`dev-prepare` 结合项目规则和现有代码生成 `spec.md` / `plan.md`，统一确认一次后结束，不开发；`dev-delegate` 只消费已确定的文件执行 SDD，缺失时提示先准备；`dev-auto` 复用同一准备契约和执行器，自动检查后连续开发，正常需求不确认，仅重大歧义、未授权破坏性操作、安全边界不清允许集中询问一次。始终遵循 `SPEC > PLAN > Coder interpretation`。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code--agy)。
 
-SPEC / PLAN 默认保存在 `.agent-tmp/dev-delegate/<task-id>/`，单任务也保存；多任务在同目录加 `progress.md`。Codex 沿用同代 Luna 默认 `high` 编码、`xhigh` 独立验收；Claude 沿用原生子代理配置；用户指定优先，展示后执行，不确认模型 / effort。每任务最多三轮修复加收敛裁决，失败只冻结依赖链及受风险影响的任务，其他任务继续。两端自动识别独立任务，满足安全条件默认两个编码代理并行；有依赖、冲突或并发能力不明时串行，派发时说明理由。主模型始终整体检查；独立 Final Reviewer 仅在用户要求、安全权限、并发事务、破坏性迁移或明显公共 API 不兼容风险时触发，不按改动量或复杂度触发。
+SPEC / PLAN 默认保存在 `.agent-tmp/dev-delegate/<task-id>/`，单任务也保存；多任务在同目录加 `progress.md`。Codex 沿用同代 Luna 默认 `high` 编码、`xhigh` 独立验收；Claude / agy 沿用各自原生子代理配置；用户指定优先，展示后执行，不确认模型 / effort。每任务最多三轮修复加收敛裁决，失败只冻结依赖链及受风险影响的任务，其他任务继续。三端按各自 adapter 自动识别独立任务，满足安全条件默认两个编码代理并行；有依赖、冲突或并发能力不明时串行，派发时说明理由。主模型始终整体检查；独立 Final Reviewer 仅在用户要求、安全权限、并发事务、破坏性迁移或明显公共 API 不兼容风险时触发，不按改动量或复杂度触发。
 
-`dev-review` 仅在显式调用后审查，默认覆盖当前项目全部自有代码，即使没有 diff；指定范围时严格遵守。它只读源码与配置，先集中预检，再派发审查和必要的独立复核；没有生产证据时仍可完成代码层审查。问题按证据与影响分级，报告保存在项目的 `docs/personal-dev/reviews/<review-id>/report.md`，审查过程不自动提交或推送。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code)。
+`dev-review` 仅在显式调用后审查，默认覆盖当前项目全部自有代码，即使没有 diff；指定范围时严格遵守。它只读源码与配置，先集中预检，再派发审查和必要的独立复核；没有生产证据时仍可完成代码层审查。问题按证据与影响分级，报告保存在项目的 `docs/personal-dev/reviews/<review-id>/report.md`，审查过程不自动提交或推送。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code--agy)。
 
 `dev-runtime-check` 仅在显式调用后通过当前 Harness 的原生 Shell / SSH 工具检查指定的主机、容器或服务；默认只读并在聊天中汇报，用户明确要求修复时仅处理授权范围内的操作。只有用户要求保存结果时才写入 `docs/personal-dev/runtime/<diagnostic-id>/report.md`。报告以目标证据、采样间隔和单位为准，不记录凭据。使用与边界见[使用手册](docs/usage.md#远端运行诊断)。
 
@@ -73,13 +73,13 @@ Marketplace 第三方来源以 [sources.yaml](sources.yaml) 为准，同步 comm
 
 本项目另在 `.agents/skills/` 安装了 [obra/superpowers](https://github.com/obra/superpowers) 的完整 15 个 Skills，供本仓库开发使用，不计入上述 Marketplace Plugin 与 Skill 数量。安装范围仅限当前项目，保留上游 Skill 内容、配套脚本与参考资料。
 
-本仓库维护默认从 `using-superpowers` 开始，按任务类型选择相应流程并保持验证深度与任务风险匹配；手动 Skill 的调用条件、只读及 Git 边界仍按该次调用执行。具体规则见 [AGENTS.md](AGENTS.md#默认工作流程)。
+Superpowers 及其 Skills 默认不自动调用，只有用户明确手动指定时才使用；指定后仍按任务规模和风险选择必要步骤。普通文档整理、常规 Git 操作和边界明确的小改动直接按项目规则完成。具体规则见 [AGENTS.md](AGENTS.md#默认工作流程)。
 
 包含 brainstorming、diagnosing-superpowers、dispatching-parallel-agents、executing-plans、finishing-a-development-branch、receiving-code-review、requesting-code-review、subagent-driven-development、systematic-debugging、test-driven-development、using-git-worktrees、using-superpowers、verification-before-completion、writing-plans、writing-skills。
 
 安装快照固定在 `bb92a77741419a4ab5f06e711a283343f1ada0c3`，完整来源与清单见 [.agents/superpowers/source.json](.agents/superpowers/source.json)，上游 MIT 许可证见 [.agents/superpowers/LICENSE](.agents/superpowers/LICENSE)。这些项目 Skills 独立于 `sources.yaml`，不由 Marketplace 同步脚本更新。Codex 安装后可在下一轮对话使用，例如 `$using-superpowers` 或 `$brainstorming`。这些第三方项目 Skills 保持上游内容。
 
-自有 Plugin 与项目 Skill 的双平台维护要求见 [AGENTS.md](AGENTS.md)。项目升级入口在 Codex 为 `$upgrade`、Claude Code 为 `/upgrade`，共用执行正文，见[维护指南](docs/maintenance.md#使用项目-skill)。
+自有 Plugin 与项目 Skill 的客户端适配要求见 [AGENTS.md](AGENTS.md)。项目升级入口在 Codex 为 `$upgrade`、Claude Code 为 `/upgrade`，共用执行正文，见[维护指南](docs/maintenance.md#使用项目-skill)。
 
 本仓库临时目录按任务创建，完成后清理；Windows / PowerShell 的路径核验、普通精确递归删除和失败保留规则见 [AGENTS.md](AGENTS.md#任务产物目录)。自有 Skill 在目标项目使用时，同样遵循随包的 [personal-dev 清理规则](plugins/personal-dev/references/artifacts.md#临时目录清理)与 [am-config 隔离验证规则](plugins/agent-manager/skills/am-config/references/project-edits.md#隔离加载验证)。
 
