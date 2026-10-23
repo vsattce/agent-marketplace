@@ -1,0 +1,3 @@
+interface:
+  display_name: "同步 dsh 桌面版 Skills"
+  short_description: "检查或同步本仓库产品 Skills 到已安装的 dsh 桌面版，保留资源、现有设置与手动调用边界。"

@@ -6,7 +6,9 @@ description: 编辑项目 Agent：仅在用户明确调用时，检查相关冲�
 
 # 编辑项目 Agent 指令 / Skill / Plugin
 
-项目编辑与冲突检查共用一个入口。只有用户明确调用 Codex 的 `$agent-manager:am-config`、Claude Code 的 `/agent-manager:am-config` 或 Antigravity CLI（agy）的 `/am-config` 后才执行；其他 Harness 输出 `BLOCKED / UNSUPPORTED AGENT`。普通聊天、技术栈识别、配置问题或冲突发现均不能触发。
+项目编辑与冲突检查共用一个入口。只有用户明确调用 Codex 的 `$agent-manager:am-config`、Claude Code 的 `/agent-manager:am-config` 或 agy / dsh 桌面版的 `/am-config` 后才执行；其他 Harness 输出 `BLOCKED / UNSUPPORTED AGENT`。普通聊天、技术栈识别、配置问题或冲突发现均不能触发。
+
+确认当前 Harness 为 dsh 桌面版时，读取 [dsh 适配](../../references/dsh.md)，按其项目编辑与只读检查分支执行并结束；下方 Codex / Claude 编辑器不用于 dsh，不修改桌面用户 profile。
 
 确认当前 Harness 为 agy 时，读取 [agy 适配](../../references/agy.md)，按其项目编辑与只读检查分支执行并结束；下方 Codex / Claude 配置编辑器流程不用于 agy。入口仍仅手动调用，不能仅凭 frontmatter 推断 agy 已强制手动门控。
 

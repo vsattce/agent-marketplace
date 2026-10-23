@@ -1,12 +1,12 @@
 ---
 name: dev-review
-description: 增强代码审查：仅在用户明确调用时，基于证据审查当前项目代码，适用于 Codex、Claude Code 和 agy。
+description: 增强代码审查：仅在用户明确调用时，基于证据审查当前项目代码，适用于 Codex、Claude Code、agy 和 dsh 桌面版。
 disable-model-invocation: true
 ---
 
 # 增强代码审查
 
-Only use when the user explicitly invokes this skill. Codex 使用 `$personal-dev:dev-review`，Claude Code 使用 `/personal-dev:dev-review`，agy 使用 `/dev-review`；不启动原生 `/review`，不嵌套启动客户端。
+Only use when the user explicitly invokes this skill. Codex 使用 `$personal-dev:dev-review`，Claude Code 使用 `/personal-dev:dev-review`，agy / dsh 桌面版使用 `/dev-review`；不启动原生 `/review`，不嵌套启动客户端。
 
 报告和临时产物按需遵循[任务产物位置](../../references/artifacts.md)；本 Skill 只写审查报告及必要的轻量进度记录，不自动执行 Git 操作。
 
@@ -20,7 +20,7 @@ Only use when the user explicitly invokes this skill. Codex 使用 `$personal-de
 
 报告默认写到项目的 `docs/personal-dev/reviews/<review-id>/report.md`，按用户时区用日期、时间和主题组成 ID；冲突时追加唯一后缀，绝不覆盖。先检查目录/位置可写。仓库规则不允许默认位置时选合规位置；若报告无法写入，BLOCKED，集中询问用户其他位置或是否接受仅聊天输出。长审查的轻量进度记录放在报告同目录。执行期间只有报告和必要的轻量进度记录可写；代码、配置、Git 状态只读，不自动提交或推送。
 
-派发前从当前会话确认真实 Harness，不能从模型品牌猜客户端。Codex 读取 [Codex adapter](../../references/codex.md)，用本 Skill 的 `scripts/select_models.py` 校验本轮可信主模型身份、实际派发名单与强度；同代最高数值版本 Luna 默认 `xhigh` 审查、`max` 复核，最高版本缺少任一强度时 `BLOCKED`。Claude Code 读取 [Claude adapter](../../references/claude.md)，agy 读取 [agy adapter](../../references/agy.md)；后两者沿用原生子代理模型与思考配置，不运行 Codex helper，不要求 Python 或 Codex 参数。其他或未知 Harness `BLOCKED / UNSUPPORTED AGENT`。
+派发前从当前会话确认真实 Harness，不能从模型品牌猜客户端。Codex 读取 [Codex adapter](../../references/codex.md)，用本 Skill 的 `scripts/select_models.py` 校验本轮可信主模型身份、实际派发名单与强度；同代最高数值版本 Luna 默认 `xhigh` 审查、`max` 复核，最高版本缺少任一强度时 `BLOCKED`。Claude Code 读取 [Claude adapter](../../references/claude.md)，agy 读取 [agy adapter](../../references/agy.md)，dsh 桌面版读取 [dsh adapter](../../references/dsh.md)；后三者沿用原生子代理模型与思考配置，不运行 Codex helper，不要求 Python 或 Codex 参数。其他或未知 Harness `BLOCKED / UNSUPPORTED AGENT`。
 
 必需项缺失时，在任何正式审查派发前一次性汇总所有已知缺口、理由、需要用户提供的明确内容和已完成工作，标记 `BLOCKED` 并停止。不能以其他模型替代用户指定的策略。Claude 默认配置的实际型号未解析时如实标 `UNKNOWN`，不因此单独阻塞。可选生产权限、凭证、配额、运行环境、实时数据或完整运行证据缺失，不阻塞普通静态审查；明确说明本次为代码层面审查，并将量化/运行结论列为待验证。只有用户明确要求的实测缺少条件才阻塞。
 
@@ -31,7 +31,7 @@ Only use when the user explicitly invokes this skill. Codex 使用 `$personal-de
 复核模型：<实际型号>｜思考强度：<实际强度>
 ```
 
-Claude 显示“Claude Code 子代理默认 / 沿用当前配置”，agy 显示“agy 原生默认 / 继承当前配置”；未确认实际值标 `UNKNOWN`。不可用或结果 `BLOCKED` 时不派发，不宣称已启动；不自动降级、升级，或让主模型替代全部审查。
+Claude 显示“Claude Code 子代理默认 / 沿用当前配置”，agy / dsh 显示各自“原生默认 / 继承当前配置”；未确认实际值标 `UNKNOWN`。不可用或结果 `BLOCKED` 时不派发，不宣称已启动；不自动降级、升级，或让主模型替代全部审查。
 
 ## 2. 只读检查与派发
 

@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # 精简当前改动
 
-仅在用户明确调用本 Skill 后使用。Codex 调用 `$personal-dev:dev-simplify`，Claude Code 调用 `/personal-dev:dev-simplify`，agy 调用 `/dev-simplify`；普通请求、引用调用名或讨论 Skill 都不触发它。
+仅在用户明确调用本 Skill 后使用。Codex 调用 `$personal-dev:dev-simplify`，Claude Code 调用 `/personal-dev:dev-simplify`，agy / dsh 桌面版调用 `/dev-simplify`；普通请求、引用调用名或讨论 Skill 都不触发它。
 
 ## 默认只读建议
 

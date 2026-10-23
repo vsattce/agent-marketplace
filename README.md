@@ -1,10 +1,10 @@
 # agent-marketplace
 
-长期维护的个人 Skill / Plugin Marketplace 项目，客户端显示为 **Agent Marketplace**。支持 Codex、Claude Code 与 Antigravity CLI（agy），多数 Skill 内容与资源共用，并按客户端适配原生工具。
+长期维护的个人 Skill / Plugin Marketplace 项目，客户端显示为 **Agent Marketplace**。支持 Codex、Claude Code、Antigravity CLI（agy）与 DeepSeek Harness 桌面版（dsh），多数 Skill 内容与资源共用，并按客户端适配原生工具。
 
 代码托管使用 [Gitee](https://gitee.com/vsattce/agent-marketplace) 和 [GitHub](https://github.com/vsattce/agent-marketplace) 双远端：`origin` 为 Gitee（`git@gitee.com:vsattce/agent-marketplace.git`），`github` 为 GitHub（`git@github.com:vsattce/agent-marketplace.git`）。提交后优先推送 Gitee，再推送 GitHub；GitHub 推送失败不阻塞任务。提交、推送与拉取约定见 [AGENTS.md](AGENTS.md#仓库维护规则)。
 
-三个客户端均包含 **6 个 Plugin**；Codex 有 **23 个 Skills**，Claude Code / agy 各有 **22 个**。以上为仓库产品入口数量，不代表当前会话已加载。四个第三方聚合 Plugin 共 15 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，Claude Code / agy 各有 1 项，`personal-dev` 三端各有 6 项。
+产品目录包含 **6 个 Plugin**；Codex 有 **23 个 Skills**，Claude Code / agy / dsh 各有 **22 个**。以上为仓库产品入口数量，不代表当前会话已加载。dsh 使用一个原生 Skill provider 加载六个产品包的内容与资源。四个第三方聚合 Plugin 共 15 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，其他三端各有 1 项，`personal-dev` 四端各有 6 项。
 
 `software-dev` 收录第三方上游项目的 Skills，仅供个人使用与整理；原作者署名、上游内容及许可证均按原样保留。该说明只适用于 `software-dev`；`agent-manager` 和 `personal-dev` 是本仓库自有并直接维护的 Plugin。
 
@@ -17,11 +17,13 @@
 | `engineering-tools` | 跨技术栈工程工具 | docker-build-strategies、docker-compose-patterns |
 | `testing-automation` | 测试与自动化 | playwright-cli |
 | `agent-manager` | Agent 管理工具 | am-config；am-context（仅 Codex） |
-| `personal-dev` | 个人开发工具，Codex / Claude Code / agy | dev-prepare、dev-delegate、dev-auto、dev-review、dev-simplify、dev-runtime-check |
+| `personal-dev` | 个人开发工具，Codex / Claude Code / agy / dsh 桌面版 | dev-prepare、dev-delegate、dev-auto、dev-review、dev-simplify、dev-runtime-check |
 
 Codex / Claude Code 按分类安装，完整身份为 `<plugin>@agent-marketplace`。
 
 agy 使用本地产品插件安装，进入本仓库后调用项目 Skill `$sync-agy`（Claude / agy 为 `/sync-agy`），检查或同步当前工作区的全部产品插件到 agy 全局；不导入本仓库开发工具。agy 使用 `/vue`、`/am-config`、`/dev-auto` 等当前会话实际提供的入口。安装、更新及项目作用域限制见[使用手册 · agy](docs/usage.md#antigravity-cliagy)。
+
+dsh 桌面版使用项目 Skill `$sync-dsh`（Claude / agy 为 `/sync-dsh`），同步当前产品 Skills 与完整资源，通过已安装桌面版自带的加载器验证；调用方式为 `/vue`、`/am-config`、`/dev-auto` 等。当前验证版本 `0.2.1-rc.2`，不需要 npm CLI。见[使用手册 · dsh 桌面版](docs/usage.md#deepseek-harness-桌面版dsh)。
 
 ## 从哪里开始
 
@@ -55,11 +57,11 @@ agy 使用本地产品插件安装，进入本仓库后调用项目 Skill `$sync
 
 `handoff`、`agent-manager` 和 `personal-dev` 中的 Skills **仅手动调用**；其余 Skill 可按任务匹配，也可显式调用。启用 Plugin 不会自行执行任务。
 
-`dev-prepare` 结合项目规则和现有代码生成 `spec.md` / `plan.md`，统一确认一次后结束，不开发；`dev-delegate` 只消费已确定的文件执行 SDD，缺失时提示先准备；`dev-auto` 复用同一准备契约和执行器，自动检查后连续开发，正常需求不确认，仅重大歧义、未授权破坏性操作、安全边界不清允许集中询问一次。始终遵循 `SPEC > PLAN > Coder interpretation`。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code--agy)。
+`dev-prepare` 结合项目规则和现有代码生成 `spec.md` / `plan.md`，统一确认一次后结束，不开发；`dev-delegate` 只消费已确定的文件执行 SDD，缺失时提示先准备；`dev-auto` 复用同一准备契约和执行器，自动检查后连续开发，正常需求不确认，仅重大歧义、未授权破坏性操作、安全边界不清允许集中询问一次。始终遵循 `SPEC > PLAN > Coder interpretation`。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code--agy--dsh)。
 
-SPEC / PLAN 默认保存在 `.agent-tmp/dev-delegate/<task-id>/`，单任务也保存；多任务在同目录加 `progress.md`。Codex 沿用同代 Luna 默认 `high` 编码、`xhigh` 独立验收；Claude / agy 沿用各自原生子代理配置；用户指定优先，展示后执行，不确认模型 / effort。每任务最多三轮修复加收敛裁决，失败只冻结依赖链及受风险影响的任务，其他任务继续。三端按各自 adapter 自动识别独立任务，满足安全条件默认两个编码代理并行；有依赖、冲突或并发能力不明时串行，派发时说明理由。主模型始终整体检查；独立 Final Reviewer 仅在用户要求、安全权限、并发事务、破坏性迁移或明显公共 API 不兼容风险时触发，不按改动量或复杂度触发。
+SPEC / PLAN 默认保存在 `.agent-tmp/dev-delegate/<task-id>/`，单任务也保存；多任务在同目录加 `progress.md`。Codex 沿用同代 Luna 默认 `high` 编码、`xhigh` 独立验收；Claude / agy / dsh 沿用各自原生子代理配置；用户指定优先，展示后执行，不确认模型 / effort。每任务最多三轮修复加收敛裁决，失败只冻结依赖链及受风险影响的任务，其他任务继续。各端按各自 adapter 自动识别独立任务，满足安全条件默认两个编码代理并行；有依赖、冲突或并发能力不明时串行，派发时说明理由。主模型始终整体检查；独立 Final Reviewer 仅在用户要求、安全权限、并发事务、破坏性迁移或明显公共 API 不兼容风险时触发，不按改动量或复杂度触发。
 
-`dev-review` 仅在显式调用后审查，默认覆盖当前项目全部自有代码，即使没有 diff；指定范围时严格遵守。它只读源码与配置，先集中预检，再派发审查和必要的独立复核；没有生产证据时仍可完成代码层审查。问题按证据与影响分级，报告保存在项目的 `docs/personal-dev/reviews/<review-id>/report.md`，审查过程不自动提交或推送。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code--agy)。
+`dev-review` 仅在显式调用后审查，默认覆盖当前项目全部自有代码，即使没有 diff；指定范围时严格遵守。它只读源码与配置，先集中预检，再派发审查和必要的独立复核；没有生产证据时仍可完成代码层审查。问题按证据与影响分级，报告保存在项目的 `docs/personal-dev/reviews/<review-id>/report.md`，审查过程不自动提交或推送。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code--agy--dsh)。
 
 `dev-runtime-check` 仅在显式调用后通过当前 Harness 的原生 Shell / SSH 工具检查指定的主机、容器或服务；默认只读并在聊天中汇报，用户明确要求修复时仅处理授权范围内的操作。只有用户要求保存结果时才写入 `docs/personal-dev/runtime/<diagnostic-id>/report.md`。报告以目标证据、采样间隔和单位为准，不记录凭据。使用与边界见[使用手册](docs/usage.md#远端运行诊断)。
 

@@ -6,7 +6,7 @@
 
 当前支持 Codex、Claude Code 与 Antigravity CLI（agy）。agy 的安装及作用域边界见[专用说明](#antigravity-cliagy)。
 
-三个客户端均有 **6 个 Plugin**；Codex 共 **23 个 Skills**，Claude Code / agy 各有 **22 个**。四个第三方聚合 Plugin 收录 15 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，Claude Code / agy 各有 1 项，`personal-dev` 三端各有 6 项。第三方来源、作者与许可证边界见 [README](../README.md)。
+产品目录共有 **6 个 Plugin**；Codex 共 **23 个 Skills**，Claude Code / agy / dsh 各有 **22 个**。dsh 通过一个原生 Skill provider 加载产品包内容。四个第三方聚合 Plugin 收录 15 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，Claude Code / agy / dsh 各有 1 项，`personal-dev` 各端各有 6 项。第三方来源、作者与许可证边界见 [README](../README.md)。
 
 ## 日常调用
 
@@ -55,7 +55,7 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 | personal-dev | dev-prepare | 结合项目代码生成 SPEC / PLAN，统一确认一次后结束，不开发 | 仅手动 |
 | personal-dev | dev-delegate | 消费既定 SPEC / PLAN 执行 SDD、独立验收与有限修复 | 仅手动 |
 | personal-dev | dev-auto | 自动准备并检查 SPEC / PLAN，直接复用委派执行器连续开发 | 仅手动 |
-| personal-dev | dev-review | 只读审查当前项目或明确范围，独立复核高等级发现并生成报告；三端使用各自 adapter | 仅手动 |
+| personal-dev | dev-review | 只读审查当前项目或明确范围，独立复核高等级发现并生成报告；各端使用各自 adapter | 仅手动 |
 | personal-dev | dev-simplify | 默认只读提出行为等价的精简建议，确认后再编辑 | 仅手动 |
 | personal-dev | dev-runtime-check | 使用当前 Harness 原生 Shell / SSH 对指定远端主机、容器或服务取证；默认只读 | 仅手动 |
 
@@ -65,7 +65,7 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 
 委派开发以文件形式的 SPEC / PLAN 为输入；单任务也保存，交接保持简短，不额外建 ledger 或长报告。两个及以上任务（含串行依赖任务）自动建立被 Git 忽略的 `.agent-tmp/dev-delegate/<task-id>/progress.md`；真正需要长期保留设计、复杂任务记录或验收证据时才使用 `docs/personal-dev/tasks/<task-id>/`。其他产物的路径和边界见[任务产物位置](../plugins/personal-dev/references/artifacts.md)。
 
-## 个人开发工具（Codex / Claude Code / agy）
+## 个人开发工具（Codex / Claude Code / agy / dsh）
 
 三个开发入口均只由用户手动触发；本文简称 `$dev-prepare` / `$dev-delegate` / `$dev-auto`，Codex / Claude Code 使用下表完整命名空间，agy 分别使用 `/dev-prepare`、`/dev-delegate`、`/dev-auto`：
 
@@ -90,7 +90,7 @@ $personal-dev:dev-auto 给现有列表增加状态筛选，保持分页和接口
 
 Codex 沿用同大版本最新可用 Luna，默认 high 编码、另一个干净上下文 xhigh 独立验收；用户明确指定型号 / effort 优先，指定本身即本次覆写授权，不重复确认。名单与支持强度按当前工具校验，不猜型号、不跨代降级。Claude Code 沿用当前原生子代理模型与思考配置，省略 model / effort；用户指定时按当前 schema 核验，不要求 Codex helper、Python 或 reasoning_effort。agy 沿用原生子代理配置，不执行 Codex 选型器，具体工具与参数见 [agy adapter](../plugins/personal-dev/references/agy.md)。派发前展示实际策略与已确认值，未知值标 UNKNOWN；展示后直接执行，不询问最终审查的配置。
 
-PLAN 按完整功能拆分，同一功能的技术层优先合并，自动标注独立任务及并行理由。三端按各自 adapter 在批内无依赖、write_scope 不重叠、无变化中的共享契约、原生工具、槽位与验证资源安全时，默认两个编码代理并行，按编排规则最多三个；有依赖、冲突或并发能力不明时串行。旧 PLAN 缺少并行标记时同样自动判断，显式串行要求保留。上游独立验收通过且契约确定后才启动下游。两个及以上任务（含串行依赖）在同一 task-id 目录建立 progress.md；单任务不强制 ledger 或长报告。恢复先核对文件、代码、Git 与实际代理状态，不重派已完成或仍运行的代理，不重置修复次数。
+PLAN 按完整功能拆分，同一功能的技术层优先合并，自动标注独立任务及并行理由。各端按各自 adapter 在批内无依赖、write_scope 不重叠、无变化中的共享契约、原生工具、槽位与验证资源安全时，默认两个编码代理并行，按编排规则最多三个；有依赖、冲突或并发能力不明时串行。旧 PLAN 缺少并行标记时同样自动判断，显式串行要求保留。上游独立验收通过且契约确定后才启动下游。两个及以上任务（含串行依赖）在同一 task-id 目录建立 progress.md；单任务不强制 ledger 或长报告。恢复先核对文件、代码、Git 与实际代理状态，不重派已完成或仍运行的代理，不重置修复次数。
 
 每个任务由独立 Coder 和干净只读 Reviewer 分工，验收期间冻结相关范围。初次实现后最多三轮修复：前两轮优先原 Coder，第三轮 fresh coder 或按已验证能力提升配置；携同一 SPEC / PLAN、当前实现与 blocker，不重新理解业务。每轮复验聚焦修复及影响；普通建议与偏好不阻塞，超出 SPEC 的要求拒绝。同根因重复或新 finding 不重开预算。第三轮后主模型 adjudication / convergence，真实核心 blocker 仍未解决则该任务 FAILED，冻结其直接 / 间接依赖及具体风险影响范围，其他独立安全任务继续，不默认全局熔断。完整规则见[角色契约](../plugins/personal-dev/skills/dev-delegate/references/roles.md)与[编排恢复](../plugins/personal-dev/skills/dev-delegate/references/orchestration.md)。
 
@@ -126,11 +126,11 @@ Codex 使用其原生终端能力，Claude Code 使用原生 Bash 工具，agy �
 
 ### 本轮上下文估算（Codex）
 
-`am-context` 只在用户显式调用 `$agent-manager:am-context` 后运行，不接受参数、模式或子命令。它按当前对话仍可见的内容分类并给出宽松、取整的区间；不调用工具、Python 或 tokenizer，不读取文件、会话、项目规则或配置。压缩前不可见的内容不计入，只估算当前摘要；隐藏指令只估算类别，不复述。分项区间上下界分别相加得到可见内容合计，不能当作真实总输入、窗口占用或剩余容量。Claude Code / agy 不发现此入口。
+`am-context` 只在用户显式调用 `$agent-manager:am-context` 后运行，不接受参数、模式或子命令。它按当前对话仍可见的内容分类并给出宽松、取整的区间；不调用工具、Python 或 tokenizer，不读取文件、会话、项目规则或配置。压缩前不可见的内容不计入，只估算当前摘要；隐藏指令只估算类别，不复述。分项区间上下界分别相加得到可见内容合计，不能当作真实总输入、窗口占用或剩余容量。Claude Code / agy / dsh 不发现此入口。
 
 ### 编辑项目与冲突检查
 
-`am-config` 支持 Codex、Claude Code 与 agy，项目 Plugin 开关仅在下表列出的 Codex / Claude Code 环境验证；agy 的项目编辑与只读检查见 [agy 说明](#antigravity-cliagy)。编辑前检查本次操作相关的项目/全局规则、Skills、Plugins、重复能力及实际加载边界；默认不展开无关能力。轻微重复、措辞差异或已有明确覆盖关系，用一两句话提醒；实质互斥、会改变其他行为的歧义或权限边界问题，详细给出双方原文、位置、触发条件、影响和最小方案，未明确取舍前停止整批写入。提示简短不构成覆盖、禁用或删除其他能力的授权。
+`am-config` 支持 Codex、Claude Code、agy 与 dsh 桌面版，项目 Plugin 开关仅在下表列出的 Codex / Claude Code 环境验证；agy 的项目编辑与只读检查见 [agy 说明](#antigravity-cliagy)，dsh 见 [桌面版说明](#deepseek-harness-桌面版dsh)。编辑前检查本次操作相关的项目/全局规则、Skills、Plugins、重复能力及实际加载边界；默认不展开无关能力。轻微重复、措辞差异或已有明确覆盖关系，用一两句话提醒；实质互斥、会改变其他行为的歧义或权限边界问题，详细给出双方原文、位置、触发条件、影响和最小方案，未明确取舍前停止整批写入。提示简短不构成覆盖、禁用或删除其他能力的授权。
 
 同一入口支持只读检查，例如 `$agent-manager:am-config 只检查当前项目与全局规则的冲突，不修改`。仅要求查冲突时，全程只读并在报告后结束，不调用配置编辑器，也不创建探测环境、临时或报告文件。用户未限定范围时检查当前项目适用的指令、Skills、Plugins 与相关全局来源；指定范围时按范围检查。来源或加载状态不明标记 `UNKNOWN`，检查不完整标记 `PARTIAL`，不能声称完整无冲突。旧的独立冲突/更新入口已移除。
 
@@ -151,9 +151,9 @@ Claude 使用 `/agent-manager:am-config`。编辑分支只处理用户明确指�
 | Codex `0.162.0-alpha.17.2`、`0.162.0-alpha.2` | Windows | 已安装的本地 Marketplace Plugin | `.codex/config.toml` |
 | Claude Code `2.1.291`、`2.1.296` | Windows | 已安装的 Marketplace Plugin | `.claude/settings.json` |
 
-Plugin 开关编辑器在其他操作系统返回 `BLOCKED / PLUGIN SWITCH CONFIGURATION REQUIRES WINDOWS`；这不限制 `AGENTS.md` 编辑、standalone Skill 或 Plugin 文件准备。Codex 与 Claude Code 的**单个 Skill 项目开关均不支持**。agy 的项目 Plugin 开关返回 `BLOCKED / PROJECT PLUGIN SCOPE UNVERIFIED`，不套用上述编辑器。其他 Harness 输出 `BLOCKED / UNSUPPORTED AGENT`。未验证的 Codex / Claude 版本、目标缺失或歧义、配置损坏、有效项目层证据不足，以及 Codex 未受信任项目或 workspace-managed Plugin，均拒绝整批操作。Claude 的 `.claude/settings.local.json` 若对目标存在反向覆盖，也会整批拒绝。
+Plugin 开关编辑器在其他操作系统返回 `BLOCKED / PLUGIN SWITCH CONFIGURATION REQUIRES WINDOWS`；这不限制 `AGENTS.md` 编辑、standalone Skill 或 Plugin 文件准备。Codex 与 Claude Code 的**单个 Skill 项目开关均不支持**。agy / dsh 的项目 Plugin 开关返回 `BLOCKED / PROJECT PLUGIN SCOPE UNVERIFIED`，不套用上述编辑器。其他 Harness 输出 `BLOCKED / UNSUPPORTED AGENT`。未验证的 Codex / Claude 版本、目标缺失或歧义、配置损坏、有效项目层证据不足，以及 Codex 未受信任项目或 workspace-managed Plugin，均拒绝整批操作。Claude 的 `.claude/settings.local.json` 若对目标存在反向覆盖，也会整批拒绝。
 
-standalone Skill 的项目安装与 Skill 开关不同：用户须指定准确来源和项目内目标，并通过当前 Harness 的加载目录、来源、重复、冲突及路径检查。项目发现目录分别为 Codex / agy `.agents/skills/` 和 Claude Code `.claude/skills/`。复制所需资源并记录来源，不运行来源脚本或可能写用户 cache 的安装器。
+standalone Skill 的项目安装与 Skill 开关不同：用户须指定准确来源和项目内目标，并通过当前 Harness 的加载目录、来源、重复、冲突及路径检查。项目发现目录分别为 Codex / agy `.agents/skills/` 、Claude Code `.claude/skills/` 及 dsh `.dsh/skills/`。复制所需资源并记录来源，不运行来源脚本或可能写用户 cache 的安装器。
 
 项目 Plugin 分阶段处理：核对完整来源和项目路径，准备插件资源、项目 catalog / 当前客户端已核实的发现入口及对应开关，再验证实际发现、安装与加载。未安装不再直接阻止合法文件准备；新准备 Plugin 的文件和开关用文件工具编辑，不伪造 `installed=true` 或套用已安装开关编辑器。目录和开关保存不等于实际启用。
 
@@ -185,6 +185,27 @@ pwsh -NoProfile -File .agents/skills/sync-agy/scripts/sync.ps1
 安装后开启新 agy 会话或按客户端提供的入口重载，确认 `/vue`、`/am-config`、`/dev-prepare`、`/dev-auto` 等命令。手动 Skills 仍需明确调用；不要仅凭 frontmatter 声称客户端已强制门控。静态校验、安装清单及资源一致性不代表已运行真实模型、SSH 或子代理业务流程。
 
 `personal-dev` 的准备、简化与远端诊断使用共享流程；委派与审查使用 [agy 原生适配](../plugins/personal-dev/references/agy.md)，默认继承原生子代理配置，必要工具缺失时报具体限制。`am-config` 使用 [agy 项目编辑适配](../plugins/agent-manager/references/agy.md)，支持项目指令、standalone Skill、Plugin 文件准备与只读冲突检查；当前未验证项目 Plugin 开关，不能用全局 `enable / disable / install` 代替仅项目操作。
+
+### DeepSeek Harness 桌面版（dsh）
+
+当前验证桌面版 `0.2.1-rc.2`：通过自带的文件系统 Skill provider 加载六个产品包的 22 个共享 Skills 与完整资源，`am-context` 仅 Codex。项目同步入口为 Codex `$sync-dsh`、Claude Code / agy `/sync-dsh`，不进入产品目录。这里使用已安装的桌面版，无需 npm CLI。
+
+在仓库根按项目规则核验 `mise current`、`python --version`（3.12+）及 uv，再运行；`--desktop-path` 使用实际安装路径：
+
+```powershell
+# 只读预检
+uv run --python (mise which python) --no-python-downloads --script .agents/skills/sync-dsh/scripts/sync.py --desktop-path "D:\DeepSeek Harness\DeepSeek Harness.exe" --check-only
+# 同步或刷新
+uv run --python (mise which python) --no-python-downloads --script .agents/skills/sync-dsh/scripts/sync.py --desktop-path "D:\DeepSeek Harness\DeepSeek Harness.exe"
+```
+
+脚本复用已有 PyYAML 6.x，通过 uv 隔离安装；不修改项目依赖或系统运行时。默认数据根是 `DSH_HOME` 或 `~/.dsh`，可用 `--dsh-home` 指定。必须先启动过桌面版以初始化 `profiles/desktop`。
+
+内容放入 `~/.dsh/marketplaces/agent-marketplace/releases/<摘要>/plugins/`，保留包内相对路径、许可证及手动调用策略；`profiles/desktop/cordis.patch.yml` 仅维护带标记的 `agent-marketplace-skills` provider。已有设置、第三方扩展和默认 Skills 根保留，旧内容快照保留；用户同名 Skills、手改快照或并发配置修改会阻止覆盖。每次同步是显式刷新，不做后台自动同步，也不注册六个 npm 扩展。
+
+同步后重开桌面版，在 `/` 建议菜单确认 `/vue`、`/am-config`、`/dev-prepare`、`/dev-auto` 等入口。`disable-model-invocation: true` 的 Skills 只通过用户直接输入 `/name` 注入。隔离验证会使用桌面版真实 provider 读取清单和正文，但不启动 Host 或模型，因此当前会话注入、SSH 和子代理业务执行仍需分别验证。
+
+自有流程见 [dsh 开发适配](../plugins/personal-dev/references/dsh.md)和 [dsh 项目编辑适配](../plugins/agent-manager/references/dsh.md)。委派与独立审查要求实际提供 spawn 干净子代理；只有 fork 或能力缺失时明确 BLOCKED。`am-config` 支持项目指令编辑、standalone Skill、产品文件准备和只读检查；仅项目作用域的原生 Plugin 安装 / 开关尚未验证，不操作用户 desktop profile 代替。
 
 ### Codex
 
