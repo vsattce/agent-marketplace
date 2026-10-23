@@ -35,10 +35,11 @@ agent-marketplace/
 │   ├── skills/
 │   │   ├── upgrade/SKILL.md        # 项目升级入口
 │   │   ├── sync-agy/              # agy 产品插件全局同步入口
+│   │   ├── sync-dsh/              # dsh 桌面版产品 Skills 同步入口
 │   │   ├── claude-plugin-dev/      # Claude Code plugin 开发指导
 │   │   └── …                      # 项目 Superpowers Skills
 │   └── plugin-dev/upstream/        # 官方 plugin-dev 固定快照
-├── .claude/skills/                # Claude 的 upgrade / sync-agy 共享正文入口
+├── .claude/skills/                # Claude 的 upgrade / sync-agy / sync-dsh 共享正文入口
 ├── .claude-plugin/marketplace.json # Claude Marketplace
 ├── AGENTS.md                      # 项目规则
 ├── CLAUDE.md                      # 导入 AGENTS.md
@@ -52,14 +53,14 @@ agent-marketplace/
 │   ├── engineering-tools/          # 第三方快照
 │   ├── testing-automation/        # 第三方快照
 │   ├── agent-manager/             # OWNED，直接维护
-│   └── personal-dev/              # OWNED，Codex / Claude / agy、仅手动
+│   └── personal-dev/              # OWNED，Codex / Claude / agy / dsh、仅手动
 ├── docs/
 │   ├── usage.md
 │   └── maintenance.md
 └── README.md                      # 概览与文档入口
 ```
 
-六个 Plugin 都提供 Claude Code `.claude-plugin/plugin.json`；Codex 侧除 `agent-manager` 外使用便携 `plugin.json`，该 Plugin 使用原生 `.codex-plugin/plugin.json` 并显式发现 `skills/` 与 `codex-skills/`。`am-context` 放在后者，因此仅 Codex 可发现；`am-config` 仍共享。四个第三方分类另存 `licenses/<name>/`，两个 Marketplace 均指向 `./plugins/<plugin>`。当前 Codex 有 23 个 Skills、Claude Code / agy 各有 22 个：第三方四类共 15 个，`agent-manager` 分别有 2 / 1 / 1 个，`personal-dev` 三端各有 6 个。`dev-prepare` / `dev-auto` 复用 `references/preparation.md`；`dev-auto` 直接读取 `dev-delegate` 正文，执行端按 Harness 使用 `references/codex.md` / `references/claude.md` / `references/agy.md`，Codex 使用现有模型检查器，不新增 Plugin 或调度系统。
+六个 Plugin 都提供 Claude Code `.claude-plugin/plugin.json`；Codex 侧除 `agent-manager` 外使用便携 `plugin.json`，该 Plugin 使用原生 `.codex-plugin/plugin.json` 并显式发现 `skills/` 与 `codex-skills/`。`am-context` 放在后者，因此仅 Codex 可发现；`am-config` 仍共享。四个第三方分类另存 `licenses/<name>/`，两个 Marketplace 均指向 `./plugins/<plugin>`。当前 Codex 有 23 个 Skills、Claude Code / agy / dsh 各有 22 个：第三方四类共 15 个，`agent-manager` 分别有 2 / 1 / 1 / 1 个，`personal-dev` 四端各有 6 个。`dev-prepare` / `dev-auto` 复用 `references/preparation.md`；`dev-auto` 直接读取 `dev-delegate` 正文，执行端按 Harness 使用 `references/codex.md` / `references/claude.md` / `references/agy.md` / `references/dsh.md`，Codex 使用现有模型检查器，不新增 Plugin 或调度系统。
 
 Codex 便携 manifest 的中文信息位于 `extensions.com.openai.interface`；原生 Codex manifest 的中文信息使用根级 `interface`。Claude manifest / catalog 有意不写 version，Git 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
 

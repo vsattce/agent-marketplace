@@ -4,7 +4,7 @@
     "name": "hjy"
   },
   "metadata": {
-    "description": "共享 Skills，支持 Codex、Claude Code 与 agy。"
+    "description": "共享 Skills，支持 Codex、Claude Code、agy 与 dsh 桌面版；dsh 使用独立同步入口。"
   },
   "plugins": [
     {
@@ -30,7 +30,7 @@
     {
       "name": "personal-dev",
       "source": "./plugins/personal-dev",
-      "description": "仅手动调用的需求准备、SPEC / PLAN 委派执行、自动开发、精简建议、增强审查与远端诊断，支持 Claude Code、Codex 和 agy。"
+      "description": "仅手动调用的需求准备、SPEC / PLAN 委派执行、自动开发、精简建议、增强审查与远端诊断，支持 Claude Code、Codex、agy 和 dsh 桌面版。"
     },
     {
       "name": "engineering-tools",
