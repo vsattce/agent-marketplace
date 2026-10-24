@@ -64,7 +64,7 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 
 `webapp-testing` 与 `dev-yagni` 已移除：网页操作与验证可使用 `playwright-cli`；长期维护 Playwright 测试时，可将专用测试规范配置在对应项目中，普通开发直接按项目规则执行。
 
-委派开发以文件形式的 SPEC / PLAN 为输入；单任务也保存，交接保持简短，不额外建 ledger 或长报告。两个及以上任务（含串行依赖任务）自动建立被 Git 忽略的 `.agent-tmp/dev-delegate/<task-id>/progress.md`；真正需要长期保留设计、复杂任务记录或验收证据时才使用 `docs/personal-dev/tasks/<task-id>/`。其他产物的路径和边界见[任务产物位置](../plugins/personal-dev/references/artifacts.md)。
+委派开发以文件形式的 SPEC / PLAN 为输入；单任务也保存，交接保持简短，不额外建 ledger 或长报告。两个及以上任务（含串行依赖任务）自动建立被 Git 忽略的 `.personal-dev/sdd/<task-id>/progress.md`；需求与计划默认保留，额外复杂任务记录或验收证据确需长期保存时才使用 `docs/personal-dev/tasks/<task-id>/`。其他产物的路径和边界见[任务产物位置](../plugins/personal-dev/references/artifacts.md)。
 
 ## 个人开发工具（Codex / Claude Code / agy / dsh）
 
@@ -79,19 +79,19 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 ```text
 $personal-dev:dev-prepare 给现有列表增加状态筛选，保持分页和接口兼容
 # 确认 SPEC / PLAN 后，此入口结束；再单独调用：
-$personal-dev:dev-delegate 按 .agent-tmp/dev-delegate/<task-id>/spec.md 和 plan.md 执行
+$personal-dev:dev-delegate 按 docs/personal-dev/specs/<task-id>-design.md 和 docs/personal-dev/plans/<task-id>.md 执行
 $personal-dev:dev-delegate 按已确定的 SPEC / PLAN 执行，编码 medium，验收 xhigh
 # 或者从需求到开发连续完成：
 $personal-dev:dev-auto 给现有列表增加状态筛选，保持分页和接口兼容
 ```
 
-`SPEC > PLAN > Coder interpretation`。SPEC 记录目标、范围、不做项、现有约束、关键行为和验收标准；PLAN 记录任务、依赖、write_scope、目标、验证和完成标准。简单需求保持简短。默认写入同一 `.agent-tmp/dev-delegate/<task-id>/spec.md` / `plan.md`，prepare 确认后保留文件；后续 Agent 读取路径而非反复复制聊天。用户另有位置要求或需长期留存时遵从对应约定。PLAN 与 SPEC 冲突由主模型按 SPEC 修正并记录裁决，不让 Coder / Reviewer 改写明确需求。
+`SPEC > PLAN > Coder interpretation`。SPEC 记录目标、范围、不做项、现有约束、关键行为和验收标准；PLAN 记录任务、依赖、write_scope、目标、验证和完成标准。简单需求保持简短。默认写入 `docs/personal-dev/specs/<task-id>-design.md` 与 `docs/personal-dev/plans/<task-id>.md`，共用 task-id，prepare 确认及执行完成后均保留，可随项目版本管理；后续 Agent 读取路径而非反复复制聊天。临时交接、日志与证据放在 `.personal-dev/sdd/<task-id>/`，全部验收及已授权收尾完成后仅清理本次执行现场。用户指定位置和项目规则优先；旧布局按明确路径继续消费或恢复，不自动搬迁。PLAN 与 SPEC 冲突由主模型按 SPEC 修正并记录裁决，不让 Coder / Reviewer 改写明确需求。
 
 `dev-auto` 直接读取共享准备规则和 dev-delegate 正文，无需嵌套调用手动 Skill，也无需用户再次输入 dev-delegate。它从准备到执行只允许因重大歧义、当前未授权的破坏性操作或安全边界不清集中询问一次；普通细节自行合理裁决，不确认 SPEC、PLAN、模型、effort，不在任务之间询问。必需能力缺失或环境不满足时如实报告限制；该入口不扩大平台或项目权限。共同定义见[准备与消费契约](../plugins/personal-dev/references/preparation.md)。
 
 Codex 沿用同大版本最新可用 Luna，默认 high 编码、另一个干净上下文 xhigh 独立验收；用户明确指定型号 / effort 优先，指定本身即本次覆写授权，不重复确认。名单与支持强度按当前工具校验，不猜型号、不跨代降级。Claude Code 沿用当前原生子代理模型与思考配置，省略 model / effort；用户指定时按当前 schema 核验，不要求 Codex helper、Python 或 reasoning_effort。agy 沿用原生子代理配置，不执行 Codex 选型器，具体工具与参数见 [agy adapter](../plugins/personal-dev/references/agy.md)。dsh 桌面版继承原生子代理配置，要求 spawn 干净上下文，见 [dsh adapter](../plugins/personal-dev/references/dsh.md)。派发前展示实际策略与已确认值，未知值标 UNKNOWN；展示后直接执行，不询问最终审查的配置。
 
-PLAN 按完整功能拆分，同一功能的技术层优先合并，自动标注独立任务及并行理由。各端按各自 adapter 在批内无依赖、write_scope 不重叠、无变化中的共享契约、原生工具、槽位与验证资源安全时，默认两个编码代理并行，按编排规则最多三个；有依赖、冲突或并发能力不明时串行。旧 PLAN 缺少并行标记时同样自动判断，显式串行要求保留。上游独立验收通过且契约确定后才启动下游。两个及以上任务（含串行依赖）在同一 task-id 目录建立 progress.md；单任务不强制 ledger 或长报告。恢复先核对文件、代码、Git 与实际代理状态，不重派已完成或仍运行的代理，不重置修复次数。
+PLAN 按完整功能拆分，同一功能的技术层优先合并，自动标注独立任务及并行理由。各端按各自 adapter 在批内无依赖、write_scope 不重叠、无变化中的共享契约、原生工具、槽位与验证资源安全时，默认两个编码代理并行，按编排规则最多三个；有依赖、冲突或并发能力不明时串行。旧 PLAN 缺少并行标记时同样自动判断，显式串行要求保留。上游独立验收通过且契约确定后才启动下游。两个及以上任务（含串行依赖）在对应的隐藏执行目录建立 progress.md；单任务不强制 ledger 或长报告。恢复先核对文件、代码、Git 与实际代理状态，不重派已完成或仍运行的代理，不重置修复次数。
 
 每个任务由独立 Coder 和干净只读 Reviewer 分工，验收期间冻结相关范围。初次实现后最多三轮修复：前两轮优先原 Coder，第三轮 fresh coder 或按已验证能力提升配置；携同一 SPEC / PLAN、当前实现与 blocker，不重新理解业务。每轮复验聚焦修复及影响；普通建议与偏好不阻塞，超出 SPEC 的要求拒绝。同根因重复或新 finding 不重开预算。第三轮后主模型 adjudication / convergence，真实核心 blocker 仍未解决则该任务 FAILED，冻结其直接 / 间接依赖及具体风险影响范围，其他独立安全任务继续，不默认全局熔断。完整规则见[角色契约](../plugins/personal-dev/skills/dev-delegate/references/roles.md)与[编排恢复](../plugins/personal-dev/skills/dev-delegate/references/orchestration.md)。
 

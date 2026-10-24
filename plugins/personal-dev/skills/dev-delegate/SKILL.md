@@ -12,7 +12,7 @@ Only use when explicitly invoked by the user. Codex 使用 `$personal-dev:dev-de
 
 ## 1. 校验需求文件与委派能力
 
-先读取[准备与消费契约的执行入口](../../references/preparation.md#执行入口查找与校验)，定位并读取 spec.md / plan.md，核对项目、就绪状态与任务信息。找不到可用文件时明确提示 `$dev-prepare` 或 `$dev-auto`（使用客户端完整调用名），列出缺项并结束；**不从自然语言重新推导业务需求或生成另一套定义**。PLAN 局部错误由主模型按 SPEC 裁决，记录依据；重大缺口保留并报告。
+先读取[准备与消费契约的执行入口](../../references/preparation.md#执行入口查找与校验)，定位并读取 SPEC / PLAN 文件，核对项目、就绪状态与任务信息。找不到可用文件时明确提示 `$dev-prepare` 或 `$dev-auto`（使用客户端完整调用名），列出缺项并结束；**不从自然语言重新推导业务需求或生成另一套定义**。PLAN 局部错误由主模型按 SPEC 裁决，记录依据；重大缺口保留并报告。
 
 确认 Harness 与项目规则。Codex 读取 [Codex](../../references/codex.md)，用 `scripts/select_models.py` 核验工具、型号与强度；Claude Code 读取 [Claude](../../references/claude.md)，agy 读取 [agy](../../references/agy.md)，dsh 桌面版读取 [dsh](../../references/dsh.md)；后三者沿用原生子代理配置，不运行 Codex helper。未知 Harness、缺少委派或干净上下文时报告具体 BLOCKED，不安装、改全局配置或由主模型接手编码绕过。
 
@@ -33,7 +33,7 @@ Only use when explicitly invoked by the user. Codex 使用 `$personal-dev:dev-de
 
 沿用 PLAN 的任务、依赖、write_scope、验证与完成标准，不重新拆解业务。同一功能优先一个任务；局部计划错误按 SPEC 裁决。派发前读取[角色契约](references/roles.md)，复杂 / 高风险单任务也按编排参考做冲突预检。新 Coder 使用干净上下文，只传项目、SPEC / PLAN 路径与任务定位、规则、必要接口和基线，不复制聊天或全文；子代理禁止派生代理、commit / push。
 
-单任务默认精简交接，无 ledger 或长报告；只读计划需裁决记录时按共用契约处理。两个及以上开发任务（含串行依赖）在首次派发前读取[任务编排与进度恢复](references/orchestration.md)，在同一 task-id 目录创建被 Git 忽略的 progress.md；记录文件路径、依赖、状态、实际代理 / 模型、修复轮次和证据。恢复核对文件、代码、Git 和代理状态，不重复派发、不清零计数。产物位置见[共用约定](../../references/artifacts.md)。
+单任务默认精简交接，无 ledger 或长报告；只读计划需裁决记录时按共用契约处理。两个及以上开发任务（含串行依赖）在首次派发前读取[任务编排与进度恢复](references/orchestration.md)，按同一 task-id 在隐藏执行目录创建被 Git 忽略的 progress.md；记录文件路径、依赖、状态、实际代理 / 模型、修复轮次和证据。恢复核对文件、代码、Git 和代理状态，不重复派发、不清零计数。产物位置见[共用约定](../../references/artifacts.md)。
 
 按编排契约自动识别独立任务，满足安全条件默认两个写代理并行、最多三个；已有 PLAN 缺少标记时也自动判断，显式串行要求保留。下游须等上游独立验收通过且契约确定；冲突或并发能力不明时串行，派发时简述理由。
 

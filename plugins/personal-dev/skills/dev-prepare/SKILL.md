@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Only use when explicitly invoked by the user. Codex 使用 `$personal-dev:dev-prepare`，Claude Code 使用 `/personal-dev:dev-prepare`，agy / dsh 桌面版使用 `/dev-prepare`；`$dev-prepare` 是本文的入口简称。普通请求不自动触发。
 
-读取[准备与消费契约](../../references/preparation.md)，以 **prepare 模式**执行：读取当前需求、项目规则和相关代码，生成同一 task-id 下的 `spec.md` / `plan.md`，自行检查一致性后附文件路径，只请求一次“SPEC 是否正确、PLAN 是否正确”的统一人工确认。
+读取[准备与消费契约](../../references/preparation.md)，以 **prepare 模式**执行：读取当前需求、项目规则和相关代码，生成共用 task-id 的 SPEC / PLAN 文件，自行检查一致性后附文件路径，只请求一次“SPEC 是否正确、PLAN 是否正确”的统一人工确认。
 
 SPEC 是业务需求最高约束：`SPEC > PLAN > Coder interpretation`。按需求规模控制文档长度；普通细节根据项目现状裁决，重大未决点在这一次确认中一并列出，不先启动多轮问答。
 

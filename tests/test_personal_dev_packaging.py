@@ -32,14 +32,35 @@ class PersonalDevPackagingTests(unittest.TestCase):
                     self.assertTrue(target.is_relative_to(PLUGIN.resolve()), reference)
                     self.assertTrue(target.is_file(), reference)
 
-    def test_delegate_temporary_ledger_is_ignored_by_git(self):
-        paths = [f".agent-tmp/dev-delegate/fixture/{name}.md" for name in ("spec", "plan", "progress")]
+    def test_plugin_execution_artifacts_are_ignored_by_git(self):
+        paths = [
+            ".personal-dev/sdd/fixture/progress.md",
+            ".personal-dev/sdd/fixture/logs/test.log",
+            ".personal-dev/tests/fixture/config.json",
+            ".agent-manager/tests/fixture/config.json",
+        ]
         result = subprocess.run(
             ["git", "check-ignore", "--", *paths],
             cwd=ROOT, capture_output=True, text=True, check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.splitlines(), paths)
+
+    def test_spec_and_plan_remain_available_for_version_control(self):
+        for path in ("docs/personal-dev/specs/fixture-design.md", "docs/personal-dev/plans/fixture.md"):
+            with self.subTest(path=path):
+                result = subprocess.run(
+                    ["git", "check-ignore", "--no-index", "--", path],
+                    cwd=ROOT, capture_output=True, text=True, check=False,
+                )
+                self.assertEqual(result.returncode, 1, result.stderr)
+                self.assertEqual(result.stdout, "")
+
+    def test_owned_plugins_do_not_direct_outputs_to_shared_agent_tmp(self):
+        for plugin in (PLUGIN, ROOT / "plugins/agent-manager"):
+            for source in plugin.rglob("*.md"):
+                with self.subTest(source=source.relative_to(ROOT)):
+                    self.assertNotIn(".agent-tmp", source.read_text(encoding="utf-8"))
 
     def test_development_entries_are_manual_only_and_fit_native_loading_budget(self):
         for name in DEVELOPMENT_SKILLS:
