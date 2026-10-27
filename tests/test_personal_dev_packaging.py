@@ -270,8 +270,8 @@ class PersonalDevPackagingTests(unittest.TestCase):
         sources = yaml.safe_load((ROOT / "sources.yaml").read_text(encoding="utf-8"))["groups"]
         lock = json.loads((ROOT / "sources.lock.json").read_text(encoding="utf-8"))["skills"]
         self.assertEqual(set(sources), {"common-workflow", "software-dev", "engineering-tools", "testing-automation"})
-        self.assertEqual(sum(len(group["skills"]) for group in sources.values()), 19)
-        self.assertEqual(len(lock), 19)
+        self.assertEqual(sum(len(group["skills"]) for group in sources.values()), 20)
+        self.assertEqual(len(lock), 20)
         self.assertIn("vue", lock)
         self.assertEqual(
             {item["name"] for item in sources["software-dev"]["skills"]},

@@ -62,6 +62,10 @@ agent-marketplace/
 
 六个 Plugin 都提供 Claude Code `.claude-plugin/plugin.json`；Codex 侧除 `agent-manager` 外使用便携 `plugin.json`，该 Plugin 使用原生 `.codex-plugin/plugin.json` 并显式发现 `skills/` 与 `codex-skills/`。`am-context` 放在后者，因此仅 Codex 可发现；`am-config` 仍共享。四个第三方分类另存 `licenses/<name>/`，两个 Marketplace 均指向 `./plugins/<plugin>`。当前 Codex 有 28 个 Skills、Claude Code / agy / dsh 各有 27 个：第三方四类共 20 个，`agent-manager` 分别有 2 / 1 / 1 / 1 个，`personal-dev` 四端各有 6 个。`dev-prepare` / `dev-auto` 复用 `references/preparation.md`；`dev-auto` 直接读取 `dev-delegate` 正文，执行端按 Harness 使用 `references/codex.md` / `references/claude.md` / `references/agy.md` / `references/dsh.md`，Codex 使用现有模型检查器，不新增 Plugin 或调度系统。
 
+`personal-dev` 当前模型规则见[子代理模型契约](../plugins/personal-dev/references/subagent-models.md)：`dev-review` 只必填 `reviewer=<model>:<effort>`，支持 `reviewer / review / r / check`；`dev-delegate` / `dev-auto` 仍必填 worker + reviewer。额外提供的 worker 也须校验。检查器按当前工具元数据校验显式型号和 effort，不自动选型、不 fallback。
+
+执行默认采用短路径：委派为 `worker → reviewer → 必要修复 → 最终 fresh verification → DONE`，审查为 `reviewer → 主模型核验证据 → 输出报告`。普通任务单 worker 顺序执行，普通审查单 reviewer；修复通过即停止，三轮仅是上限。并行、ledger / 恢复、fresh coder、依赖冻结、严重或争议发现的独立复核及重专项验证均按实际需要启用，Final Reviewer 保留原有高风险触发条件。维护时以当前入口、共享契约、adapter 和脚本为准；`docs/superpowers/` 的既有 SPEC / PLAN 保留为阶段记录，当前用法见[使用手册](usage.md#个人开发工具codex--claude-code--agy--dsh)。
+
 Codex 便携 manifest 的中文信息位于 `extensions.com.openai.interface`；原生 Codex manifest 的中文信息使用根级 `interface`。Claude manifest / catalog 有意不写 version，Git 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
 
 ## 第三方来源与维护边界
@@ -202,7 +206,7 @@ Remove-Item Env:AGENT_MANAGER_CODEX_TESTS
 
 使用项目内隔离 CODEX_HOME、临时项目、安装 fixture 与 localhost 请求捕获器，不调用真实模型、不执行 Skill 正文，也不更新日常全局配置或安装缓存。
 
-`tests/test_personal_dev_loader.py` 复用同一隔离方式，检查六个 Skill 的发现、普通提示不注入新 Skill 正文以及显式调用注入。`tests/fixtures/dev-delegate-scenarios.md` 用于准备 / 执行 / 自动模式、三轮收敛、依赖失败隔离和条件终审的场景推演；推演与静态包装检查不能冒充真实模型 SDD 执行。模型选择检查器与 Skill 流程独立维护，当前系列识别不代表已经验证任意未来命名或实际额度折算。
+`tests/test_personal_dev_loader.py` 复用同一隔离方式，检查六个 Skill 的发现、普通提示不注入新 Skill 正文以及显式调用注入。`tests/fixtures/dev-delegate-scenarios.md` 覆盖准备 / 执行 / 自动模式、默认短路径、按需并行与恢复、一次修复通过、三轮上限、失败隔离和条件终审；推演与静态包装检查不能冒充真实模型 SDD 执行。模型检查器只校验显式参数与传入的当前工具元数据，型号来源和实际派发效果仍由当前会话核验。
 该加载用例已在 Codex CLI 0.160.1 与 0.162.0-alpha.17.2 上通过；这是实际验证版本记录，不定义版本支持范围。隔离 fixture 显式让 localhost 绕过代理，并关闭远端 Plugin 同步和系统代理回退，避免工作站网络配置干扰加载证据；失败时保留 fixture 内的退出诊断。
 
 2026-10-12 目录调整实测：Codex CLI `0.162.0-alpha.17.2` 可发现并显式加载新增的 `java-springboot` 与 `docker-compose-patterns`；Java 正文完整注入，Compose 的 `SKILL.md` 为 9739 字节，当前 CLI 仅直接注入前 8000 字节。随包文件完整保留，使用时仍需按需读取完整入口与引用资源；加载测试通过不代表长正文完整注入。
