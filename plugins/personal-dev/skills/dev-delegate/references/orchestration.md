@@ -34,7 +34,7 @@
 
 单任务失败按下节隔离，不因返工次数耗尽停止无依赖安全任务。无法确认已中断的代理仍占用其槽位与写入范围。
 
-独立委派可用但并发缺失或不明时，回退一个写代理，继续独立验收；委派或干净验收上下文本身缺失仍按 adapter `BLOCKED`。模型选择、显示与覆写规则不因并行改变。
+独立委派可用但并发缺失或不明时，回退一个写代理，继续独立验收；委派或干净验收上下文本身缺失仍按 adapter `BLOCKED`。所有并行 Worker 使用同一 worker，多个 Reviewer 使用同一 reviewer；模型参数校验与显式传递规则不因并行改变。
 
 ## 任务失败隔离
 
@@ -50,7 +50,7 @@
 
 验收前确认该范围的写代理已结束，固定当前实际改动与验证证据；验收期间该范围及相关接口、依赖不得变化。完全无关且满足并行条件的任务可继续。共享测试资源的验证按上节处理；若审查版本已变化，旧结论不能套用到新代码。
 
-独立任务分别验收；本质不可分割的功能单元可以共用一次新 Reviewer，前提是满足依赖顺序，并为每项输出独立结论、证据和阻塞项。合并验收不允许提前派发依赖任务，也不合并或重置每项修复预算。前两轮优先各自原 Coder，第三轮按角色契约换 fresh coder 或提升配置；每项独立计数。
+独立任务分别验收；本质不可分割的功能单元可以共用一次新 Reviewer，前提是满足依赖顺序，并为每项输出独立结论、证据和阻塞项。合并验收不允许提前派发依赖任务，也不合并或重置每项修复预算。前两轮优先各自原 Coder，第三轮按角色契约换 fresh coder，保留同一 worker 配置；每项独立计数。
 
 Reviewer 使用区别于全部 Coder 的干净上下文，只得到验收范围所需材料。不复制完整聊天、编码思考过程或讨论过程；不开放 Coder / Reviewer 直接交流。疑问、发现和修复反馈均经主模型转交，验收不依赖双方达成共识。
 
@@ -80,10 +80,8 @@ tasks:
     status: DONE
     coder: <实际编码 Agent/task id>
     reviewer: <实际独立验收 Agent/task id>
-    coding_model: <实际型号；Claude 未确认时 UNKNOWN>
-    coding_effort: <实际强度；Claude 未确认时 UNKNOWN>
-    review_model: <实际型号；Claude 未确认时 UNKNOWN>
-    review_effort: <实际强度；Claude 未确认时 UNKNOWN>
+    worker_config: {model: <已验证实际型号>, effort: <显式强度>}
+    reviewer_config: {model: <已验证实际型号>, effort: <显式强度>}
     fix_rounds: 0
     evidence: <当前改动、独立 PASS 与验证证据>
   - task_id: B
@@ -95,19 +93,17 @@ tasks:
     status: REVIEW
     coder: <实际编码 Agent/task id>
     reviewer: <实际独立验收 Agent/task id>
-    coding_model: <实际型号；Claude 未确认时 UNKNOWN>
-    coding_effort: <实际强度；Claude 未确认时 UNKNOWN>
-    review_model: <实际型号；Claude 未确认时 UNKNOWN>
-    review_effort: <实际强度；Claude 未确认时 UNKNOWN>
+    worker_config: {model: <已验证实际型号>, effort: <显式强度>}
+    reviewer_config: {model: <已验证实际型号>, effort: <显式强度>}
     fix_rounds: 1
     evidence: <第 1 轮修复已完成，等待本轮独立复验>
 ```
 
-状态含义：`PENDING` 未派发，`CODING` 初次实现中，`REVIEW` 初验或复验中，`FIXING` 修复中，`DONE` 独立验收通过，`FAILED` 三轮后仍有真实核心 blocker，`BLOCKED` 依赖、风险或必要能力 / 证据阻塞。按需补 `blocked_by`、稳定 finding_id、历史尝试、convergence 裁决与影响范围，以及当前阶段、代码基线或证据路径；只记录恢复所需内容。模型策略与实际确认值分开，不能把示例 ID 或默认策略写成实际 ID。
+状态含义：`PENDING` 未派发，`CODING` 初次实现中，`REVIEW` 初验或复验中，`FIXING` 修复中，`DONE` 独立验收通过，`FAILED` 三轮后仍有真实核心 blocker，`BLOCKED` 依赖、风险或必要能力 / 证据阻塞。按需补 `blocked_by`、稳定 finding_id、历史尝试、convergence 裁决与影响范围，以及当前阶段、代码基线或证据路径；只记录恢复所需内容。只记录本次显式且已核验的 worker / reviewer，不把示例或历史默认值写成实际配置。旧 ledger 保留原始证据，恢复时校验本次显式配置，不用旧字段补参数。
 
 更新时机：派发前写入任务 ID、范围和即将进入的阶段；工具返回后立即补真实 Agent/task id；编码结束、验收结束、返工、阻塞、整体检查和收尾变化后立即保存。派发前无法知道的代理 ID 标为 `PENDING_ID`，并在派发提示中注明执行 ID 与任务 ID，方便核对通知。文件不能完整保存时不继续派发新工作。
 
-触发独立 Final Reviewer 时补记具体风险、实际型号 / effort、选型依据、代理身份、审查版本、结论及未解决问题。按 adapter 可核验会话上限时保留其来源；自动沿用任务验收配置时如实记录，不把 UNKNOWN 冒充会话上限。`final_review_escalated` 初始 false，符合角色困难条件时在唯一一次升级前记 true；恢复先核对代理、已用升级及当前配置，不重复派发、不清零升级或修复预算。
+触发独立 Final Reviewer 时补记具体风险、同一 reviewer 配置、代理身份、审查版本、结论及未解决问题。恢复先核对代理、本次显式配置及累计修复预算，不重复派发，不自动升级或重置计数。
 
 `fix_rounds` 记录已启动的修复轮次，初始为 `0`。启动修复前先记 `1`、`2` 或 `3` 与 `FIXING`，只有修复加独立复验才完成该轮；修复返回改为 `REVIEW`，同轮复验不再加一。中断保留预记轮次和阶段，先核实是否实际启动，再继续该轮，不凭猜测回退计数。第三轮复验后执行 convergence，真实核心 blocker 仍未解决则 FAILED，按依赖链隔离而非全局熔断；通知未返回是待核实状态，不能假称失败或通过。
 

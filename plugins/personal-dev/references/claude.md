@@ -1,18 +1,14 @@
 # Claude Code 委派适配
 
-仅用于已确认的 Claude Code Harness。使用本轮原生 `Agent` 工具与其真实参数；不运行 Codex 的 `select_models.py`，不要求 Luna、`reasoning_effort`、`fork_turns` 或 Python。
+仅用于已确认的 Claude Code Harness。入口首先遵守[子代理模型契约](subagent-models.md)，校验本次显式 worker / reviewer。主会话模型与用户配置保持原样；不运行 Codex Python helper。
 
-## 默认模型与思考配置
+## 显式模型与思考配置
 
-用户未指定覆写时，编码、验收、审查与复核均沿用 Claude Code 当前子代理的模型与思考配置：使用同一通用子代理类型，省略 `model` 和 `effort`，不改环境变量、项目或用户设置。原生子代理默认可能受当前配置或 managed 策略影响，不保证等于主会话模型，也不保证低费用。
+从本轮原生 Agent schema、可用型号与每个型号的 effort 支持证据，核验两类配置。执行型子代理使用 worker，审查、SPEC / PLAN 符合性、验证结果、回归风险、独立复核与 Final Reviewer 使用 reviewer。每次 Agent 都必须显式传该角色的 model 和当前 schema 实际支持的 effort 覆写字段，不能省略或通过提示正文声称已应用。
 
-派发前展示两行角色信息，如“编码模型：Claude Code 子代理默认｜思考配置：沿用当前配置”和对应的“验收模型”。审查使用“审查模型 / 复核模型”。有本轮可信解析结果时补充实际 ID / 强度；无法解析时明确标记“实际型号 / 强度 UNKNOWN”，不能把别名或默认策略冒充已确认型号。用户已选择沿用默认配置时，这项未知本身不阻塞执行。
+Claude 的 effort 不等于 Codex reasoning_effort；若本轮 Agent 只有 model、没有可核验的 effort 覆写能力，立即 BLOCKED，明确说明当前工具无法落实用户指定强度。模型不可用、不支持所请求 effort、名单或生效证据缺失、managed 策略会替换指定值时同样中断。不沿用原生默认、不标 UNKNOWN 后继续，不改环境变量、项目或用户设置来补能力。
 
-用户明确指定型号或强度时，先核对本轮工具 schema、可用模型和有效覆盖；证据不足则集中 `BLOCKED`，不得默默忽略请求、猜映射或切换型号。Claude 的 `effort` 不是 Codex 的 `reasoning_effort`；较新文档中的参数不代表当前工具已支持。已知环境或 managed 限制会替换用户指定值时先报告，不修改全局配置兜底。
-
-`dev-delegate` 的复杂任务从既定 SPEC / PLAN 复核设计、接口与验收，普通细节由主模型裁决。仅主 Skill 五类条件触发独立 Final Reviewer；可信会话型号、实际 effort、档位顺序与有效原生覆写均已知时，自动使用同型号、低一档 effort，紧邻档不可用只可降低，最低档沿用最低档。信息未公开或接口无法落实该自动策略时，沿用当前任务验收的原生默认配置并如实标 UNKNOWN，不为选型提问、不改设置；不能把 UNKNOWN 当作已验证会话上限。用户明确指定最终审查模型 / effort 优先，已有指定即授权，按本轮 schema 校验，不支持才报告技术限制。
-
-角色契约的困难条件成立时，若可核验同型号会话上限且用户未明确覆写，可记录唯一升级已用后自动升至当前会话强度一次，只复核未解决问题与影响。原生接口不支持原地改强度时，结束旧终审后新建干净代理，交接证据和升级状态。未知上限则保持已验证默认配置完成审查与裁决，不询问型号 / effort；必要结论仍不可得则阻塞受影响任务，其余安全任务继续。升级次数和三轮代码修复预算不因代理重建或恢复而重置。不要求 Codex 参数或 Python，不修改全局配置。
+成功时展示已验证 worker / reviewer 两行。多个执行代理共享 worker，多个审查代理共享 reviewer。第三轮 fresh coder 使用同一 worker；Final Reviewer 使用同一 reviewer，不独立选型或升降强度。继续原代理前核对配置一致，不能假设恢复时可以改参数；不一致或无法核验时停止续接并报告。权限、只读、独立上下文与三轮修复预算不变。
 
 ## 原生委派
 
@@ -24,4 +20,4 @@
 
 依据：[Claude Code subagents](https://code.claude.com/docs/en/sub-agents)、[Skills 与手动调用](https://code.claude.com/docs/en/skills)。开发验证与实际业务执行分别记录；隔离捕获加载请求不代表已执行真实模型委派。
 
-`dev-delegate` 第三轮默认使用 fresh coder 和相同原生配置，不要求升级或询问型号。独立 Final Reviewer 仅在该 Skill 的规定条件触发，按上面的自动策略选型；用户明确指定最终审查配置时按本轮原生 schema 校验，已有指定即授权，不重复确认。主模型始终做整体检查，不能用额外 Reviewer 取代。
+`dev-delegate` 第三轮使用 fresh coder 和同一 worker；独立 Final Reviewer 按主 Skill 条件触发并使用同一 reviewer。主模型始终做整体检查，不能用额外 Reviewer 取代。

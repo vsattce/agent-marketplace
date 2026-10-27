@@ -1,5 +1,7 @@
 # SPEC / PLAN 准备与消费契约
 
+`dev-auto` 在读取本文件或生成任何文档前，必须按[子代理模型契约](subagent-models.md)验证本次显式 worker / reviewer 及 Harness 支持，再将同一对配置交给 dev-delegate；缺项或不支持立即中断。dev-prepare 自身不启动子代理，无需参数。
+
 `dev-prepare` 与 `dev-auto` 共用本文件生成和检查需求文件；`dev-delegate` 只消费已确定的文件。流程模式由用户显式入口决定，不根据 description 自动调用入口。
 
 ## 事实来源与裁决

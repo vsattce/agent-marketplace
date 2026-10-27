@@ -14,24 +14,26 @@ Only use when the user explicitly invokes this skill. Codex 使用 `$personal-de
 
 ## 1. 先完成一次预检
 
+入口首先读取[子代理模型契约](../../references/subagent-models.md)，先归一化固定别名，再校验本次显式 `worker=<model>:<effort> reviewer=<model>:<effort>`；即使只派 reviewer 也必须同时提供两项。缺任一参数立即中断，提示缺项和正确格式，早于源码审查、报告创建和任何子代理派发。
+
+入口同时确认真实 Harness，不能从模型品牌猜客户端。Codex 读取 [Codex adapter](../../references/codex.md)，用本 Skill 的 `scripts/select_models.py` 透传共享校验器，核验 worker / reviewer 与实际派发名单和强度。Claude Code 读取 [Claude adapter](../../references/claude.md)，agy 读取 [agy adapter](../../references/agy.md)，dsh 桌面版读取 [dsh adapter](../../references/dsh.md)；后三者按原生 schema 落实相同显式配置，不运行 Codex helper。模型、effort 或覆写能力不支持立即中断。其他或未知 Harness `BLOCKED / UNSUPPORTED AGENT`。
+
 确定当前工作目录对应的项目根、适用项目规则、用户指定范围及源码可读性。未指定范围时检查当前项目全部现有自有代码，包括存量、暂存/未暂存修改和新源码；无 diff 也必须检查。指定目录、文件、模块、主题、commit 或 diff 时严格限定报告范围。子目录调用不自动缩小到该子目录。Git 不可用不妨碍源码审查。多仓库或范围确实不清楚时集中澄清一次。
 
 记录只读基线：当前范围、工作区变化、可用 Git 状态以及后续可能影响证据的变化。排除依赖、构建产物、生成文件、历史报告和二进制；只有核实结论所必需时读取相关自有配置或直接调用点。范围外问题只简要注明。
 
 报告默认写到项目的 `docs/personal-dev/reviews/<review-id>/report.md`，按用户时区用日期、时间和主题组成 ID；冲突时追加唯一后缀，绝不覆盖。先检查目录/位置可写。仓库规则不允许默认位置时选合规位置；若报告无法写入，BLOCKED，集中询问用户其他位置或是否接受仅聊天输出。长审查的轻量进度记录放在报告同目录。执行期间只有报告和必要的轻量进度记录可写；代码、配置、Git 状态只读，不自动提交或推送。
 
-派发前从当前会话确认真实 Harness，不能从模型品牌猜客户端。Codex 读取 [Codex adapter](../../references/codex.md)，用本 Skill 的 `scripts/select_models.py` 校验本轮可信主模型身份、实际派发名单与强度；同代最高数值版本 Luna 默认 `xhigh` 审查、`max` 复核，最高版本缺少任一强度时 `BLOCKED`。Claude Code 读取 [Claude adapter](../../references/claude.md)，agy 读取 [agy adapter](../../references/agy.md)，dsh 桌面版读取 [dsh adapter](../../references/dsh.md)；后三者沿用原生子代理模型与思考配置，不运行 Codex helper，不要求 Python 或 Codex 参数。其他或未知 Harness `BLOCKED / UNSUPPORTED AGENT`。
+必需项缺失时，在任何正式审查派发前一次性汇总所有已知缺口、理由、需要用户提供的明确内容和已完成工作，标记 `BLOCKED` 并停止。不能以其他模型替代用户指定的策略。模型配置无法核验时立即中断，不以 UNKNOWN 或默认配置继续。可选生产权限、凭证、配额、运行环境、实时数据或完整运行证据缺失，不阻塞普通静态审查；明确说明本次为代码层面审查，并将量化/运行结论列为待验证。只有用户明确要求的实测缺少条件才阻塞。
 
-必需项缺失时，在任何正式审查派发前一次性汇总所有已知缺口、理由、需要用户提供的明确内容和已完成工作，标记 `BLOCKED` 并停止。不能以其他模型替代用户指定的策略。Claude 默认配置的实际型号未解析时如实标 `UNKNOWN`，不因此单独阻塞。可选生产权限、凭证、配额、运行环境、实时数据或完整运行证据缺失，不阻塞普通静态审查；明确说明本次为代码层面审查，并将量化/运行结论列为待验证。只有用户明确要求的实测缺少条件才阻塞。
-
-预检成功后，在派发前按 adapter 展示审查与复核两行。Codex 显示 helper 返回的实际型号和强度：
+预检成功后，派发前展示已校验的 worker / reviewer 两行实际型号和强度；审查、独立检查及严重问题复核均使用同一 reviewer：
 
 ```text
-审查模型：<实际型号>｜思考强度：<实际强度>
-复核模型：<实际型号>｜思考强度：<实际强度>
+worker 模型：<实际型号>｜思考强度：<实际强度>
+reviewer 模型：<实际型号>｜思考强度：<实际强度>
 ```
 
-Claude 显示“Claude Code 子代理默认 / 沿用当前配置”，agy / dsh 显示各自“原生默认 / 继承当前配置”；未确认实际值标 `UNKNOWN`。不可用或结果 `BLOCKED` 时不派发，不宣称已启动；不自动降级、升级，或让主模型替代全部审查。
+四个 Harness 均落实显式配置，不沿用原生默认。不可用或结果 `BLOCKED` 时不派发，不宣称已启动；不自动降级、升级，或让主模型替代全部审查。
 
 ## 2. 只读检查与派发
 

@@ -7,13 +7,13 @@
 - 派发内容只包含完成任务必需的信息。报告和上下文不得泄露 token、cookie、密钥、个人信息或 URL 敏感参数。
 - 报告/必要轻量记录是唯一可写内容。没有生产环境资料仍可完成代码层审查；运行量化结论标为待运行验证。
 
-## Codex 模型 adapter 接口
+## 统一模型 adapter 接口
 
-仅 Codex 使用以下 Python 接口。Claude Code 按 [Claude adapter](../../../references/claude.md) 沿用原生子代理配置，不运行本检查器，也不要求以下输入字段。
+入口先读取[子代理模型契约](../../../references/subagent-models.md)，同时校验本次显式 worker / reviewer；即使只派审查代理也不能省略 worker。审查、SPEC / PLAN 符合性、验证结果、回归风险和严重候选独立复核均使用同一 reviewer，没有 audit / verification 等独立模型角色。
 
-CLI 从 stdin 读取一个 JSON object。必填字段为 `primary_model`、`primary_model_source`（`current-turn` 或 `user`）、`inventory_source`（`current-spawn-tool`）和 `models`（当前派发工具实际可用的 `{id, efforts}` 项目数组）。可选字段为 `model_override` 与 `override_confirmed`，以及 `audit_effort` / `verification_effort`（默认 `xhigh` / `max`）。不接受未知字段，也不接受旧的 `coding_effort` / `review_effort` 角色字段。模型覆盖仍须按兄弟 helper 规则明确确认，并在当前工具名单中。
+Codex 的 `scripts/select_models.py` 只透传共享 helper 的 JSON 协议：必填 worker、reviewer、inventory_source、models，返回同一 worker / reviewer 与 display，不映射其他角色。缺参数、未知字段、型号不可用或 effort 不受支持立即 BLOCKED / 退出 2，带正确调用格式；不自动选型或静默 fallback。协议只维护在共享契约中。
 
-成功退出 0 并输出 `status=READY`、`audit={model,effort}`、`verification={model,effort}` 和两行 `display`。失败退出 2，仅输出 `status=BLOCKED` 与安全原因；不回显输入、路径或异常内容。自动选择先确定同代数字版本最高的 Luna，再校验所需强度；该型号缺强度即阻塞，不降到旧版本。adapter 只映射角色并调用 `dev-delegate/scripts/select_models.py`，不得复制或另建选择规则。
+Claude / agy / dsh 按各自 adapter 与本轮 schema 校验并显式传递相同配置，不运行 Python；缺少模型或 effort 覆写能力就立即中断，不沿用原生默认。审查代理的只读边界保持不变。
 
 ## 审查维度与降噪
 

@@ -242,7 +242,7 @@ Windows Python 3.12.13，Codex CLI `0.162.0-alpha.17.2`、Claude Code `2.1.291`�
 
 覆盖六个 Plugin / 18 个 Skills 的双端注册包装、管理工具和 personal-dev 的发现与手动加载、Claude 原生 Agent schema、项目 `/upgrade` 入口与 `CLAUDE.md` 导入 `AGENTS.md`、两端项目 Plugin 覆盖及配置事务。保留此前验证版本；新增精确版本仍须与本轮实际客户端版本一致，未知版本继续拒绝。
 
-Claude `2.1.291` 捕获到的 Agent 参数为 `description`、`isolation`、`model`、`prompt`、`run_in_background`、`subagent_type`，没有 `effort`；默认策略省略模型和思考覆写。Codex 模型选择器的 Luna `xhigh` / `max` 规则有单元测试，双平台工作流另做只读场景验收。未运行真实模型委派或逐项业务流程，不把请求捕获和场景检查称为真实推理验收。
+Claude `2.1.291` 捕获到的 Agent 参数为 `description`、`isolation`、`model`、`prompt`、`run_in_background`、`subagent_type`，没有 `effort`；该记录只代表当时 schema。当前 personal-dev 要求显式 worker / reviewer，两项均须核验，工具无法覆写 effort 时立即中断，不再省略参数继承默认。共享 helper 的参数、模型名单与 effort 支持有单元测试；四端 adapter 统一映射执行型 worker 与判断型 reviewer。未运行真实模型委派或逐项业务流程，不把请求捕获和场景检查称为真实推理验收。
 
 ## 交付
 

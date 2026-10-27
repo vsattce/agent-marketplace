@@ -85,23 +85,25 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 ```text
 $personal-dev:dev-prepare 给现有列表增加状态筛选，保持分页和接口兼容
 # 确认 SPEC / PLAN 后，此入口结束；再单独调用：
-$personal-dev:dev-delegate 按 docs/personal-dev/specs/<task-id>-design.md 和 docs/personal-dev/plans/<task-id>.md 执行
-$personal-dev:dev-delegate 按已确定的 SPEC / PLAN 执行，编码 medium，验收 xhigh
+$personal-dev:dev-delegate worker=6-luna:high reviewer=6.1-terra:high 按 docs/personal-dev/specs/<task-id>-design.md 和 docs/personal-dev/plans/<task-id>.md 执行
+$personal-dev:dev-delegate worker=6-luna:medium reviewer=6.1-terra:xhigh 按已确定的 SPEC / PLAN 执行
 # 或者从需求到开发连续完成：
-$personal-dev:dev-auto 给现有列表增加状态筛选，保持分页和接口兼容
+$personal-dev:dev-auto worker=6-luna:high reviewer=6.1-terra:high 给现有列表增加状态筛选，保持分页和接口兼容
 ```
 
 `SPEC > PLAN > Coder interpretation`。SPEC 记录目标、范围、不做项、现有约束、关键行为和验收标准；PLAN 记录任务、依赖、write_scope、目标、验证和完成标准。简单需求保持简短。默认写入 `docs/personal-dev/specs/<task-id>-design.md` 与 `docs/personal-dev/plans/<task-id>.md`，共用 task-id，prepare 确认及执行完成后均保留，可随项目版本管理；后续 Agent 读取路径而非反复复制聊天。临时交接、日志与证据放在 `.personal-dev/sdd/<task-id>/`，全部验收及已授权收尾完成后仅清理本次执行现场。用户指定位置和项目规则优先；旧布局按明确路径继续消费或恢复，不自动搬迁。PLAN 与 SPEC 冲突由主模型按 SPEC 修正并记录裁决，不让 Coder / Reviewer 改写明确需求。
 
 `dev-auto` 直接读取共享准备规则和 dev-delegate 正文，无需嵌套调用手动 Skill，也无需用户再次输入 dev-delegate。它从准备到执行只允许因重大歧义、当前未授权的破坏性操作或安全边界不清集中询问一次；普通细节自行合理裁决，不确认 SPEC、PLAN、模型、effort，不在任务之间询问。必需能力缺失或环境不满足时如实报告限制；该入口不扩大平台或项目权限。共同定义见[准备与消费契约](../plugins/personal-dev/references/preparation.md)。
 
-Codex 沿用同大版本最新可用 Luna，默认 high 编码、另一个干净上下文 xhigh 独立验收；用户明确指定型号 / effort 优先，指定本身即本次覆写授权，不重复确认。名单与支持强度按当前工具校验，不猜型号、不跨代降级。Claude Code 沿用当前原生子代理模型与思考配置，省略 model / effort；用户指定时按当前 schema 核验，不要求 Codex helper、Python 或 reasoning_effort。agy 沿用原生子代理配置，不执行 Codex 选型器，具体工具与参数见 [agy adapter](../plugins/personal-dev/references/agy.md)。dsh 桌面版继承原生子代理配置，要求 spawn 干净上下文，见 [dsh adapter](../plugins/personal-dev/references/dsh.md)。派发前展示实际策略与已确认值，未知值标 UNKNOWN；展示后直接执行，不询问最终审查的配置。
+所有会启动子代理的入口必须同时显式提供 `worker=<model>:<effort> reviewer=<model>:<effort>`；worker 支持 `worker / work / w / code`，reviewer 支持 `reviewer / review / r / check`，例如 `$dev-delegate w=6-luna:high r=6.1-terra:high`。所有别名先归一化为两个内部角色，同一角色重复传参立即报错；缺任一项立即中断，提示缺项和正确格式。dev-auto 在生成 SPEC / PLAN 前完成参数与 Harness 校验，并将同一对配置传给执行器；dev-review 即使只派 reviewer 也必须校验两项。dev-prepare、dev-simplify、dev-runtime-check 当前由主模型处理，无子代理时无需参数，明确转入委派时在交接入口校验。执行型工作（代码、搜索/读取、引用、命令、配置、补测试、修复）统一 worker；审查、SPEC / PLAN 符合性、验证结果、回归风险、独立复核和 Final Reviewer 统一 reviewer。多个并行 Worker / Reviewer 各自共用相同配置，主会话模型不变。
+
+模型及 effort 必须在当前 Harness 的原生工具中可用且能显式落实，不支持立即说明原因并中断，不自动选型号、推断或升降强度、替换模型或继承默认。当前 Agent 不提供 effort 覆写字段时同样中断；这可能使该 Harness 的委派流程暂不可用，无子代理的入口仍可使用。四端策略和 helper 协议见[子代理模型契约](../plugins/personal-dev/references/subagent-models.md)，工具字段按 [Codex](../plugins/personal-dev/references/codex.md)、[Claude](../plugins/personal-dev/references/claude.md)、[agy](../plugins/personal-dev/references/agy.md)、[dsh](../plugins/personal-dev/references/dsh.md) 适配，派发前展示实际配置后直接执行，不修改全局配置。
 
 PLAN 按完整功能拆分，同一功能的技术层优先合并，自动标注独立任务及并行理由。各端按各自 adapter 在批内无依赖、write_scope 不重叠、无变化中的共享契约、原生工具、槽位与验证资源安全时，默认两个编码代理并行，按编排规则最多三个；有依赖、冲突或并发能力不明时串行。旧 PLAN 缺少并行标记时同样自动判断，显式串行要求保留。上游独立验收通过且契约确定后才启动下游。两个及以上任务（含串行依赖）在对应的隐藏执行目录建立 progress.md；单任务不强制 ledger 或长报告。恢复先核对文件、代码、Git 与实际代理状态，不重派已完成或仍运行的代理，不重置修复次数。
 
-每个任务由独立 Coder 和干净只读 Reviewer 分工，验收期间冻结相关范围。初次实现后最多三轮修复：前两轮优先原 Coder，第三轮 fresh coder 或按已验证能力提升配置；携同一 SPEC / PLAN、当前实现与 blocker，不重新理解业务。每轮复验聚焦修复及影响；普通建议与偏好不阻塞，超出 SPEC 的要求拒绝。同根因重复或新 finding 不重开预算。第三轮后主模型 adjudication / convergence，真实核心 blocker 仍未解决则该任务 FAILED，冻结其直接 / 间接依赖及具体风险影响范围，其他独立安全任务继续，不默认全局熔断。完整规则见[角色契约](../plugins/personal-dev/skills/dev-delegate/references/roles.md)与[编排恢复](../plugins/personal-dev/skills/dev-delegate/references/orchestration.md)。
+每个任务由独立 Coder 和干净只读 Reviewer 分工，验收期间冻结相关范围。初次实现后最多三轮修复：前两轮优先原 Coder，第三轮 fresh coder 仍使用同一 worker 配置；携同一 SPEC / PLAN、当前实现与 blocker，不重新理解业务。每轮复验聚焦修复及影响；普通建议与偏好不阻塞，超出 SPEC 的要求拒绝。同根因重复或新 finding 不重开预算。第三轮后主模型 adjudication / convergence，真实核心 blocker 仍未解决则该任务 FAILED，冻结其直接 / 间接依赖及具体风险影响范围，其他独立安全任务继续，不默认全局熔断。完整规则见[角色契约](../plugins/personal-dev/skills/dev-delegate/references/roles.md)与[编排恢复](../plugins/personal-dev/skills/dev-delegate/references/orchestration.md)。
 
-主模型始终对照 SPEC 检查总需求、跨任务联动、范围和最终版本，即使部分失败也汇总未完成项。额外独立 Final Reviewer 只在用户明确要求、安全 / 权限、并发 / 事务一致性、破坏性数据迁移或明显公共 API 不兼容风险时默认触发。代码多、任务多、复杂本身不触发；普通页面、样式、常规联调、兼容性 API 增加与一般功能无需额外 Reviewer。触发时按 adapter 自动选择，保留可核验的同会话型号低一档策略；信息不足时自动沿用已验证验收配置，用户指定优先，不询问型号 / effort，不启动第二套全项目 dev-review。最终发现仍沿用任务剩余修复次数，不能产生第四轮。
+主模型始终对照 SPEC 检查总需求、跨任务联动、范围和最终版本，即使部分失败也汇总未完成项。额外独立 Final Reviewer 只在用户明确要求、安全 / 权限、并发 / 事务一致性、破坏性数据迁移或明显公共 API 不兼容风险时默认触发。代码多、任务多、复杂本身不触发；普通页面、样式、常规联调、兼容性 API 增加与一般功能无需额外 Reviewer。触发时仍使用同一 reviewer 配置，不另设终审模型或自动升级 effort，不启动第二套全项目 dev-review。最终发现仍沿用任务剩余修复次数，不能产生第四轮。
 
 失败、中断或收尾未完成时保留 SPEC / PLAN 和 ledger。部分失败不宣称全部完成，不自动提交、推送或发布混合的失败实现；全部通过后只按目标项目已有授权收尾，安全清理本次临时目录。Codex 检查器只校验传入模型元数据，不发现型号、不验证来源、不拦截原生派发；使用已有工具环境，不安装或切换运行时。隔离加载测试不代表真实模型已完成 SDD，也不承诺固定 token 或额度节省。
 
@@ -117,9 +119,9 @@ Codex / Claude / agy 按各自 Plugin 入口加载，dsh 通过桌面版 Skill p
 
 ### 增强代码审查
 
-`$personal-dev:dev-review` / `/personal-dev:dev-review` 仅在用户显式调用时运行。默认检查当前项目全部自有代码，包括已提交存量和工作区源码，即使没有 diff；指定目录、文件、模块、主题、commit 或 diff 时严格限定范围。它不依赖 Git，也不会启动原生 `/review`。
+`$personal-dev:dev-review` / `/personal-dev:dev-review` 仅在用户显式调用时运行，例如 `$personal-dev:dev-review worker=6-luna:high reviewer=6.1-terra:high`；先校验两项，再创建报告和派发，审查与独立复核共用 reviewer。默认检查当前项目全部自有代码，包括已提交存量和工作区源码，即使没有 diff；指定目录、文件、模块、主题、commit 或 diff 时严格限定范围。它不依赖 Git，也不会启动原生 `/review`。
 
-主模型在正式派发前一次性核对项目规则、范围、源码可读性、改动基线、报告位置与当前 Harness adapter。Codex 另核对可靠模型身份、当前派发工具名单与强度及解释器；Claude 核对原生 Agent 与非 fork 子代理能力；agy 核对原生 invoke_subagent、独立上下文与结果读取能力；dsh 核对原生 spawn、干净上下文与完成通知。缺少必需项时集中输出 `BLOCKED`；生产权限、凭证、配额或实时运行数据属于可选证据，缺少时仍可进行代码层审查，并把相关量化结论列为待运行验证。审查和复核的实际型号/强度会在派发前展示；必要的独立复核只针对 P0/P1 或实质争议。
+主模型在正式派发前一次性核对项目规则、范围、源码可读性、改动基线、报告位置与当前 Harness adapter。Codex 另核对本次显式两类配置、当前派发工具名单与强度及解释器；Claude 核对原生 Agent 与非 fork 子代理能力；agy 核对原生 invoke_subagent、独立上下文与结果读取能力；dsh 核对原生 spawn、干净上下文与完成通知。各端均核验两类模型及 effort 的实际覆写能力，不依赖主模型身份。缺少必需项时集中输出 `BLOCKED`；生产权限、凭证、配额或实时运行数据属于可选证据，缺少时仍可进行代码层审查，并把相关量化结论列为待运行验证。审查和复核的实际型号/强度会在派发前展示；必要的独立复核只针对 P0/P1 或实质争议。
 
 默认报告写到项目 `docs/personal-dev/reviews/<review-id>/report.md`，长审查的轻量进度记录与报告同目录。代码、配置和 Git 状态只读，审查过程不自动修复、提交或推送。报告区分 `COMPLETE`、`PARTIAL`、`BLOCKED` 执行状态与 P0–P3 风险等级；发现问题不会让执行状态自动变成 `BLOCKED`。没有高等级发现也不代表项目绝对安全。
 
@@ -191,7 +193,7 @@ pwsh -NoProfile -File .agents/skills/sync-agy/scripts/sync.ps1
 
 安装后开启新 agy 会话或按客户端提供的入口重载，确认 `/vue`、`/am-config`、`/dev-prepare`、`/dev-auto` 等命令。手动 Skills 仍需明确调用；不要仅凭 frontmatter 声称客户端已强制门控。静态校验、安装清单及资源一致性不代表已运行真实模型、SSH 或子代理业务流程。
 
-`personal-dev` 的准备、简化与远端诊断使用共享流程；委派与审查使用 [agy 原生适配](../plugins/personal-dev/references/agy.md)，默认继承原生子代理配置，必要工具缺失时报具体限制。`am-config` 使用 [agy 项目编辑适配](../plugins/agent-manager/references/agy.md)，支持项目指令、standalone Skill、Plugin 文件准备与只读冲突检查；当前未验证项目 Plugin 开关，不能用全局 `enable / disable / install` 代替仅项目操作。
+`personal-dev` 的准备、简化与远端诊断使用共享流程；委派与审查使用 [agy 原生适配](../plugins/personal-dev/references/agy.md)，先校验本次显式 worker / reviewer，必要模型、effort 或覆写能力缺失立即中断并报告具体限制。`am-config` 使用 [agy 项目编辑适配](../plugins/agent-manager/references/agy.md)，支持项目指令、standalone Skill、Plugin 文件准备与只读冲突检查；当前未验证项目 Plugin 开关，不能用全局 `enable / disable / install` 代替仅项目操作。
 
 ### DeepSeek Harness 桌面版（dsh）
 

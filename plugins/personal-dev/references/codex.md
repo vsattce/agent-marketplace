@@ -1,31 +1,28 @@
 # Codex 委派适配
 
-仅用于已确认的 Codex Harness。共享流程见对应 Skill；本文件处理模型选择与原生工具，Claude Code 不执行这里的 Python 检查器。
+仅用于已确认的 Codex Harness。入口首先遵守[子代理模型契约](subagent-models.md)，同时校验显式 worker / reviewer；主会话模型保持用户原本选择，不取主模型身份或 effort 来选子代理。
 
-## 模型与显示
+## 模型校验与显示
 
-主模型身份仅取本轮可靠运行时信息或用户明确说明；自报身份、默认配置、历史会话与记忆不是本轮身份依据。根据当前派发工具声明整理实际模型 ID 与支持强度；网页、模型目录和缓存不能替代当前允许名单。
+根据本轮派发工具声明整理实际模型 ID 与各型号支持的 effort。网页、缓存和默认配置不能替代当前允许名单；工具不支持显式覆写模型或 reasoning_effort 时立即 BLOCKED。
 
-通过当前 Skill 的 `scripts/select_models.py` 校验输入，使用已有且符合环境规则的 Agent 工具 Python，不安装依赖、不修改目标项目运行时、PATH 或全局配置。解释器缺失时 `BLOCKED`。检查器只验证传入模型元数据，不发现模型、不验证来源真实性、不拦截原生派发。
+使用共享 `skills/dev-delegate/scripts/select_models.py`，dev-review 的同名 helper 仅透传同一协议。JSON 必填 worker、reviewer（各为 `<model>:<effort>` 字符串）、inventory_source=current-spawn-tool、models（每项含 id 与 efforts）。省略字面 gpt- 前缀只能精确唯一匹配，不排序或自动挑型号；不接受主模型、旧角色与终审专用参数。
 
-JSON stdin 必填 `primary_model`、`primary_model_source`（`current-turn` / `user`）、`inventory_source`（`current-spawn-tool`）、`models`（每项含 `id` 和 `efforts` 数组）。开发默认 `coding_effort=high` / `review_effort=xhigh`，审查默认 `audit_effort=xhigh` / `verification_effort=max`。用户明确指定某角色的强度时传对应字段，未指定的角色使用默认值；例如“编码 medium，验收 xhigh”传 `coding_effort=medium` / `review_effort=xhigh`。这已是本次强度覆写要求，无需再次确认；仍须校验当前工具支持，不支持则说明原因并 `BLOCKED`。输入不含任务秘密。退出 0 且 `READY` 才可派发；退出 2 或 `BLOCKED` 时停止。
+用符合环境规则的现有 Python，不安装依赖、不修改目标项目运行时、PATH 或全局配置。解释器缺失时 BLOCKED。退出 0 且 READY 才能派发，原样展示返回的 worker / reviewer 两行 display；退出 2 或 BLOCKED 立即停止，不补默认值或换配置。helper 只校验元数据，不能代替主模型核验来源或落实派发。
 
-- 已确认的低成本系列为 `gpt-<数字版本>-luna`，选主模型同一大版本内数值最高的可用版本。6.1 / 6.2 主模型可用 6 Luna；7 主模型不能自动回退 6 或 5.6。
-- 开发默认编码 `high`、独立验收 `xhigh`；增强审查默认审查 `xhigh`、复核 `max`（最强）。用户指定的强度优先，两个角色使用同一实际型号。最高版本缺少所需强度、身份或名单缺失、版本多 ID 歧义、工具不能覆写时 `BLOCKED`；不能自行改用较旧版本、降低强度或由主模型代做。
-- 陌生系列或改名时查官方定位与替代关系，不按 `mini` / `lite`、价格或推荐猜测。dev-delegate（含 dev-auto）不能据现有规则安全选型时报告具体能力限制，不追加型号确认；dev-review 沿用其显式覆写边界。
-- 用户明确指定当前任务的精确替代型号即构成覆写授权，直接传 `model_override` 和 `override_confirmed: true`；该字段记录已有授权，不再提问确认。仍检查实际名单与强度。持久修改系列策略需要另行授权。
+## 所有角色的原生参数
 
-派发前原样展示 helper 的 `display` 两行实际结果。开发为“编码模型 / 验收模型”，审查为“审查模型 / 复核模型”；型号或强度变化时重新展示。
+执行型（Coder、搜索/文件读取、引用查询、命令、配置、补测试和修复）均取结果 `worker`；判断型（代码审查、SPEC / PLAN 检查、验证结果检查、回归风险、独立验收、复验、Final Reviewer）均取结果 `reviewer`。每次原生 spawn 都显式传：
 
-## dev-delegate 的独立整体终审
+```text
+model = result[role]["model"]
+reasoning_effort = result[role]["effort"]
+fork_turns = "none"
+```
 
-只有主 Skill 的五类条件触发才派独立 Final Reviewer，不因规模或一般复杂度触发。预检从现成 SPEC / PLAN 核对关键设计、接口和验证；普通计划缺陷按 SPEC 裁决，不重新推导需求，不因模型选项请求确认。
+其中 role 只能是 worker 或 reviewer。多个并行 Worker 使用同一 worker；多个 Reviewer 使用同一 reviewer。role 是配置键，不猜造原生 agent_type。需要覆写时使用干净上下文；当前工具不支持这些必要参数或独立上下文则 BLOCKED。原生拒绝请求或实际返回配置不一致立即停止，不忽略参数、不降低 effort、不继承主模型、不嵌套 Codex CLI。
 
-沿用同一 `dev-delegate/scripts/select_models.py`，触发时传 `final_review_required: true`，只使用返回的 `final_review` 派发并展示第三行。自动策略：本轮可信会话型号 / effort 可核验且能派发时，使用会话同型号、低一档 effort，紧邻档不可用只可更低；最低档沿用最低档。会话 effort 未公开时省略 primary_effort / primary_effort_source，或会话型号 / 低档不可派发时，自动沿用已验证的任务验收配置，如实展示该策略，不索取型号或 effort，也不把回退结果冒充满足无法核验的会话上限。实际委派 / 独立上下文能力缺失仍报告技术 BLOCKED。
-
-已知当前 effort 时一并传 `primary_effort` 与 `primary_effort_source`（current-turn / user）；不传 UNKNOWN、历史值或工具最高可选档。用户明确指定最终审查型号 / effort 时，仅传其明确指定的 `final_review_model` / `final_review_effort`，用户指定优先，无二次确认；未指定的设置自动选择：只指定 effort 时沿用可派发的会话型号，否则任务验收型号；只指定型号时，同会话型号沿用低一档策略，其他型号优先任务验收 effort，缺档则取不高于该档的最高可用档。请求值不在当前名单或强度不受支持时说明技术限制，不默默忽略用户值。不触发终审时不传终审专用字段，编码 / 任务验收默认不变。
-
-角色契约的困难条件成立且已有可信会话上限时，先记录唯一升级已用，再核验当前上限并传 `final_review_escalated: true`；同型号最高只升到当前会话强度，不能覆写用户明确终审配置。原生接口不能原地改强度时结束旧终审后新建干净代理，保留已用升级和代码修复次数。会话预算未知时保持已验证配置进行裁决，不为获取预算提问；确实无法形成必要结论时阻塞相关任务，不盲目加档。脚本只校验元数据，主模型负责来源真实性、一次升级限制和原生参数的实际使用。
+Final Reviewer 仅按主 Skill 条件启动，固定使用同一 reviewer，不做会话低一档或思考升级。第三轮 fresh coder 固定使用同一 worker。继续原代理前核对已有配置与本次显式配置一致；无法确认或不一致就停止续接并说明，不能默认沿用。新建代理仍保留修复计数与证据。
 
 ## 派发与继续
 
@@ -39,4 +36,4 @@ V2 原编码代理返工优先用 `followup_task`，运行中补充信息可用 
 
 ## dev-delegate 的第三轮
 
-第三轮默认 fresh coder 使用已验证编码配置；需要提升且用户未指定该角色 effort 时，可用同一 helper 校验更高的当前支持强度再派发，不绕过同代策略或猜测更强型号。已有用户覆写优先。型号 / 强度变化展示后继续，不询问。
+第三轮 fresh coder 使用同一 worker 配置；复验和 Final Reviewer 使用同一 reviewer，不自动改变模型或 effort。

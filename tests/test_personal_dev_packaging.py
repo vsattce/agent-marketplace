@@ -17,6 +17,74 @@ DEVELOPMENT_SKILLS = ("dev-prepare", "dev-delegate", "dev-auto")
 
 
 class PersonalDevPackagingTests(unittest.TestCase):
+    def test_every_entry_reaches_the_shared_model_contract(self):
+        contract = PLUGIN / "references/subagent-models.md"
+        self.assertTrue(contract.is_file())
+        for directory in (PLUGIN / "skills").iterdir():
+            source = directory / "SKILL.md"
+            if not source.is_file():
+                continue
+            references = re.findall(r"\[[^\]]+\]\(([^)]+subagent-models\.md)\)",
+                                    source.read_text(encoding="utf-8"))
+            self.assertEqual(len(references), 1, directory.name)
+            self.assertEqual((directory / references[0]).resolve(), contract.resolve())
+
+    def test_model_preflight_precedes_preparation_and_review_outputs(self):
+        for name, downstream in (("dev-auto", "2. 读取[准备与消费契约]"),
+                                 ("dev-delegate", "先读取[准备与消费契约的执行入口]"),
+                                 ("dev-review", "报告默认写到项目的")):
+            source = (PLUGIN / "skills" / name / "SKILL.md").read_text(encoding="utf-8")
+            with self.subTest(skill=name):
+                self.assertLess(source.index("worker=<model>:<effort> reviewer=<model>:<effort>"),
+                                source.index(downstream))
+                self.assertIn("缺任一参数立即中断", source)
+        auto = (PLUGIN / "skills/dev-auto/SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("同一对已验证 worker / reviewer 配置传入", auto)
+
+    def test_harness_contracts_require_explicit_fields_and_shared_roles(self):
+        for harness, native in (("codex", "reasoning_effort"), ("claude", "Agent"),
+                                ("agy", "invoke_subagent"), ("dsh", "subagent")):
+            source = (PLUGIN / "references" / f"{harness}.md").read_text(encoding="utf-8")
+            with self.subTest(harness=harness):
+                self.assertIn("[子代理模型契约](subagent-models.md)", source)
+                self.assertIn(native, source)
+                for requirement in ("worker", "reviewer", "effort", "显式传", "BLOCKED",
+                                    "Final Reviewer", "fresh coder"):
+                    self.assertIn(requirement, source)
+                for legacy in ("coding_effort", "review_effort", "audit_effort",
+                               "verification_effort", "final_review_escalated", "同代最高"):
+                    self.assertNotIn(legacy, source)
+        codex = (PLUGIN / "references/codex.md").read_text(encoding="utf-8")
+        self.assertIn('model = result[role]["model"]', codex)
+        self.assertIn('reasoning_effort = result[role]["effort"]', codex)
+        self.assertIn('fork_turns = "none"', codex)
+        for name in ("dev-auto", "dev-delegate", "dev-review"):
+            metadata = yaml.safe_load((PLUGIN / "skills" / name / "agents/openai.yaml")
+                                      .read_text(encoding="utf-8"))
+            self.assertIn("worker=<model>:<effort> reviewer=<model>:<effort>",
+                          metadata["interface"]["default_prompt"])
+
+    def test_all_subagent_work_categories_use_only_two_model_roles(self):
+        source = (PLUGIN / "references/subagent-models.md").read_text(encoding="utf-8")
+        execution, judgment = [line for line in source.splitlines()
+                               if line.startswith("| ") and ("`worker`" in line or "`reviewer`" in line)]
+        for task in ("写代码", "搜索/读取文件", "查引用", "执行命令", "修改配置", "补测试",
+                     "修复", "fresh coder"):
+            self.assertIn(task, execution)
+        self.assertTrue(execution.endswith("`worker` |"))
+        for task in ("代码审查", "SPEC / PLAN", "验证结果", "回归风险", "独立检查", "复验",
+                     "Final Reviewer"):
+            self.assertIn(task, judgment)
+        self.assertTrue(judgment.endswith("`reviewer` |"))
+        for alias_group in ("worker / work / w / code", "reviewer / review / r / check"):
+            self.assertIn(alias_group, source)
+        ledger = (SKILL / "references/orchestration.md").read_text(encoding="utf-8")
+        self.assertIn("所有并行 Worker 使用同一 worker", ledger)
+        self.assertIn("多个 Reviewer 使用同一 reviewer", ledger)
+        for legacy in ("coding_model:", "coding_effort:", "review_model:", "review_effort:",
+                       "final_review_escalated"):
+            self.assertNotIn(legacy, ledger)
+
     def test_delegate_orchestration_resources_resolve_inside_plugin(self):
         orchestration = SKILL / "references/orchestration.md"
         self.assertTrue(orchestration.is_file())
@@ -78,13 +146,16 @@ class PersonalDevPackagingTests(unittest.TestCase):
                     self.assertRegex(value, r"[\u4e00-\u9fff]")
                 # Protect against the observed native Codex 8000-byte prefix boundary.
                 self.assertLessEqual(len(source.read_bytes()), 8000)
+                self.assertLessEqual(len(source.read_text(encoding="utf-8")
+                                         .replace("\n", "\r\n").encode("utf-8")), 8000)
 
     def test_auto_routes_to_shared_preparation_and_the_existing_executor(self):
         auto = PLUGIN / "skills/dev-auto"
         links = re.findall(r"\[[^\]]+\]\(([^)]+\.md)\)", (auto / "SKILL.md").read_text(encoding="utf-8"))
         self.assertEqual(
             {(auto / target).resolve() for target in links},
-            {(PLUGIN / "references/preparation.md").resolve(), (SKILL / "SKILL.md").resolve()},
+            {(PLUGIN / "references/preparation.md").resolve(), (SKILL / "SKILL.md").resolve(),
+             (PLUGIN / "references/subagent-models.md").resolve()},
         )
         # The composition entry must not acquire a second selector, role contract or scheduler.
         self.assertEqual(

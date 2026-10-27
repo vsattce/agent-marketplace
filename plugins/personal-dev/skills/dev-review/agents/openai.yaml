@@ -1,6 +1,6 @@
 interface:
   display_name: "增强代码审查"
   short_description: "仅手动调用；先核实审查与复核条件，再生成证据化报告。"
-  default_prompt: "使用 $personal-dev:dev-review 审查当前项目；开始前完成一次性预检并展示实际审查与复核模型。"
+  default_prompt: "使用 $personal-dev:dev-review 先校验本次显式 worker=<model>:<effort> reviewer=<model>:<effort>；只读审查与独立复核均使用 reviewer。"
 policy:
   allow_implicit_invocation: false

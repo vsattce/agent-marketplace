@@ -1,6 +1,6 @@
 interface:
   display_name: "自动准备与委派开发"
   short_description: "仅手动调用；自动生成并检查 SPEC、PLAN，直接委派开发、独立验收与整体检查。"
-  default_prompt: "使用 $personal-dev:dev-auto 整理当前需求为 SPEC / PLAN，自动检查后直接执行委派开发，普通需求不询问确认。"
+  default_prompt: "使用 $personal-dev:dev-auto 先校验本次显式 worker=<model>:<effort> reviewer=<model>:<effort>，通过后整理需求为 SPEC / PLAN 并连续委派开发，普通需求不询问确认。"
 policy:
   allow_implicit_invocation: false
