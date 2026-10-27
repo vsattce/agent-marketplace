@@ -204,7 +204,7 @@ class SyncTests(unittest.TestCase):
         target = plugin / "skills" / "alpha" / "SKILL.md"
         self.assertTrue(target.is_file())
         self.assertEqual(json.loads((self.root / "sources.lock.json").read_text(encoding="utf-8"))["skills"]["alpha"]["group"], "software-dev")
-        self.assertEqual(skill_sync.MANAGED_PLUGINS, frozenset({"common-workflow", "software-dev", "testing-automation", "engineering-tools"}))
+        self.assertEqual(skill_sync.MANAGED_PLUGINS, frozenset({"common-workflow", "software-dev", "engineering-tools"}))
 
         for obsolete in ("frontend-dev", "backend-dev"):
             with self.subTest(obsolete=obsolete):

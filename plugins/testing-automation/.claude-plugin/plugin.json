@@ -1,9 +1,0 @@
-{
-  "name": "testing-automation",
-  "description": "网页测试、Playwright 浏览器自动化与测试最佳实践。",
-  "author": {
-    "name": "hjy"
-  },
-  "homepage": "https://github.com/vsattce/agent-marketplace",
-  "repository": "https://github.com/vsattce/agent-marketplace"
-}

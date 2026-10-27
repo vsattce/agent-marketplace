@@ -51,7 +51,6 @@ agent-marketplace/
 │   ├── common-workflow/           # 第三方快照
 │   ├── software-dev/              # 第三方快照
 │   ├── engineering-tools/          # 第三方快照
-│   ├── testing-automation/        # 第三方快照
 │   ├── agent-manager/             # OWNED，直接维护
 │   └── personal-dev/              # OWNED，Codex / Claude / agy / dsh、仅手动
 ├── docs/
@@ -60,7 +59,7 @@ agent-marketplace/
 └── README.md                      # 概览与文档入口
 ```
 
-六个 Plugin 都提供 Claude Code `.claude-plugin/plugin.json`；Codex 侧除 `agent-manager` 外使用便携 `plugin.json`，该 Plugin 使用原生 `.codex-plugin/plugin.json` 并显式发现 `skills/` 与 `codex-skills/`。`am-context` 放在后者，因此仅 Codex 可发现；`am-config` 仍共享。四个第三方分类另存 `licenses/<name>/`，两个 Marketplace 均指向 `./plugins/<plugin>`。当前 Codex 有 28 个 Skills、Claude Code / agy / dsh 各有 27 个：第三方四类共 20 个，`agent-manager` 分别有 2 / 1 / 1 / 1 个，`personal-dev` 四端各有 6 个。`dev-prepare` / `dev-auto` 复用 `references/preparation.md`；`dev-auto` 直接读取 `dev-delegate` 正文，执行端按 Harness 使用 `references/codex.md` / `references/claude.md` / `references/agy.md` / `references/dsh.md`，Codex 使用现有模型检查器，不新增 Plugin 或调度系统。
+五个 Plugin 都提供 Claude Code `.claude-plugin/plugin.json`；Codex 侧除 `agent-manager` 外使用便携 `plugin.json`，该 Plugin 使用原生 `.codex-plugin/plugin.json` 并显式发现 `skills/` 与 `codex-skills/`。`am-context` 放在后者，因此仅 Codex 可发现；`am-config` 仍共享。三个第三方分类另存 `licenses/<name>/`，两个 Marketplace 均指向 `./plugins/<plugin>`。当前 Codex 有 28 个 Skills、Claude Code / agy / dsh 各有 27 个：第三方三类共 20 个，`agent-manager` 分别有 2 / 1 / 1 / 1 个，`personal-dev` 四端各有 6 个。`dev-prepare` / `dev-auto` 复用 `references/preparation.md`；`dev-auto` 直接读取 `dev-delegate` 正文，执行端按 Harness 使用 `references/codex.md` / `references/claude.md` / `references/agy.md` / `references/dsh.md`，Codex 使用现有模型检查器，不新增 Plugin 或调度系统。
 
 `personal-dev` 当前模型规则见[子代理模型契约](../plugins/personal-dev/references/subagent-models.md)：`dev-review` 只必填 `reviewer=<model>:<effort>`，支持 `reviewer / review / r / check`；`dev-delegate` / `dev-auto` 仍必填 worker + reviewer。额外提供的 worker 也须校验。检查器按当前工具元数据校验显式型号和 effort，不自动选型、不 fallback。
 
@@ -76,17 +75,19 @@ Codex 便携 manifest 的中文信息位于 `extensions.com.openai.interface`；
 
 lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，不参与版本选择，不手工维护。
 
-当前来源包含四个分类、20 个第三方 Skill：`common-workflow` 12 个、`software-dev` 5 个、`engineering-tools` 2 个、`testing-automation` 1 个。`common-workflow` 包含 Matt Pocock 的 `codebase-design`、`tdd`，以及用户主动调用的 `grill-me`、`grill-with-docs`、`improve-codebase-architecture` 和允许依赖被动调用的 `grilling`、`domain-modeling`；Docker Compose 使用 Docker 官方 `docker-compose-patterns`，Java 使用 GitHub `awesome-copilot` 的 `java-springboot`。准确来源、路径与固定策略以 sources 配置为准。
+当前来源包含三个分类、20 个第三方 Skill：`common-workflow` 12 个、`software-dev` 5 个、`engineering-tools` 3 个。`common-workflow` 包含 Matt Pocock 的 `codebase-design`、`tdd`，以及用户主动调用的 `grill-me`、`grill-with-docs`、`improve-codebase-architecture` 和允许依赖被动调用的 `grilling`、`domain-modeling`；Docker Compose 使用 Docker 官方 `docker-compose-patterns`，Java 使用 GitHub `awesome-copilot` 的 `java-springboot`。准确来源、路径与固定策略以 sources 配置为准。
 
 `software-dev` 收录第三方上游项目的 Skills，仅由本仓库汇集、整理供个人使用；作者署名、上游内容及许可证均按原样保留。该说明不适用于 `agent-manager`、`personal-dev` 等本仓库自有 Plugin。
 
 第三方 `skills/` 原样同步，不手工修改快照；[.gitattributes](../.gitattributes) 禁止 Git 转换这些文件的换行。Skill 内许可证保留原样，upstream 根 LICENSE / NOTICE 等另存到 `licenses/<skill-name>/`。快照随仓库发布，换电脑通过 Plugin 安装恢复。
 
-`agent-manager`、`personal-dev`、项目 `upgrade` Skill 和各 manifest 直接维护，不进入 sources / lock。新增第三方 Skill 优先归入现有四类；只有新的领域才考虑增加分类。自有 Plugin 不走第三方同步。第三方 `resolving-merge-conflicts`、standalone `pdf` 和 Legacy 入口不保留。
+`agent-manager`、`personal-dev`、项目 `upgrade` Skill 和各 manifest 直接维护，不进入 sources / lock。新增第三方 Skill 优先归入现有三类；只有新的领域才考虑增加分类。自有 Plugin 不走第三方同步。第三方 `resolving-merge-conflicts`、standalone `pdf` 和 Legacy 入口不保留。
+
+`playwright-cli` 的来源、固定快照、许可证、正文与触发策略保持不变，仅分组迁入 `engineering-tools`。同步白名单与两端 marketplace 使用新分组；agy / dsh 继续由 catalog 发现产品，不增加独立适配层。旧安装与调用前缀的迁移见[使用手册](usage.md#安装与更新)。
 
 ### 同步工具写入边界
 
-`scripts/sync.py` 的 `MANAGED_PLUGINS` 只允许四个第三方分类。新增 sources 分组不能授予其他目录写入权限；未知分组、混入非 Generated 项的 lock、Owned 目标、manifest 目标或重定向目录均在写入前拒绝。
+`scripts/sync.py` 的 `MANAGED_PLUGINS` 只允许三个第三方分类。新增 sources 分组不能授予其他目录写入权限；未知分组、混入非 Generated 项的 lock、Owned 目标、manifest 目标或重定向目录均在写入前拒绝。
 
 发布与回滚只允许写 `plugins/<managed>/skills/<name>`、`plugins/<managed>/licenses/<name>` 和根 lock。脚本不遍历 Owned 目录清理，新建自有 Plugin 不修改该白名单。
 
@@ -94,7 +95,7 @@ lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，�
 
 ### 使用项目 Skill
 
-在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入两个客户端 Marketplace 的 27 / 27 个 Skills。
+在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入Codex / Claude Code Marketplace 的 28 / 27 个 Skills。
 
 Agent 核对目标、Git 状态与运行时后，按 sources 的既定来源 / ref 同步，保留用户改动，检查差异并运行相关验证。按 [AGENTS.md](../AGENTS.md) 默认提交、推送当前分支；当前任务明确不提交或不推送时遵从该要求。环境、同步或验证失败时停止，零差异不制造提交。
 
@@ -140,14 +141,14 @@ git diff --check
 
 ## 自有 Agent 管理工具
 
-源码在 [plugins/agent-manager](../plugins/agent-manager)。Codex 有 `am-context` 与 `am-config` 两个手动入口，Claude Code / agy 仅发现 `am-config`；用户行为与支持范围见[使用手册](usage.md#agent-管理工具)，这里保留维护入口：
+源码在 [plugins/agent-manager](../plugins/agent-manager)。Codex 有 `am-context` 与 `am-config` 两个手动入口，Claude Code / agy / dsh 仅发现 `am-config`；用户行为与支持范围见[使用手册](usage.md#agent-管理工具)，这里保留维护入口：
 
 | 内容 | 入口 |
 | --- | --- |
 | 当前对话可见上下文的粗略估算（仅 Codex） | [am-context](../plugins/agent-manager/codex-skills/am-context/SKILL.md) |
 | 项目编辑、只读检查与开关编辑器 | [am-config](../plugins/agent-manager/skills/am-config/SKILL.md) |
 | 冲突识别、检查范围与分级输出 | [conflicts.md](../plugins/agent-manager/skills/am-config/references/conflicts.md) |
-| 各客户端来源与加载机制 | [Codex](../plugins/agent-manager/references/codex.md)、[Claude](../plugins/agent-manager/references/claude.md)、[agy](../plugins/agent-manager/references/agy.md) |
+| 各客户端来源与加载机制 | [Codex](../plugins/agent-manager/references/codex.md)、[Claude](../plugins/agent-manager/references/claude.md)、[agy](../plugins/agent-manager/references/agy.md)、[dsh](../plugins/agent-manager/references/dsh.md) |
 | 项目文件预检、开关能力与输入契约 | [project-edits.md](../plugins/agent-manager/skills/am-config/references/project-edits.md)、[Codex](../plugins/agent-manager/skills/am-config/references/codex-support.md)、[Claude](../plugins/agent-manager/skills/am-config/references/claude-support.md)、[editor-input.md](../plugins/agent-manager/skills/am-config/references/editor-input.md) |
 
 自有 Skill 命名规则：`personal-dev` 采用 `dev-{action}`，`agent-manager` 采用 `am-{action}`。`am-config` 保持共享 `skills/` 目录；仅 Codex 的 `am-context` 使用 `codex-skills/`。入口使用完整调用名。
@@ -213,7 +214,7 @@ Remove-Item Env:AGENT_MANAGER_CODEX_TESTS
 
 ### Claude 隔离加载器
 
-`tests/test_claude_loader.py` 覆盖六个 Plugin 安装与发现、手动策略、六个 personal-dev Skill 显式加载与原生 Agent schema、项目 upgrade 入口、CLAUDE.md 导入 AGENTS.md、项目值覆盖用户值及 local 反向覆盖：
+`tests/test_claude_loader.py` 覆盖五个 Plugin 安装与发现、手动策略、六个 personal-dev Skill 显式加载与原生 Agent schema、项目 upgrade 入口、CLAUDE.md 导入 AGENTS.md、项目值覆盖用户值及 local 反向覆盖：
 
 ```powershell
 $env:AGENT_MANAGER_CLAUDE_TESTS = "1"
@@ -228,6 +229,8 @@ Remove-Item Env:AGENT_MANAGER_CLAUDE_TESTS
 此前全量验收记录（非本次目录调整）：主模型在原项目检出亲自运行完整 unittest，启用 `AGENT_MANAGER_CODEX_TESTS=1` 与 `AGENT_MANAGER_CLAUDE_TESTS=1`：**147 项全部通过，无跳过**。运行环境为 mise Python `3.12.13`、uv `0.12.3`；UTF-8、TMP / TEMP 和客户端隔离开关仅设置在本次进程。覆盖六个 Plugin / 20 个 Skills 的包装、personal-dev 四入口加载及项目配置回归，未修改日常客户端配置。原生工作树位于受保护的 `.codex` 路径，项目配置写入测试需在普通项目检出运行，不能放宽路径保护来绕过。
 
 2026-10-12 目录调整针对性验证：同步测试 25 项通过，包装测试 7 项通过、1 项既有失败，Codex / Claude 隔离加载各 2 项通过。既有失败为 `agent-manager` 的 catalog / native manifest 网站地址不同（Gitee / GitHub），已在修改前的提交上复现，本次未改动。Claude Code `2.1.296` 完整加载两项新 Skill；同一消息组合调用 `dev-simplify` 与 `dev-runtime-check` 时仍仅直接注入首个入口，应先后调用。以上加载验证拒绝模型推理，不修改日常客户端配置。
+
+2026-10-28 Playwright 合并针对性验证：包装、来源同步、agy 模拟同步、dsh 同步及真实 provider、personal-dev 包装共 **72 项通过**；Codex CLI `0.165.0-alpha.1.2` 与 Claude Code `2.1.307` 的安装 / 发现 / 显式加载另各 1 项通过。agy `1.4.5` 原生校验识别 `engineering-tools` 的 3 个 Skills，未执行日常全局安装。dsh 使用 `0.2.1-rc.2`。Playwright 的正文、引用与许可证共 12 个文件迁移前后字节一致，来源 commit / ref / 时间保留；Codex 仍只直接注入长入口的前 8000 字节，完整文件与引用资源须按需读取。Claude 安装 / 加载测试独立于配置编辑器的精确版本前置检查，未扩大编辑器的已验证版本集合。以上不代表真实模型、浏览器业务流程或当前桌面会话已验收。
 
 ### 历史验收范围
 

@@ -19,6 +19,9 @@ $global:mockInstalled = @(
     @{name='unrelated'; enabled=$true; version='1'; path='unrelated'; skills=@()},
     @{name='software-dev'; enabled=$false; version='old'; path='old'; skills=@()}
 )
+if ($env:AGY_TEST_MODE -eq 'legacy') {
+    $global:mockInstalled += @{name='testing-automation'; enabled=$true; version='old'; path='legacy'; skills=@('playwright-cli')}
+}
 function global:agy {
     $global:LASTEXITCODE = 0
     $global:mockCalls += ($args -join '|')
@@ -95,6 +98,17 @@ class AgySyncTests(unittest.TestCase):
         first_install = min(index for index, call in enumerate(calls) if call.startswith("plugin|install|"))
         self.assertLess(last_validation, first_install)
         self.assertNotIn("am-context", installed["agent-manager"]["skills"])
+        self.assertEqual(set(installed["engineering-tools"]["skills"]), {
+            "docker-build-strategies", "docker-compose-patterns", "playwright-cli",
+        })
+
+    def test_old_testing_plugin_blocks_sync_before_mutation(self):
+        result = self.run_sync("legacy")
+        self.assertIn("Uninstall the old plugin", result["failure"])
+        self.assertFalse(any(call.startswith(("plugin|install|", "plugin|disable|")) for call in result["calls"]))
+        self.assertEqual({item["name"] for item in result["installed"]}, {
+            "unrelated", "software-dev", "testing-automation",
+        })
 
     def test_invalid_product_prevents_all_installs(self):
         result = self.run_sync("invalid")

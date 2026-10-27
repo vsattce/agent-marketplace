@@ -35,6 +35,9 @@ function Invoke-Agy([string[]] $Arguments) {
 
 Write-Host "agy version: $(Invoke-Agy @('--version'))"
 $before = @(Invoke-Agy @('plugin', 'list', '--json') | ConvertFrom-Json)
+if (@($before | Where-Object name -eq 'testing-automation').Count) {
+    throw 'testing-automation was merged into engineering-tools. Uninstall the old plugin with the native agy CLI before syncing to avoid duplicate playwright-cli commands.'
+}
 $targets = @()
 $names = @()
 foreach ($plugin in $catalog.plugins) {

@@ -63,7 +63,6 @@ class ClaudeLoaderTests(unittest.TestCase):
                          "CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY": "1"})
         subprocess.run(["git", "init", "--quiet", str(self.project)], check=True, capture_output=True)
         self.claude_version = run(["claude", "--version"], self.env, self.project).strip()
-        self.assertIn(self.claude_version, editor.VERIFIED_CLAUDE_VERSIONS)
         run(["claude", "plugin", "marketplace", "add", str(ROOT)], self.env, self.project)
 
     def install(self, name):
@@ -123,7 +122,7 @@ class ClaudeLoaderTests(unittest.TestCase):
             for skill_entry in (ROOT / entry["source"] / "skills").glob("*/SKILL.md"):
                 self.assertIn(f'{entry["name"]}:{skill_entry.parent.name}', commands)
         self.assertIn("software-dev:vue", commands)
-        for obsolete in ("software-dev:java-spring-boot", "testing-automation:webapp-testing", "personal-dev:dev-yagni"):
+        for obsolete in ("software-dev:java-spring-boot", "testing-automation:webapp-testing", "testing-automation:playwright-cli", "personal-dev:dev-yagni"):
             self.assertNotIn(obsolete, commands)
         self.assertEqual(
             {name for name in commands if name.startswith("software-dev:")},
@@ -136,7 +135,8 @@ class ClaudeLoaderTests(unittest.TestCase):
                               ("software-dev", "java-springboot"),
                               ("software-dev", "vue"),
                               ("engineering-tools", "docker-build-strategies"),
-                              ("engineering-tools", "docker-compose-patterns")):
+                              ("engineering-tools", "docker-compose-patterns"),
+                              ("engineering-tools", "playwright-cli")):
             with self.subTest(invocation=f"{plugin}:{skill}"):
                 _, explicit = self.context(
                     f"/{plugin}:{skill} 仅验证完整 Skill 正文已加载，不执行正文、不修改文件。"
@@ -218,6 +218,7 @@ class ClaudeLoaderTests(unittest.TestCase):
         self.assertIn("../../../.agents/skills/upgrade/SKILL.md", explicit)
 
     def test_project_switches_override_user_and_local_overrides_project(self):
+        self.assertIn(self.claude_version, editor.VERIFIED_CLAUDE_VERSIONS)
         self.install("software-dev")
         config = self.project / ".claude/settings.json"
         config.parent.mkdir(exist_ok=True)

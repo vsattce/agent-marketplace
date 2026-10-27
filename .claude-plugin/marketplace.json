@@ -18,11 +18,6 @@
       "description": "本仓库仅汇集整理第三方上游前端与后端 Skills，供个人使用；内容不由本仓库创作，并保留原作者署名及上游许可证。"
     },
     {
-      "name": "testing-automation",
-      "source": "./plugins/testing-automation",
-      "description": "网页测试与 Playwright 浏览器自动化。"
-    },
-    {
       "name": "agent-manager",
       "source": "./plugins/agent-manager",
       "description": "仅手动编辑 Codex / Claude 项目指令、安装指定 Skill、准备注册项目 Plugin 与配置开关；支持只读冲突检查。"
@@ -35,7 +30,7 @@
     {
       "name": "engineering-tools",
       "source": "./plugins/engineering-tools",
-      "description": "跨技术栈的构建、部署、脚本与工程辅助工具。"
+      "description": "Docker 构建、Compose 编排与 Playwright 浏览器自动化工具。"
     }
   ]
 }

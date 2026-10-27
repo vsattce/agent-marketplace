@@ -71,9 +71,9 @@ class PackagingTests(unittest.TestCase):
         claude = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
         self.assertEqual(claude["name"], codex["name"])
         self.assertEqual({entry["name"] for entry in claude["plugins"]}, {entry["name"] for entry in codex["plugins"]})
-        self.assertEqual(len(claude["plugins"]), 6)
+        self.assertEqual(len(claude["plugins"]), 5)
         self.assertEqual({entry["name"] for entry in claude["plugins"]}, {
-            "common-workflow", "software-dev", "engineering-tools", "testing-automation", "agent-manager", "personal-dev",
+            "common-workflow", "software-dev", "engineering-tools", "agent-manager", "personal-dev",
         })
         count = 0
         codex_count = 0
@@ -104,7 +104,7 @@ class PackagingTests(unittest.TestCase):
             {path.parent.name for path in (ROOT / "plugins/software-dev/skills").glob("*/SKILL.md")},
             {"frontend-design", "web-design-guidelines", "vue", "fastapi", "java-springboot"},
         )
-        for obsolete in ("frontend-dev", "backend-dev"):
+        for obsolete in ("frontend-dev", "backend-dev", "testing-automation"):
             obsolete_root = ROOT / "plugins" / obsolete
             self.assertFalse((obsolete_root / "plugin.json").exists())
             self.assertEqual(list(obsolete_root.rglob("SKILL.md")), [])
@@ -138,12 +138,31 @@ class PackagingTests(unittest.TestCase):
         for plugin, skill in (("testing-automation", "webapp-testing"), ("personal-dev", "dev-yagni"), ("software-dev", "java-spring-boot")):
             self.assertFalse((ROOT / "plugins" / plugin / "skills" / skill).exists())
             self.assertFalse((ROOT / "plugins" / plugin / "licenses" / skill).exists())
-        for plugin, skill in (("engineering-tools", "docker-compose-patterns"), ("testing-automation", "playwright-cli"), ("software-dev", "java-springboot")):
+        for plugin, skill in (("engineering-tools", "docker-compose-patterns"), ("engineering-tools", "playwright-cli"), ("software-dev", "java-springboot")):
             manifest = json.loads((ROOT / "plugins" / plugin / "plugin.json").read_text(encoding="utf-8"))
             catalog = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text(encoding="utf-8"))
             registered = next(item for item in catalog["plugins"] if item["name"] == plugin)
             self.assertEqual(manifest["extensions"]["com.openai"]["interface"], registered["interface"])
             self.assertIn(skill, registered["interface"]["longDescription"])
+
+    def test_playwright_belongs_to_engineering_tools_with_upstream_source_and_policy(self):
+        plugin = ROOT / "plugins/engineering-tools"
+        directory = plugin / "skills/playwright-cli"
+        metadata = yaml.safe_load((directory / "SKILL.md").read_text("utf-8").split("---", 2)[1])
+        self.assertEqual(metadata["name"], "playwright-cli")
+        self.assertNotIn("disable-model-invocation", metadata)
+        self.assertIn("Bash(playwright-cli:*)", metadata["allowed-tools"])
+        self.assertTrue((directory / "references/running-code.md").is_file())
+        self.assertTrue((plugin / "licenses/playwright-cli/LICENSE").is_file())
+        sources = yaml.safe_load((ROOT / "sources.yaml").read_text("utf-8"))["groups"]
+        source, = [item for item in sources["engineering-tools"]["skills"] if item["name"] == "playwright-cli"]
+        self.assertEqual(source, {"name": "playwright-cli", "repo": "microsoft/playwright-cli",
+                                  "path": "skills/playwright-cli", "ref": "main"})
+        lock = json.loads((ROOT / "sources.lock.json").read_text("utf-8"))["skills"]["playwright-cli"]
+        self.assertEqual({key: lock[key] for key in source}, source)
+        self.assertEqual(lock["group"], "engineering-tools")
+        self.assertRegex(lock["commit"], r"^[0-9a-f]{40}$")
+        self.assertFalse((ROOT / "plugins/testing-automation").exists())
 
     def test_common_workflow_intake_preserves_dependencies_resources_and_invocation(self):
         plugin = ROOT / "plugins/common-workflow"

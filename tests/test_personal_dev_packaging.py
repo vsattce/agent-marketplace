@@ -269,7 +269,7 @@ class PersonalDevPackagingTests(unittest.TestCase):
 
         sources = yaml.safe_load((ROOT / "sources.yaml").read_text(encoding="utf-8"))["groups"]
         lock = json.loads((ROOT / "sources.lock.json").read_text(encoding="utf-8"))["skills"]
-        self.assertEqual(set(sources), {"common-workflow", "software-dev", "engineering-tools", "testing-automation"})
+        self.assertEqual(set(sources), {"common-workflow", "software-dev", "engineering-tools"})
         self.assertEqual(sum(len(group["skills"]) for group in sources.values()), 20)
         self.assertEqual(len(lock), 20)
         self.assertIn("vue", lock)
@@ -279,7 +279,7 @@ class PersonalDevPackagingTests(unittest.TestCase):
         )
         self.assertEqual(
             {item["name"] for item in sources["engineering-tools"]["skills"]},
-            {"docker-build-strategies", "docker-compose-patterns"},
+            {"docker-build-strategies", "docker-compose-patterns", "playwright-cli"},
         )
         self.assertNotIn("vue-best-practices", lock)
         self.assertNotIn("playwright-best-practices", lock)

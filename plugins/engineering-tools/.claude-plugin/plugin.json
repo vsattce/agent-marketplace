@@ -1,6 +1,6 @@
 {
   "name": "engineering-tools",
-  "description": "跨技术栈的构建、部署、脚本与工程辅助工具。",
+  "description": "Docker 构建、Compose 编排与 Playwright 浏览器自动化工具。",
   "author": {
     "name": "hjy"
   },

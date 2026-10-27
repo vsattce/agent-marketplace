@@ -6,7 +6,7 @@
 
 当前支持 Codex、Claude Code、Antigravity CLI（agy）与 DeepSeek Harness 桌面版（dsh）。安装与作用域边界分别见 [agy 说明](#antigravity-cliagy)和 [dsh 桌面版说明](#deepseek-harness-桌面版dsh)。
 
-产品目录共有 **6 个 Plugin**；Codex 共 **28 个 Skills**，Claude Code / agy / dsh 各有 **27 个**。dsh 通过一个原生 Skill provider 加载产品包内容。四个第三方聚合 Plugin 收录 20 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，Claude Code / agy / dsh 各有 1 项，`personal-dev` 各端各有 6 项。第三方来源、作者与许可证边界见 [README](../README.md)。
+产品目录共有 **5 个 Plugin**；Codex 共 **28 个 Skills**，Claude Code / agy / dsh 各有 **27 个**。dsh 通过一个原生 Skill provider 加载产品包内容。三个第三方聚合 Plugin 收录 20 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，Claude Code / agy / dsh 各有 1 项，`personal-dev` 各端各有 6 项。第三方来源、作者与许可证边界见 [README](../README.md)。
 
 ## 日常调用
 
@@ -55,7 +55,7 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 | software-dev | java-springboot | 指导 Spring Boot 的 REST API、数据访问、安全认证与测试 | 任务匹配 / 手动 |
 | engineering-tools | docker-build-strategies | 指导 Docker 镜像构建与缓存策略 | 任务匹配 / 手动 |
 | engineering-tools | docker-compose-patterns | 指导 Compose 服务依赖、健康检查、卷、网络与开发覆盖配置 | 任务匹配 / 手动 |
-| testing-automation | playwright-cli | 通过 Playwright CLI 操作浏览器并验证交互 | 任务匹配 / 手动 |
+| engineering-tools | playwright-cli | 通过 Playwright CLI 操作浏览器并验证交互 | 任务匹配 / 手动 |
 | agent-manager | am-context | 粗略估算本轮当前仍可见的上下文；仅 Codex | 仅手动 |
 | agent-manager | am-config | 检查相关冲突后编辑项目指令、安装指定 Skill 或修改受支持的 Plugin 开关；也可只读查冲突 | 仅手动 |
 | personal-dev | dev-prepare | 结合项目代码生成 SPEC / PLAN，统一确认一次后结束，不开发 | 仅手动 |
@@ -147,7 +147,7 @@ Codex 使用其原生终端能力，Claude Code 使用原生 Bash 工具，agy /
 修改 Plugin 开关时，逐项指定完整 Plugin 身份及启用 / 禁用状态，例如：
 
 ```text
-$agent-manager:am-config 在当前项目禁用 software-dev@agent-marketplace，启用 testing-automation@agent-marketplace
+$agent-manager:am-config 在当前项目禁用 software-dev@agent-marketplace，启用 engineering-tools@agent-marketplace
 ```
 
 Claude 使用 `/agent-manager:am-config`。编辑分支只处理用户明确指定的项目操作：编辑 `AGENTS.md`、从准确来源安装 standalone Skill、准备注册项目 Plugin 与保存对应项目开关，或执行已安装 Plugin 的受支持开关。全局与项目外始终只读，不推荐组合、不提交或推送用户项目。更新安装副本仍使用下方[安装与更新](#安装与更新)步骤，维护仓库仍按[维护指南](maintenance.md#升级第三方-skill)同步。
@@ -179,7 +179,7 @@ Plugin 提供 Skill 内容，不代装 Playwright、Java、Vue 等运行依赖�
 
 ### Antigravity CLI（agy）
 
-agy 产品目录包含六个 Plugin、27 个 Skills（加载机制已在 agy 1.4.2 验证）；`am-context` 仍仅 Codex。同步使用本仓库项目 Skill：Codex `$sync-agy`，Claude Code / agy `/sync-agy`。它只服务仓库维护，不进入产品目录或全局 Skills。
+agy 产品目录包含五个 Plugin、27 个 Skills（加载机制已在 agy 1.4.2 验证）；`am-context` 仍仅 Codex。同步使用本仓库项目 Skill：Codex `$sync-agy`，Claude Code / agy `/sync-agy`。它只服务仓库维护，不进入产品目录或全局 Skills。
 
 在仓库根也可直接运行 PowerShell 7 脚本：
 
@@ -198,7 +198,7 @@ pwsh -NoProfile -File .agents/skills/sync-agy/scripts/sync.ps1
 
 ### DeepSeek Harness 桌面版（dsh）
 
-桌面版原生加载机制已在 `0.2.1-rc.2` 验证：通过自带的文件系统 Skill provider 加载六个产品包；当前仓库提供 27 个共享 Skills 与完整资源，实际加载以同步后的验证为准，`am-context` 仅 Codex。项目同步入口为 Codex `$sync-dsh`、Claude Code / agy `/sync-dsh`，不进入产品目录。这里使用已安装的桌面版，无需 npm CLI。
+桌面版原生加载机制已在 `0.2.1-rc.2` 验证：通过自带的文件系统 Skill provider 加载五个产品包；当前仓库提供 27 个共享 Skills 与完整资源，实际加载以同步后的验证为准，`am-context` 仅 Codex。项目同步入口为 Codex `$sync-dsh`、Claude Code / agy `/sync-dsh`，不进入产品目录。这里使用已安装的桌面版，无需 npm CLI。
 
 在仓库根按项目规则核验 `mise current`、`python --version`（3.12+）及 uv，再运行；`--desktop-path` 使用实际安装路径：
 
@@ -211,7 +211,7 @@ uv run --python (mise which python) --no-python-downloads --script .agents/skill
 
 脚本复用已有 PyYAML 6.x，通过 uv 隔离安装；不修改项目依赖或系统运行时。默认数据根是 `DSH_HOME` 或 `~/.dsh`，可用 `--dsh-home` 指定。必须先启动过桌面版以初始化 `profiles/desktop`。
 
-内容放入 `~/.dsh/marketplaces/agent-marketplace/releases/<摘要>/plugins/`，保留包内相对路径、许可证及手动调用策略；`profiles/desktop/cordis.patch.yml` 仅维护带标记的 `agent-marketplace-skills` provider。已有设置、第三方扩展和默认 Skills 根保留，旧内容快照保留；用户同名 Skills、手改快照或并发配置修改会阻止覆盖。每次同步是显式刷新，不做后台自动同步，也不注册六个 npm 扩展。
+内容放入 `~/.dsh/marketplaces/agent-marketplace/releases/<摘要>/plugins/`，保留包内相对路径、许可证及手动调用策略；`profiles/desktop/cordis.patch.yml` 仅维护带标记的 `agent-marketplace-skills` provider。已有设置、第三方扩展和默认 Skills 根保留，旧内容快照保留；用户同名 Skills、手改快照或并发配置修改会阻止覆盖。每次同步是显式刷新，不做后台自动同步，也不注册五个 npm 扩展。
 
 同步后重开桌面版，在 `/` 建议菜单确认 `/vue`、`/am-config`、`/dev-prepare`、`/dev-auto` 等入口。`disable-model-invocation: true` 的 Skills 只通过用户直接输入 `/name` 注入。隔离验证会使用桌面版真实 provider 读取清单和正文，但不启动 Host 或模型，因此当前会话注入、SSH 和子代理业务执行仍需分别验证。
 
@@ -219,14 +219,13 @@ uv run --python (mise which python) --no-python-downloads --script .agents/skill
 
 ### Codex
 
-从 Gitee 添加 Marketplace，再安装需要的分类；下面列出 Marketplace 中的六个 Plugin，可按需选择：
+从 Gitee 添加 Marketplace，再安装需要的分类；下面列出 Marketplace 中的五个 Plugin，可按需选择：
 
 ```powershell
 codex plugin marketplace add git@gitee.com:vsattce/agent-marketplace.git --ref main
 codex plugin add common-workflow@agent-marketplace --json
 codex plugin add software-dev@agent-marketplace --json
 codex plugin add engineering-tools@agent-marketplace --json
-codex plugin add testing-automation@agent-marketplace --json
 codex plugin add agent-manager@agent-marketplace --json
 codex plugin add personal-dev@agent-marketplace --json
 ```
@@ -246,7 +245,6 @@ claude plugin marketplace add git@gitee.com:vsattce/agent-marketplace.git
 claude plugin install common-workflow@agent-marketplace
 claude plugin install software-dev@agent-marketplace
 claude plugin install engineering-tools@agent-marketplace
-claude plugin install testing-automation@agent-marketplace
 claude plugin install agent-manager@agent-marketplace
 claude plugin install personal-dev@agent-marketplace
 ```
@@ -265,6 +263,8 @@ claude plugin update software-dev@agent-marketplace
 其他分类同理，完成后新建会话。切换同名市场来源前先核对注册；移除 Marketplace 会同时卸载其插件。
 
 **从旧开发 Plugin 迁移**：刷新 Marketplace 本身不会移除已安装的 `frontend-dev` 或 `backend-dev` 副本。先安装 `software-dev@agent-marketplace`，确认新入口可用后，再用客户端原生流程分别禁用或卸载旧 Plugin；不要手动编辑全局配置或安装缓存。Codex 可运行 `codex plugin remove frontend-dev@agent-marketplace` 与 `codex plugin remove backend-dev@agent-marketplace`；Claude Code 可运行 `claude plugin uninstall frontend-dev@agent-marketplace` 与 `claude plugin uninstall backend-dev@agent-marketplace`。新入口示例：Codex `$software-dev:fastapi`、Claude Code `/software-dev:fastapi`。
+
+**Playwright Plugin 迁移**：`testing-automation` 已并入 `engineering-tools`。刷新 Marketplace 不会卸载旧副本；已安装旧包时，先用客户端原生流程卸载，再安装或刷新 `engineering-tools@agent-marketplace`，避免重复发现 `playwright-cli`。Codex 使用 `codex plugin remove testing-automation@agent-marketplace`；Claude Code 使用 `claude plugin uninstall testing-automation@agent-marketplace`（项目或 local 安装需选择原作用域）。新调用为 Codex `$engineering-tools:playwright-cli`、Claude Code `/engineering-tools:playwright-cli`，任务匹配策略与上游内容不变。agy 同步前也须通过原生 CLI 卸载旧包，脚本检测到旧包会在写入前停止；同步后仍用 `/playwright-cli`。dsh 重新执行 `$sync-dsh` 后，现有 provider 切换到新快照中的五个产品目录，旧快照保留，仍用 `/playwright-cli`。本仓库变更不会自动迁移日常客户端安装。
 
 ## 常见问题
 

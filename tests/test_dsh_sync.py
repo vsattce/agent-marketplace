@@ -103,6 +103,27 @@ class DesktopSyncTests(unittest.TestCase):
         self.assertFalse(self.run_sync()["enabled"])
         self.assertIn("disabled: true", self.patch.read_text())
 
+    def test_plugin_merge_refreshes_provider_roots_and_preserves_previous_snapshot(self):
+        catalog_path = self.repository / ".agents/plugins/marketplace.json"
+        catalog = json.loads(catalog_path.read_text("utf-8"))
+        catalog["plugins"].append({"name": "testing-automation", "source": {
+            "source": "local", "path": "./plugins/testing-automation",
+        }})
+        catalog_path.write_text(json.dumps(catalog), encoding="utf-8")
+        browser = self.repository / "plugins/testing-automation/skills/playwright-cli/SKILL.md"
+        browser.parent.mkdir(parents=True)
+        browser.write_text("---\nname: playwright-cli\ndescription: Browser automation\n---\nBrowser.\n", encoding="utf-8")
+        original = browser.read_bytes()
+        first = self.run_sync()
+        browser.parent.rename(self.repository / "plugins/example/skills/playwright-cli")
+        catalog["plugins"].pop()
+        catalog_path.write_text(json.dumps(catalog), encoding="utf-8")
+        second = self.run_sync()
+        self.assertEqual((first["plugins"], second["plugins"], second["skills"]), (2, 1, 2))
+        self.assertNotIn("testing-automation", self.patch.read_text("utf-8"))
+        self.assertEqual((Path(first["release"]) / "plugins/testing-automation/skills/playwright-cli/SKILL.md").read_bytes(), original)
+        self.assertEqual((Path(second["release"]) / "plugins/example/skills/playwright-cli/SKILL.md").read_bytes(), original)
+
     def test_user_skill_name_collision_blocks_all_installation(self):
         user_skill = self.home / "skills/example/SKILL.md"
         user_skill.parent.mkdir(parents=True)
@@ -172,7 +193,12 @@ class DesktopSyncTests(unittest.TestCase):
     def test_project_tooling_and_codex_only_skill_are_not_exported(self):
         files, skills = sync.products(ROOT)
         self.assertEqual(len(skills), 27)
-        self.assertEqual(len({entry["plugin"] for entry in skills.values()}), 6)
+        self.assertEqual(len({entry["plugin"] for entry in skills.values()}), 5)
+        self.assertEqual(skills["playwright-cli"]["plugin"], "engineering-tools")
+        self.assertNotIn("disable-model-invocation", skills["playwright-cli"]["metadata"])
+        self.assertIn("plugins/engineering-tools/licenses/playwright-cli/LICENSE", files)
+        self.assertIn("plugins/engineering-tools/skills/playwright-cli/references/running-code.md", files)
+        self.assertFalse(any(name.startswith("plugins/testing-automation/") for name in files))
         self.assertNotIn("am-context", skills)
         self.assertFalse(any(".agents/" in name or "/codex-skills/" in name for name in files))
         for name in ("am-config", "dev-delegate", "dev-review", "handoff", "grill-me", "grill-with-docs", "improve-codebase-architecture"):

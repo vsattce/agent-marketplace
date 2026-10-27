@@ -53,29 +53,6 @@
       }
     },
     {
-      "name": "testing-automation",
-      "source": {
-        "path": "./plugins/testing-automation",
-        "source": "local"
-      },
-      "policy": {
-        "authentication": "ON_INSTALL",
-        "installation": "AVAILABLE"
-      },
-      "description": "网页测试与 Playwright 浏览器自动化。",
-      "category": "Developer Tools",
-      "skills": "./skills/",
-      "interface": {
-        "displayName": "测试与自动化",
-        "shortDescription": "网页测试与 Playwright 浏览器自动化。",
-        "longDescription": "网页测试与 Playwright 浏览器自动化。\n\nplaywright-cli（浏览器自动化）：通过 Playwright CLI 打开网页、点击输入、读取快照和验证交互。触发：主动（浏览器操作或网页验证任务）／被动（手动）。\n\n主动表示 Codex 可按当前任务自动选用；被动表示手动指定 Skill，例如 $testing-automation:playwright-cli。启用插件不会自行执行任务。",
-        "developerName": "hjy",
-        "category": "Developer Tools",
-        "websiteURL": "https://gitee.com/vsattce/agent-marketplace",
-        "brandColor": "#526B8D"
-      }
-    },
-    {
       "name": "agent-manager",
       "source": {"source": "local", "path": "./plugins/agent-manager"},
       "policy": {"authentication": "ON_INSTALL", "installation": "AVAILABLE"},
@@ -113,13 +90,13 @@
       "name": "engineering-tools",
       "source": {"source": "local", "path": "./plugins/engineering-tools"},
       "policy": {"authentication": "ON_INSTALL", "installation": "AVAILABLE"},
-      "description": "跨技术栈的构建、部署、脚本与工程辅助工具。",
+      "description": "Docker 构建、Compose 编排与 Playwright 浏览器自动化工具。",
       "category": "Developer Tools",
       "skills": "./skills/",
       "interface": {
         "displayName": "工程工具",
-        "shortDescription": "跨技术栈的构建、部署、脚本与工程辅助工具。",
-        "longDescription": "跨技术栈的构建、部署、脚本与工程辅助工具。\n\ndocker-build-strategies（Docker 构建策略）：指导镜像构建、构建缓存、多阶段构建与 BuildKit 实践。触发：主动（Docker 构建任务）／被动（手动）。\ndocker-compose-patterns（Docker Compose 编排）：指导服务定义、健康检查、启动依赖、卷、网络、环境变量与开发覆盖配置。触发：主动（Compose 配置任务）／被动（手动）。\n\n主动表示 Codex 可按当前任务自动选用；被动表示手动指定 Skill，例如 $engineering-tools:docker-build-strategies 或 $engineering-tools:docker-compose-patterns。启用插件不会自行执行任务。",
+        "shortDescription": "Docker 构建、Compose 编排与 Playwright 浏览器自动化工具。",
+        "longDescription": "Docker 构建、Compose 编排与 Playwright 浏览器自动化工具。\n\ndocker-build-strategies（Docker 构建策略）：指导镜像构建、构建缓存、多阶段构建与 BuildKit 实践。触发：主动（Docker 构建任务）／被动（手动）。\ndocker-compose-patterns（Docker Compose 编排）：指导服务定义、健康检查、启动依赖、卷、网络、环境变量与开发覆盖配置。触发：主动（Compose 配置任务）／被动（手动）。\nplaywright-cli（浏览器自动化）：通过 Playwright CLI 打开网页、点击输入、读取快照和验证交互。触发：主动（浏览器操作或网页验证任务）／被动（手动）。\n\n主动表示 Codex 可按当前任务自动选用；被动表示手动指定 Skill，例如 $engineering-tools:docker-build-strategies、$engineering-tools:docker-compose-patterns 或 $engineering-tools:playwright-cli。启用插件不会自行执行任务。",
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://gitee.com/vsattce/agent-marketplace",

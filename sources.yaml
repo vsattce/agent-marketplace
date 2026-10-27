@@ -87,10 +87,6 @@ groups:
         repo: docker/skills
         path: skills/docker-compose-patterns
         ref: main
-
-  testing-automation:
-    displayName: 测试与自动化
-    skills:
       - name: playwright-cli
         repo: microsoft/playwright-cli
         path: skills/playwright-cli

@@ -255,7 +255,6 @@ class CodexLoaderTests(unittest.TestCase):
     def test_new_third_party_plugins_discover_and_inject_skills(self):
         run(["codex", "plugin", "add", "software-dev@agent-marketplace", "--json"], self.env, self.project)
         run(["codex", "plugin", "add", "engineering-tools@agent-marketplace", "--json"], self.env, self.project)
-        run(["codex", "plugin", "add", "testing-automation@agent-marketplace", "--json"], self.env, self.project)
         inventory, _ = rpc_skills(self.project, self.env)
         by_name = {item["name"]: item for item in inventory}
         expected = (
@@ -266,12 +265,13 @@ class CodexLoaderTests(unittest.TestCase):
             "software-dev:java-springboot",
             "engineering-tools:docker-build-strategies",
             "engineering-tools:docker-compose-patterns",
-            "testing-automation:playwright-cli",
+            "engineering-tools:playwright-cli",
         )
         self.assertIn("software-dev:vue", by_name)
         self.assertNotIn("software-dev:java-spring-boot", by_name)
         self.assertNotIn("testing-automation:webapp-testing", by_name)
         self.assertNotIn("testing-automation:playwright-best-practices", by_name)
+        self.assertNotIn("testing-automation:playwright-cli", by_name)
         for name in expected:
             with self.subTest(skill=name):
                 entry = by_name.get(name)
@@ -285,7 +285,8 @@ class CodexLoaderTests(unittest.TestCase):
                               ("software-dev", "fastapi"),
                               ("software-dev", "java-springboot"),
                               ("engineering-tools", "docker-build-strategies"),
-                              ("engineering-tools", "docker-compose-patterns")):
+                              ("engineering-tools", "docker-compose-patterns"),
+                              ("engineering-tools", "playwright-cli")):
             name = f"{plugin}:{skill}"
             self.assertIsNone(captured_skill_source(ordinary, name),
                               f"Codex injected the namespaced Skill body without an explicit invocation: {name}")
@@ -298,7 +299,8 @@ class CodexLoaderTests(unittest.TestCase):
                               ("software-dev", "fastapi"),
                               ("software-dev", "java-springboot"),
                               ("engineering-tools", "docker-build-strategies"),
-                              ("engineering-tools", "docker-compose-patterns")):
+                              ("engineering-tools", "docker-compose-patterns"),
+                              ("engineering-tools", "playwright-cli")):
             with self.subTest(invocation=f"{plugin}:{skill}"):
                 name = f"{plugin}:{skill}"
                 entry = by_name[name]
