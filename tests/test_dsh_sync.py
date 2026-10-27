@@ -171,11 +171,11 @@ class DesktopSyncTests(unittest.TestCase):
 
     def test_project_tooling_and_codex_only_skill_are_not_exported(self):
         files, skills = sync.products(ROOT)
-        self.assertEqual(len(skills), 26)
+        self.assertEqual(len(skills), 27)
         self.assertEqual(len({entry["plugin"] for entry in skills.values()}), 6)
         self.assertNotIn("am-context", skills)
         self.assertFalse(any(".agents/" in name or "/codex-skills/" in name for name in files))
-        for name in ("am-config", "dev-delegate", "dev-review", "handoff", "grill-with-docs", "improve-codebase-architecture"):
+        for name in ("am-config", "dev-delegate", "dev-review", "handoff", "grill-me", "grill-with-docs", "improve-codebase-architecture"):
             self.assertIs(skills[name]["metadata"]["disable-model-invocation"], True)
         for name in ("grilling", "domain-modeling"):
             self.assertNotIn("disable-model-invocation", skills[name]["metadata"])

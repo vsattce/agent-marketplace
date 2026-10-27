@@ -60,7 +60,7 @@ agent-marketplace/
 └── README.md                      # 概览与文档入口
 ```
 
-六个 Plugin 都提供 Claude Code `.claude-plugin/plugin.json`；Codex 侧除 `agent-manager` 外使用便携 `plugin.json`，该 Plugin 使用原生 `.codex-plugin/plugin.json` 并显式发现 `skills/` 与 `codex-skills/`。`am-context` 放在后者，因此仅 Codex 可发现；`am-config` 仍共享。四个第三方分类另存 `licenses/<name>/`，两个 Marketplace 均指向 `./plugins/<plugin>`。当前 Codex 有 27 个 Skills、Claude Code / agy / dsh 各有 26 个：第三方四类共 19 个，`agent-manager` 分别有 2 / 1 / 1 / 1 个，`personal-dev` 四端各有 6 个。`dev-prepare` / `dev-auto` 复用 `references/preparation.md`；`dev-auto` 直接读取 `dev-delegate` 正文，执行端按 Harness 使用 `references/codex.md` / `references/claude.md` / `references/agy.md` / `references/dsh.md`，Codex 使用现有模型检查器，不新增 Plugin 或调度系统。
+六个 Plugin 都提供 Claude Code `.claude-plugin/plugin.json`；Codex 侧除 `agent-manager` 外使用便携 `plugin.json`，该 Plugin 使用原生 `.codex-plugin/plugin.json` 并显式发现 `skills/` 与 `codex-skills/`。`am-context` 放在后者，因此仅 Codex 可发现；`am-config` 仍共享。四个第三方分类另存 `licenses/<name>/`，两个 Marketplace 均指向 `./plugins/<plugin>`。当前 Codex 有 28 个 Skills、Claude Code / agy / dsh 各有 27 个：第三方四类共 20 个，`agent-manager` 分别有 2 / 1 / 1 / 1 个，`personal-dev` 四端各有 6 个。`dev-prepare` / `dev-auto` 复用 `references/preparation.md`；`dev-auto` 直接读取 `dev-delegate` 正文，执行端按 Harness 使用 `references/codex.md` / `references/claude.md` / `references/agy.md` / `references/dsh.md`，Codex 使用现有模型检查器，不新增 Plugin 或调度系统。
 
 Codex 便携 manifest 的中文信息位于 `extensions.com.openai.interface`；原生 Codex manifest 的中文信息使用根级 `interface`。Claude manifest / catalog 有意不写 version，Git 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
 
@@ -72,7 +72,7 @@ Codex 便携 manifest 的中文信息位于 `extensions.com.openai.interface`；
 
 lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，不参与版本选择，不手工维护。
 
-当前来源包含四个分类、19 个第三方 Skill：`common-workflow` 11 个、`software-dev` 5 个、`engineering-tools` 2 个、`testing-automation` 1 个。`common-workflow` 包含 Matt Pocock 的 `codebase-design`、`tdd`，以及用户主动调用的 `grill-with-docs`、`improve-codebase-architecture` 和允许依赖被动调用的 `grilling`、`domain-modeling`；Docker Compose 使用 Docker 官方 `docker-compose-patterns`，Java 使用 GitHub `awesome-copilot` 的 `java-springboot`。准确来源、路径与固定策略以 sources 配置为准。
+当前来源包含四个分类、20 个第三方 Skill：`common-workflow` 12 个、`software-dev` 5 个、`engineering-tools` 2 个、`testing-automation` 1 个。`common-workflow` 包含 Matt Pocock 的 `codebase-design`、`tdd`，以及用户主动调用的 `grill-me`、`grill-with-docs`、`improve-codebase-architecture` 和允许依赖被动调用的 `grilling`、`domain-modeling`；Docker Compose 使用 Docker 官方 `docker-compose-patterns`，Java 使用 GitHub `awesome-copilot` 的 `java-springboot`。准确来源、路径与固定策略以 sources 配置为准。
 
 `software-dev` 收录第三方上游项目的 Skills，仅由本仓库汇集、整理供个人使用；作者署名、上游内容及许可证均按原样保留。该说明不适用于 `agent-manager`、`personal-dev` 等本仓库自有 Plugin。
 
@@ -90,7 +90,7 @@ lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，�
 
 ### 使用项目 Skill
 
-在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入两个客户端 Marketplace 的 27 / 26 个 Skills。
+在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入两个客户端 Marketplace 的 27 / 27 个 Skills。
 
 Agent 核对目标、Git 状态与运行时后，按 sources 的既定来源 / ref 同步，保留用户改动，检查差异并运行相关验证。按 [AGENTS.md](../AGENTS.md) 默认提交、推送当前分支；当前任务明确不提交或不推送时遵从该要求。环境、同步或验证失败时停止，零差异不制造提交。
 

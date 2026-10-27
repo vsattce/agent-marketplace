@@ -89,8 +89,8 @@ class PackagingTests(unittest.TestCase):
             count += len(list((root / "skills").glob("*/SKILL.md")))
             codex_count += len(list((root / "skills").glob("*/SKILL.md")))
             codex_count += len(list((root / "codex-skills").glob("*/SKILL.md")))
-        self.assertEqual(count, 26)
-        self.assertEqual(codex_count, 27)
+        self.assertEqual(count, 27)
+        self.assertEqual(codex_count, 28)
         software = next(entry for entry in claude["plugins"] if entry["name"] == "software-dev")
         software_manifest = json.loads((ROOT / "plugins/software-dev/.claude-plugin/plugin.json").read_text(encoding="utf-8"))
         codex_software = next(entry for entry in codex["plugins"] if entry["name"] == "software-dev")
@@ -149,16 +149,18 @@ class PackagingTests(unittest.TestCase):
         plugin = ROOT / "plugins/common-workflow"
         sources = yaml.safe_load((ROOT / "sources.yaml").read_text("utf-8"))["groups"]
         common_sources = sources["common-workflow"]["skills"]
-        self.assertEqual(len(common_sources), 11)
+        self.assertEqual(len(common_sources), 12)
         self.assertEqual(sum(item["name"] == "codebase-design" for item in common_sources), 1)
         expected = {
             "grill-with-docs": ("engineering", {"SKILL.md", "agents/openai.yaml"}),
             "improve-codebase-architecture": ("engineering", {"SKILL.md", "agents/openai.yaml", "HTML-REPORT.md"}),
             "grilling": ("productivity", {"SKILL.md", "agents/openai.yaml"}),
+            "grill-me": ("productivity", {"SKILL.md", "agents/openai.yaml"}),
             "domain-modeling": ("engineering", {"SKILL.md", "agents/openai.yaml", "ADR-FORMAT.md", "GLOSSARY-FORMAT.md"}),
         }
         dependencies = {
             "grill-with-docs": {"grilling", "domain-modeling"},
+            "grill-me": {"grilling"},
             "improve-codebase-architecture": {"codebase-design", "grilling", "domain-modeling"},
         }
         lock = json.loads((ROOT / "sources.lock.json").read_text("utf-8"))["skills"]

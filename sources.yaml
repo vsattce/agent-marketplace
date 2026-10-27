@@ -27,6 +27,10 @@ groups:
         repo: mattpocock/skills
         path: skills/productivity/grilling
         ref: main
+      - name: grill-me
+        repo: mattpocock/skills
+        path: skills/productivity/grill-me
+        ref: main
       - name: domain-modeling
         repo: mattpocock/skills
         path: skills/engineering/domain-modeling
