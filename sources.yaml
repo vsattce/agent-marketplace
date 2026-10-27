@@ -15,6 +15,22 @@ groups:
         repo: mattpocock/skills
         path: skills/engineering/codebase-design
         ref: main
+      - name: grill-with-docs
+        repo: mattpocock/skills
+        path: skills/engineering/grill-with-docs
+        ref: main
+      - name: improve-codebase-architecture
+        repo: mattpocock/skills
+        path: skills/engineering/improve-codebase-architecture
+        ref: main
+      - name: grilling
+        repo: mattpocock/skills
+        path: skills/productivity/grilling
+        ref: main
+      - name: domain-modeling
+        repo: mattpocock/skills
+        path: skills/engineering/domain-modeling
+        ref: main
       - name: tdd
         repo: mattpocock/skills
         path: skills/engineering/tdd

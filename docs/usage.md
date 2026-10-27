@@ -6,7 +6,7 @@
 
 当前支持 Codex、Claude Code、Antigravity CLI（agy）与 DeepSeek Harness 桌面版（dsh）。安装与作用域边界分别见 [agy 说明](#antigravity-cliagy)和 [dsh 桌面版说明](#deepseek-harness-桌面版dsh)。
 
-产品目录共有 **6 个 Plugin**；Codex 共 **23 个 Skills**，Claude Code / agy / dsh 各有 **22 个**。dsh 通过一个原生 Skill provider 加载产品包内容。四个第三方聚合 Plugin 收录 15 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，Claude Code / agy / dsh 各有 1 项，`personal-dev` 各端各有 6 项。第三方来源、作者与许可证边界见 [README](../README.md)。
+产品目录共有 **6 个 Plugin**；Codex 共 **27 个 Skills**，Claude Code / agy / dsh 各有 **26 个**。dsh 通过一个原生 Skill provider 加载产品包内容。四个第三方聚合 Plugin 收录 19 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，Claude Code / agy / dsh 各有 1 项，`personal-dev` 各端各有 6 项。第三方来源、作者与许可证边界见 [README](../README.md)。
 
 ## 日常调用
 
@@ -21,7 +21,7 @@
 
 可用入口以当前会话实际显示的清单为准。Skill 改名发布后，刷新客户端安装副本并开启新会话或重载 Plugin；旧完整调用名不作为别名保留。
 
-**仅手动调用**：`handoff`、`agent-manager` 和 `personal-dev` 中的 Skills。其他 Skill 可在任务匹配时由 Agent 选用，也可手动指定；自动选用不保证每次发生，启用 Plugin 不会自行执行任务。
+**仅手动调用**：`handoff`、`grill-with-docs`、`improve-codebase-architecture`、`agent-manager` 和 `personal-dev` 中的 Skills。其他 Skill 可在任务匹配时由 Agent 选用，也可手动指定；自动选用不保证每次发生，启用 Plugin 不会自行执行任务。
 
 例如在 Codex 中：
 
@@ -39,6 +39,10 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 | common-workflow | handoff | 整理进度、决定和后续工作，供新会话接续 | 仅手动 |
 | common-workflow | diagnosing-bugs | 排查复杂 Bug、报错、故障和性能回归 | 任务匹配 / 手动 |
 | common-workflow | codebase-design | 使用深模块原则设计接口、确定可替换与可测试的边界 | 任务匹配 / 手动 |
+| common-workflow | grill-with-docs | 推敲方案或设计，并随讨论记录 ADR 与领域词汇 | 用户主动（仅手动） |
+| common-workflow | improve-codebase-architecture | 扫描架构改进机会，生成 HTML 报告后推敲选定方案 | 用户主动（仅手动） |
+| common-workflow | grilling | 逐轮提问以检验计划、决定或想法 | 依赖调用 / 上游任务匹配 / 手动 |
+| common-workflow | domain-modeling | 澄清领域术语，维护 GLOSSARY.md 与 ADR | 依赖调用 / 上游任务匹配 / 手动 |
 | common-workflow | tdd | 先确认测试边界，再逐项执行失败测试与最小实现的循环 | 任务匹配 / 手动 |
 | common-workflow | research | 从可信来源收集资料和 API 文档，形成研究记录 | 任务匹配 / 手动 |
 | common-workflow | writing-for-agents | 编写 Skill、AGENTS.md、CLAUDE.md 等 Agent 文档 | 任务匹配 / 手动 |
@@ -59,6 +63,8 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 | personal-dev | dev-review | 只读审查当前项目或明确范围，独立复核高等级发现并生成报告；各端使用各自 adapter | 仅手动 |
 | personal-dev | dev-simplify | 默认只读提出行为等价的精简建议，确认后再编辑 | 仅手动 |
 | personal-dev | dev-runtime-check | 使用当前 Harness 原生 Shell / SSH 对指定远端主机、容器或服务取证；默认只读 | 仅手动 |
+
+`grill-with-docs` 调用 `grilling` + `domain-modeling`；`improve-codebase-architecture` 调用 `codebase-design` + `grilling` + `domain-modeling`。这些依赖全部在同一 Plugin，安装 `common-workflow` 即包含完整目录和资源。两个入口保留上游的 `disable-model-invocation: true` 与 `allow_implicit_invocation: false`；依赖保留上游可由模型调用的策略与描述，不额外限制其触发条件。
 
 `java-spring-boot` 已替换为 GitHub `awesome-copilot` 的 `java-springboot`，调用名同步改为 `$software-dev:java-springboot` / `/software-dev:java-springboot`。
 
@@ -170,7 +176,7 @@ Plugin 提供 Skill 内容，不代装 Playwright、Java、Vue 等运行依赖�
 
 ### Antigravity CLI（agy）
 
-agy 1.4.2 的产品目录支持六个 Plugin、22 个 Skills；`am-context` 仍仅 Codex。同步使用本仓库项目 Skill：Codex `$sync-agy`，Claude Code / agy `/sync-agy`。它只服务仓库维护，不进入产品目录或全局 Skills。
+agy 产品目录包含六个 Plugin、26 个 Skills（加载机制已在 agy 1.4.2 验证）；`am-context` 仍仅 Codex。同步使用本仓库项目 Skill：Codex `$sync-agy`，Claude Code / agy `/sync-agy`。它只服务仓库维护，不进入产品目录或全局 Skills。
 
 在仓库根也可直接运行 PowerShell 7 脚本：
 
@@ -189,7 +195,7 @@ pwsh -NoProfile -File .agents/skills/sync-agy/scripts/sync.ps1
 
 ### DeepSeek Harness 桌面版（dsh）
 
-当前验证桌面版 `0.2.1-rc.2`：通过自带的文件系统 Skill provider 加载六个产品包的 22 个共享 Skills 与完整资源，`am-context` 仅 Codex。项目同步入口为 Codex `$sync-dsh`、Claude Code / agy `/sync-dsh`，不进入产品目录。这里使用已安装的桌面版，无需 npm CLI。
+桌面版原生加载机制已在 `0.2.1-rc.2` 验证：通过自带的文件系统 Skill provider 加载六个产品包；当前仓库提供 26 个共享 Skills 与完整资源，实际加载以同步后的验证为准，`am-context` 仅 Codex。项目同步入口为 Codex `$sync-dsh`、Claude Code / agy `/sync-dsh`，不进入产品目录。这里使用已安装的桌面版，无需 npm CLI。
 
 在仓库根按项目规则核验 `mise current`、`python --version`（3.12+）及 uv，再运行；`--desktop-path` 使用实际安装路径：
 

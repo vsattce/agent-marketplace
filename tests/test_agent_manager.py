@@ -89,8 +89,8 @@ class PackagingTests(unittest.TestCase):
             count += len(list((root / "skills").glob("*/SKILL.md")))
             codex_count += len(list((root / "skills").glob("*/SKILL.md")))
             codex_count += len(list((root / "codex-skills").glob("*/SKILL.md")))
-        self.assertEqual(count, 22)
-        self.assertEqual(codex_count, 23)
+        self.assertEqual(count, 26)
+        self.assertEqual(codex_count, 27)
         software = next(entry for entry in claude["plugins"] if entry["name"] == "software-dev")
         software_manifest = json.loads((ROOT / "plugins/software-dev/.claude-plugin/plugin.json").read_text(encoding="utf-8"))
         codex_software = next(entry for entry in codex["plugins"] if entry["name"] == "software-dev")
@@ -144,6 +144,59 @@ class PackagingTests(unittest.TestCase):
             registered = next(item for item in catalog["plugins"] if item["name"] == plugin)
             self.assertEqual(manifest["extensions"]["com.openai"]["interface"], registered["interface"])
             self.assertIn(skill, registered["interface"]["longDescription"])
+
+    def test_common_workflow_intake_preserves_dependencies_resources_and_invocation(self):
+        plugin = ROOT / "plugins/common-workflow"
+        sources = yaml.safe_load((ROOT / "sources.yaml").read_text("utf-8"))["groups"]
+        common_sources = sources["common-workflow"]["skills"]
+        self.assertEqual(len(common_sources), 11)
+        self.assertEqual(sum(item["name"] == "codebase-design" for item in common_sources), 1)
+        expected = {
+            "grill-with-docs": ("engineering", {"SKILL.md", "agents/openai.yaml"}),
+            "improve-codebase-architecture": ("engineering", {"SKILL.md", "agents/openai.yaml", "HTML-REPORT.md"}),
+            "grilling": ("productivity", {"SKILL.md", "agents/openai.yaml"}),
+            "domain-modeling": ("engineering", {"SKILL.md", "agents/openai.yaml", "ADR-FORMAT.md", "GLOSSARY-FORMAT.md"}),
+        }
+        dependencies = {
+            "grill-with-docs": {"grilling", "domain-modeling"},
+            "improve-codebase-architecture": {"codebase-design", "grilling", "domain-modeling"},
+        }
+        lock = json.loads((ROOT / "sources.lock.json").read_text("utf-8"))["skills"]
+        for name, (category, files) in expected.items():
+            with self.subTest(skill=name):
+                source, = [item for item in common_sources if item["name"] == name]
+                self.assertEqual(source, {"name": name, "repo": "mattpocock/skills",
+                                          "path": f"skills/{category}/{name}", "ref": "main"})
+                self.assertEqual({key: lock[name][key] for key in source}, source)
+                self.assertEqual(lock[name]["group"], "common-workflow")
+                self.assertRegex(lock[name]["commit"], r"^[0-9a-f]{40}$")
+                directory = plugin / "skills" / name
+                self.assertEqual({path.relative_to(directory).as_posix()
+                                  for path in directory.rglob("*") if path.is_file()}, files)
+                self.assertTrue((plugin / "licenses" / name / "LICENSE").is_file())
+                text = (directory / "SKILL.md").read_text("utf-8")
+                metadata = yaml.safe_load(text.split("---", 2)[1])
+                policy = yaml.safe_load((directory / "agents/openai.yaml").read_text("utf-8"))
+                self.assertEqual(metadata["name"], name)
+                if name in dependencies:
+                    self.assertIs(metadata["disable-model-invocation"], True)
+                    self.assertIs(policy["policy"]["allow_implicit_invocation"], False)
+                    for dependency in dependencies[name]:
+                        self.assertIn(f'"{dependency}"', text)
+                        entry = plugin / "skills" / dependency / "SKILL.md"
+                        dependency_metadata = yaml.safe_load(entry.read_text("utf-8").split("---", 2)[1])
+                        self.assertFalse(dependency_metadata.get("disable-model-invocation", False))
+                else:
+                    self.assertNotIn("disable-model-invocation", metadata)
+                    self.assertTrue(policy.get("policy", {}).get("allow_implicit_invocation", True))
+                for target in re.findall(r"\]\(([^)\s]+)\)", text):
+                    self.assertTrue((directory / target).is_file(), target)
+        manifest = json.loads((plugin / "plugin.json").read_text("utf-8"))
+        catalog = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text("utf-8"))
+        registered = next(item for item in catalog["plugins"] if item["name"] == "common-workflow")
+        self.assertEqual(manifest["extensions"]["com.openai"]["interface"], registered["interface"])
+        for name in expected:
+            self.assertIn(name, registered["interface"]["longDescription"])
 
     def test_bundled_local_references_resolve(self):
         for document in PLUGIN.rglob("*.md"):

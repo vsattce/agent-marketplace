@@ -4,7 +4,7 @@
 
 代码托管使用 [Gitee](https://gitee.com/vsattce/agent-marketplace) 和 [GitHub](https://github.com/vsattce/agent-marketplace) 双远端：`origin` 为 Gitee（`git@gitee.com:vsattce/agent-marketplace.git`），`github` 为 GitHub（`git@github.com:vsattce/agent-marketplace.git`）。提交后优先推送 Gitee，再推送 GitHub；GitHub 推送失败不阻塞任务。提交、推送与拉取约定见 [AGENTS.md](AGENTS.md#仓库维护规则)。
 
-产品目录包含 **6 个 Plugin**；Codex 有 **23 个 Skills**，Claude Code / agy / dsh 各有 **22 个**。以上为仓库产品入口数量，不代表当前会话已加载。dsh 使用一个原生 Skill provider 加载六个产品包的内容与资源。四个第三方聚合 Plugin 共 15 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，其他三端各有 1 项，`personal-dev` 四端各有 6 项。
+产品目录包含 **6 个 Plugin**；Codex 有 **27 个 Skills**，Claude Code / agy / dsh 各有 **26 个**。以上为仓库产品入口数量，不代表当前会话已加载。dsh 使用一个原生 Skill provider 加载六个产品包的内容与资源。四个第三方聚合 Plugin 共 19 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，其他三端各有 1 项，`personal-dev` 四端各有 6 项。
 
 `software-dev` 收录第三方上游项目的 Skills，仅供个人使用与整理；原作者署名、上游内容及许可证均按原样保留。该说明只适用于 `software-dev`；`agent-manager` 和 `personal-dev` 是本仓库自有并直接维护的 Plugin。
 
@@ -12,7 +12,7 @@
 
 | Plugin | 用途 | Skills |
 | --- | --- | --- |
-| `common-workflow` | 通用工作流 | handoff、diagnosing-bugs、codebase-design、tdd、research、writing-for-agents、find-skills |
+| `common-workflow` | 通用工作流 | handoff、diagnosing-bugs、codebase-design、grill-with-docs、improve-codebase-architecture、grilling、domain-modeling、tdd、research、writing-for-agents、find-skills |
 | `software-dev` | 软件开发 | frontend-design、web-design-guidelines、vue、fastapi、java-springboot |
 | `engineering-tools` | 跨技术栈工程工具 | docker-build-strategies、docker-compose-patterns |
 | `testing-automation` | 测试与自动化 | playwright-cli |
@@ -45,6 +45,8 @@ dsh 桌面版使用项目 Skill `$sync-dsh`（Claude / agy 为 `/sync-dsh`），
 | 编排 Docker Compose 服务 | `$engineering-tools:docker-compose-patterns` | `/engineering-tools:docker-compose-patterns` |
 | 交接当前任务 | `$common-workflow:handoff` | `/common-workflow:handoff` |
 | 设计模块接口与测试边界 | `$common-workflow:codebase-design` | `/common-workflow:codebase-design` |
+| 推敲方案并记录词汇与决策 | `$common-workflow:grill-with-docs` | `/common-workflow:grill-with-docs` |
+| 寻找并推敲架构改进机会 | `$common-workflow:improve-codebase-architecture` | `/common-workflow:improve-codebase-architecture` |
 | 按测试先行开发 | `$common-workflow:tdd` | `/common-workflow:tdd` |
 | 估算本轮可见上下文（仅 Codex） | `$agent-manager:am-context` | — |
 | 编辑项目配置 / 只读查冲突 | `$agent-manager:am-config` | `/agent-manager:am-config` |
@@ -55,7 +57,9 @@ dsh 桌面版使用项目 Skill `$sync-dsh`（Claude / agy 为 `/sync-dsh`），
 | 精简当前改动 | `$personal-dev:dev-simplify` | `/personal-dev:dev-simplify` |
 | 诊断远端运行问题 | `$personal-dev:dev-runtime-check` | `/personal-dev:dev-runtime-check` |
 
-`handoff`、`agent-manager` 和 `personal-dev` 中的 Skills **仅手动调用**；其余 Skill 可按任务匹配，也可显式调用。启用 Plugin 不会自行执行任务。
+`handoff`、`grill-with-docs`、`improve-codebase-architecture`、`agent-manager` 和 `personal-dev` 中的 Skills **仅手动调用**；其余 Skill 可按任务匹配，也可显式调用。启用 Plugin 不会自行执行任务。
+
+`grill-with-docs` 依赖 `grilling` + `domain-modeling`；`improve-codebase-architecture` 依赖现有 `codebase-design` + `grilling` + `domain-modeling`，全部随 `common-workflow` 提供。两个入口由用户主动调用，依赖允许由 Skill 被动调用；第三方正文、描述及触发策略保持上游原样，不给依赖增加仅手动限制。
 
 `dev-prepare` 结合项目规则和现有代码生成 SPEC / PLAN 文件，统一确认一次后结束，不开发；`dev-delegate` 只消费已确定的文件执行 SDD，缺失时提示先准备；`dev-auto` 复用同一准备契约和执行器，自动检查后连续开发，正常需求不确认，仅重大歧义、未授权破坏性操作、安全边界不清允许集中询问一次。始终遵循 `SPEC > PLAN > Coder interpretation`。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code--agy--dsh)。
 
