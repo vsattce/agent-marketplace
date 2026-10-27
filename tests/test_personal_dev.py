@@ -40,13 +40,16 @@ def payload_with(*models):
 
 
 class ExplicitModelContract:
-    """Both public helpers must enforce the same contract."""
+    """Both helpers share validation, with entry-specific required roles."""
+
+    required_roles = ("worker", "reviewer")
+    usage = SELECTOR.USAGE
 
     def assert_blocked(self, payload, reason=None):
         result = self.selector(payload)
         self.assertEqual(result["status"], "BLOCKED")
         self.assertTrue(result["reasons"])
-        self.assertEqual(result["usage"], SELECTOR.USAGE)
+        self.assertEqual(result["usage"], self.usage)
         self.assertFalse({"worker", "reviewer", "coding", "review", "final_review"} & result.keys())
         if reason:
             self.assertIn(reason, " ".join(result["reasons"]))
@@ -67,12 +70,15 @@ class ExplicitModelContract:
 
     def test_missing_each_or_both_roles_blocks_before_inventory(self):
         for missing in (("worker",), ("reviewer",), ("worker", "reviewer")):
+            required_missing = set(missing) & set(self.required_roles)
+            if not required_missing:
+                continue
             payload = payload_with()
             for field in (*missing, "models"):
                 payload.pop(field)
             with self.subTest(missing=missing):
                 result = self.assert_blocked(payload, "missing required")
-                for role in missing:
+                for role in required_missing:
                     self.assertIn(role, result["reasons"][0])
 
     def test_empty_or_malformed_role_has_no_defaults(self):
@@ -199,7 +205,10 @@ class ExplicitModelContract:
             value = payload.pop(role)
             payload.pop(missing)
             payload[alias] = value
-            self.assert_blocked(payload, f"missing required parameter(s): {missing}")
+            if missing in self.required_roles:
+                self.assert_blocked(payload, f"missing required parameter(s): {missing}")
+            else:
+                self.assertEqual(self.selector(payload)["status"], "READY")
 
     def test_non_object_inputs_are_blocked(self):
         for value in (None, [], "", 1, "private-marker"):
@@ -253,6 +262,9 @@ class ModelArgumentsTests(unittest.TestCase):
 
 
 class CliContract:
+    required_roles = ("worker", "reviewer")
+    usage = SELECTOR.USAGE
+
     def run_cli(self, text):
         return subprocess.run(
             [sys.executable, "-B", str(self.script)], input=text, text=True,
@@ -287,7 +299,10 @@ class CliContract:
         missing_worker.pop("worker")
         missing_reviewer = payload_with()
         missing_reviewer.pop("reviewer")
-        for payload in (missing_worker, missing_reviewer, {},
+        missing_payloads = [missing_reviewer, {}]
+        if "worker" in self.required_roles:
+            missing_payloads.append(missing_worker)
+        for payload in (*missing_payloads,
                         payload_with() | {"worker": "private-marker:high"},
                         payload_with() | {"reviewer": "6-luna:max"}):
             with self.subTest(payload=payload):
@@ -295,7 +310,7 @@ class CliContract:
                 self.assertEqual(process.returncode, 2, process.stderr)
                 result = json.loads(process.stdout)
                 self.assertEqual(result["status"], "BLOCKED")
-                self.assertEqual(result["usage"], SELECTOR.USAGE)
+                self.assertEqual(result["usage"], self.usage)
                 self.assertEqual(process.stderr, "")
                 self.assertNotIn("private-marker", process.stdout)
 

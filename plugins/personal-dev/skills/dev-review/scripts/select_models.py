@@ -1,4 +1,4 @@
-"""Use the shared worker/reviewer validator without review-specific roles."""
+"""Require reviewer only, using the shared two-role validator."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ import sys
 SIBLING_HELPER_PATH = (
     Path(__file__).resolve().parents[2] / "dev-delegate/scripts/select_models.py"
 )
-USAGE = "worker=<model>:<effort> reviewer=<model>:<effort>"
+USAGE = "reviewer=<model>:<effort>"
 
 
 def select_models(payload: object) -> dict:
@@ -25,7 +25,7 @@ def select_models(payload: object) -> dict:
         spec.loader.exec_module(module)
     except (OSError, ImportError, SyntaxError):
         return {"status": "BLOCKED", "reasons": ["shared model validator is unavailable"], "usage": USAGE}
-    return module.select_models(payload)
+    return module.select_models(payload, required_roles=("reviewer",))
 
 
 def main() -> int:

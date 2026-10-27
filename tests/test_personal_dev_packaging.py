@@ -35,9 +35,12 @@ class PersonalDevPackagingTests(unittest.TestCase):
                                  ("dev-review", "报告默认写到项目的")):
             source = (PLUGIN / "skills" / name / "SKILL.md").read_text(encoding="utf-8")
             with self.subTest(skill=name):
-                self.assertLess(source.index("worker=<model>:<effort> reviewer=<model>:<effort>"),
+                arguments = ("reviewer=<model>:<effort>" if name == "dev-review" else
+                             "worker=<model>:<effort> reviewer=<model>:<effort>")
+                self.assertLess(source.index(arguments),
                                 source.index(downstream))
-                self.assertIn("缺任一参数立即中断", source)
+                self.assertIn("缺 reviewer 立即中断" if name == "dev-review" else
+                              "缺任一参数立即中断", source)
         auto = (PLUGIN / "skills/dev-auto/SKILL.md").read_text(encoding="utf-8")
         self.assertIn("同一对已验证 worker / reviewer 配置传入", auto)
 
@@ -61,8 +64,59 @@ class PersonalDevPackagingTests(unittest.TestCase):
         for name in ("dev-auto", "dev-delegate", "dev-review"):
             metadata = yaml.safe_load((PLUGIN / "skills" / name / "agents/openai.yaml")
                                       .read_text(encoding="utf-8"))
-            self.assertIn("worker=<model>:<effort> reviewer=<model>:<effort>",
+            self.assertIn("reviewer=<model>:<effort>" if name == "dev-review" else
+                          "worker=<model>:<effort> reviewer=<model>:<effort>",
                           metadata["interface"]["default_prompt"])
+
+    def test_delegate_defaults_to_short_path_and_preserves_risk_escalation(self):
+        source = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("worker → reviewer → 必要修复 → 最终 fresh verification → DONE", source)
+        self.assertIn("默认一个 worker 顺序执行", source)
+        self.assertIn("通常有 blocker 时由原 Coder 修一次并独立复验", source)
+        self.assertIn("上限不是默认流程", source)
+        self.assertIn("只有真实 blocker 持续存在才进入下一轮", source)
+        self.assertIn("不按轮次机械换人", source)
+        self.assertIn("始终做一次整体检查与最终 fresh verification", source)
+        for trigger in ("用户明确要求", "安全 / 权限", "并发 / 事务一致性",
+                        "破坏性数据迁移", "公共 API 不兼容风险"):
+            self.assertIn(trigger, source)
+        orchestration = (SKILL / "references/orchestration.md").read_text(encoding="utf-8")
+        self.assertIn("默认 `max_coders: 1`", orchestration)
+        self.assertIn("不按任务数量强制创建 ledger", orchestration)
+        self.assertIn("仅发生真实失败、未决共享契约或具体风险传播时启用依赖冻结", orchestration)
+        for path in (SKILL / "SKILL.md", SKILL / "references/roles.md",
+                     SKILL / "references/orchestration.md"):
+            content = path.read_text(encoding="utf-8")
+            self.assertNotIn("默认两个写代理并行", content)
+            self.assertNotIn("第三轮按角色契约换 fresh coder", content)
+
+    def test_review_defaults_to_one_reviewer_and_only_escalates_for_evidence(self):
+        source = (REVIEW / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("reviewer → 主模型核验证据 → 输出报告", source)
+        self.assertIn("不要求 worker", source)
+        self.assertIn("小范围或普通审查默认一个 reviewer", source)
+        self.assertIn("只有发现有依据的 P0/P1 候选或实质争议时，再派第二个独立 reviewer", source)
+        self.assertIn("普通审查不建 progress", source)
+        self.assertIn("更重的专项验证仅在具体证据缺口影响结论或用户明确要求时启用", source)
+        for value in ("P0–P3", "COMPLETE", "PARTIAL", "BLOCKED", "只读"):
+            self.assertIn(value, source)
+        for harness in ("codex", "claude", "agy", "dsh"):
+            adapter = (PLUGIN / "references" / f"{harness}.md").read_text(encoding="utf-8")
+            self.assertIn("dev-review 只要求 reviewer", adapter)
+            self.assertIn("默认单 worker 顺序执行", adapter)
+
+    def test_plugin_display_describes_explicit_models_and_short_defaults(self):
+        catalog = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text("utf-8"))
+        entry = next(item for item in catalog["plugins"] if item["name"] == "personal-dev")
+        manifest = json.loads((PLUGIN / "plugin.json").read_text("utf-8"))
+        self.assertEqual(entry["interface"], manifest["extensions"]["com.openai"]["interface"])
+        description = entry["interface"]["longDescription"]
+        for expected in ("只需显式 reviewer=<model>:<effort>", "默认单 reviewer",
+                         "最终 fresh verification", "最多三轮", "按实际需要启用",
+                         "不自动选型", "不 fallback"):
+            self.assertIn(expected, description)
+        for obsolete in ("模型与 effort 自动选择", "同代 Luna", "默认两个编码代理并行"):
+            self.assertNotIn(obsolete, description)
 
     def test_all_subagent_work_categories_use_only_two_model_roles(self):
         source = (PLUGIN / "references/subagent-models.md").read_text(encoding="utf-8")
@@ -131,7 +185,7 @@ class PersonalDevPackagingTests(unittest.TestCase):
                     self.assertNotIn(".agent-tmp", source.read_text(encoding="utf-8"))
 
     def test_development_entries_are_manual_only_and_fit_native_loading_budget(self):
-        for name in DEVELOPMENT_SKILLS:
+        for name in (*DEVELOPMENT_SKILLS, "dev-review"):
             with self.subTest(skill=name):
                 directory = PLUGIN / "skills" / name
                 source = directory / "SKILL.md"

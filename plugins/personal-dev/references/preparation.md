@@ -14,7 +14,7 @@ PLAN 与 SPEC 冲突时，以 SPEC 为准，主模型修正 PLAN 的受影响部
 
 1. 读取当前用户需求、目标项目实际生效的 AGENTS.md / CLAUDE.md 与直接相关约束，记录当前工作目录、Git 基线和已有改动。检查相关实现、调用点、现有测试与接口，先复用项目结构，再确定方案。只读检查代码；此阶段只写本次 SPEC / PLAN，不开发、启动写入代理或 commit / push。
 2. 复用[任务产物位置](artifacts.md)：默认创建目标项目 `docs/personal-dev/specs/<task-id>-design.md` 和 `docs/personal-dev/plans/<task-id>.md`，同一 task-id 用于后续 `.personal-dev/sdd/<task-id>/progress.md`；不要写入 Plugin 安装目录。ID 使用用户时区日期、时间和主题，整组路径冲突时追加同一后缀，不覆盖其他执行；用户指定位置优先。
-3. 确认输出路径未被重定向到项目外；SPEC / PLAN 默认保留，不要求 Git 忽略。不能写入或缺少授权时报告具体限制，不能仅把大段正文放进聊天代替文件。两个及以上开发任务才在执行阶段建立被 Git 忽略的 progress.md；单任务也必须保存 SPEC / PLAN，prepare 不预建临时执行目录。
+3. 确认输出路径未被重定向到项目外；SPEC / PLAN 默认保留，不要求 Git 忽略。不能写入或缺少授权时报告具体限制，不能仅把大段正文放进聊天代替文件。执行阶段仅确需并行调度、复杂依赖、恢复或只读裁决记录时建立被 Git 忽略的 progress.md，不以任务数量强制建档；单任务也必须保存 SPEC / PLAN，prepare 不预建临时执行目录。
 4. 写简洁的 SPEC 与可执行 PLAN，再按下一节自动检查。简单需求可每节一句、PLAN 只有一个任务；不制造设计层、基础设施、长报告或重复模板。聊天只汇报文件路径、简要方案与必要风险，后续 Agent 通过文件读取，不反复粘贴全文。
 
 SPEC 至少包含：

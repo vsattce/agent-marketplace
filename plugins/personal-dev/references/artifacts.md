@@ -11,7 +11,7 @@
 
 ## 临时执行现场
 
-- `.personal-dev/sdd/<task-id>/progress.md`：两个及以上开发任务自动建立的进度 ledger，含串行依赖；单个简单任务默认不创建，只读 PLAN 确需裁决或恢复记录时按需复用。主模型独占写入；恢复核对文件、代码、证据与原生代理状态。中断、失败或阻塞保留，全部验收、整体检查与已授权收尾完成后仅清理本次执行目录；细则见 [任务编排与进度恢复](../skills/dev-delegate/references/orchestration.md)。
+- `.personal-dev/sdd/<task-id>/progress.md`：仅确需并行调度、复杂依赖、长时恢复或只读 PLAN 裁决记录时建立的进度 ledger；普通少量串行任务默认不创建，在可写 PLAN 简记进度。主模型独占写入；恢复核对文件、代码、证据与原生代理状态。中断、失败或阻塞保留，全部验收、整体检查与已授权收尾完成后仅清理本次执行目录；细则见 [任务编排与进度恢复](../skills/dev-delegate/references/orchestration.md)。
 - `.personal-dev/sdd/<task-id>/`：按需保存交接材料、短期日志、原始测试输出及临时证据，与 ledger 共用执行目录；需要长期保留的证据先归档至个人开发记录。
 - `.personal-dev/tests/<run-id>/`：隔离验证 fixture 与本次测试进程的临时文件。需要设置 `TMP` / `TEMP` 时，只在该测试进程指向本次运行目录。
 

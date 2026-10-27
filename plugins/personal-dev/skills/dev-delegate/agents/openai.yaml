@@ -1,6 +1,6 @@
 interface:
   display_name: "委派开发与独立验收"
-  short_description: "仅手动调用；消费既定 SPEC、PLAN 执行委派与独立验收，有限修复并隔离失败依赖。"
+  short_description: "仅手动调用；消费既定 SPEC、PLAN，以短路径完成开发、独立验收与最终核验，按需升级。"
   default_prompt: "使用 $personal-dev:dev-delegate 按已确定的 SPEC / PLAN 执行 SDD；先校验本次显式 worker=<model>:<effort> reviewer=<model>:<effort>，缺项或不支持即停止，再展示配置执行。"
 policy:
   allow_implicit_invocation: false

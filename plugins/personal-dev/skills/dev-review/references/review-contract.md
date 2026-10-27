@@ -9,9 +9,9 @@
 
 ## 统一模型 adapter 接口
 
-入口先读取[子代理模型契约](../../../references/subagent-models.md)，同时校验本次显式 worker / reviewer；即使只派审查代理也不能省略 worker。审查、SPEC / PLAN 符合性、验证结果、回归风险和严重候选独立复核均使用同一 reviewer，没有 audit / verification 等独立模型角色。
+入口先读取[子代理模型契约](../../../references/subagent-models.md)，仅要求本次显式 reviewer，支持 reviewer / review / r / check，不要求 worker。可选 worker 提供时仍校验；后续流程确需执行型子代理才显式要求它，且不增加权限。审查、SPEC / PLAN 符合性、验证结果、回归风险和严重候选独立复核均使用同一 reviewer，没有 audit / verification 等独立模型角色。
 
-Codex 的 `scripts/select_models.py` 只透传共享 helper 的 JSON 协议：必填 worker、reviewer、inventory_source、models，返回同一 worker / reviewer 与 display，不映射其他角色。缺参数、未知字段、型号不可用或 effort 不受支持立即 BLOCKED / 退出 2，带正确调用格式；不自动选型或静默 fallback。协议只维护在共享契约中。
+Codex 的 `scripts/select_models.py` 调用共享 helper，以 reviewer 为唯一必填角色；JSON 必填 reviewer、inventory_source、models，返回已提供角色与 display，不映射其他角色。缺必需参数、未知字段、型号不可用或 effort 不受支持立即 BLOCKED / 退出 2，带 reviewer 调用格式；不自动选型或静默 fallback。协议只维护在共享契约中。
 
 Claude / agy / dsh 按各自 adapter 与本轮 schema 校验并显式传递相同配置，不运行 Python；缺少模型或 effort 覆写能力就立即中断，不沿用原生默认。审查代理的只读边界保持不变。
 
@@ -48,6 +48,8 @@ Claude / agy / dsh 按各自 adapter 与本轮 schema 校验并显式传递相�
 
 ## 代理职责和复核
 
-审查代理按主模型分配范围，返回候选问题（位置、触发、影响、证据、等级建议、状态）、已覆盖路径和未覆盖原因。独立复核代理只查看 P0/P1 候选或有实质争议的发现，逐项给出成立、驳回或证据不足的理由；没有此类候选则跳过复核并记录。每项最多一轮定向补证。主模型对最终发现、等级、范围和执行状态负责。
+默认路径为 `reviewer → 主模型核验证据 → 输出报告`，小范围或普通审查只派一个 reviewer。仅大范围可独立分工且确有收益时启用并行，不能以专项维度数量机械扩席；重专项验证仅在具体证据缺口影响结论或用户要求且只读条件允许时启用。长审查确需恢复时才建 progress / resume 记录。
+
+审查代理按主模型分配范围，返回候选问题（位置、触发、影响、证据、等级建议、状态）、已覆盖路径和未覆盖原因。主模型先核验证据，只有有依据的 P0/P1 候选或实质争议才再派第二个独立 reviewer，逐项给出成立、驳回或证据不足的理由；没有此类候选则跳过复核并记录。每项最多一轮定向补证。主模型对最终发现、等级、范围和执行状态负责。
 
 主模型记录并核对 Git/工作区基线。审查期间代码变化时只复核受影响证据；证据不能重新确认则降为待验证并将状态设为 `PARTIAL`。不因发现缺陷设置 `BLOCKED`。
