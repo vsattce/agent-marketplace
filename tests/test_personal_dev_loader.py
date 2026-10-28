@@ -51,8 +51,10 @@ class PersonalDevLoaderTests(codex_loader.CodexLoaderTests):
                 self.assertIn(codex_loader.skill_body("personal-dev", name), source[1].replace("\r\n", "\n"))
         review = self.capture("$personal-dev:dev-review 仅验证加载，本轮不执行正文、不派发模型、不修改文件。")
         self.assertIn("# 增强代码审查", review)
-        self.assertIn("worker 模型：", review)
-        self.assertIn("reviewer 模型：", review)
+        review_source = codex_loader.captured_skill_source(json.loads(review), "personal-dev:dev-review")
+        self.assertIsNotNone(review_source)
+        self.assertIn(codex_loader.skill_body("personal-dev", "dev-review"),
+                      review_source[1].replace("\r\n", "\n"))
 
         for name, marker in (("dev-simplify", "# 精简当前改动"),):
             with self.subTest(invocation=name):
