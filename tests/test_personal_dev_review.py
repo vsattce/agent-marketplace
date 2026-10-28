@@ -20,6 +20,16 @@ class ReviewModelAdapterTests(ExplicitModelContract, unittest.TestCase):
     required_roles = ("reviewer",)
     usage = REVIEW_MODULE.USAGE
 
+    def test_reviewer_only_accepts_all_role_separators_without_worker(self):
+        for alias in ("reviewer", "review", "r", "check", "REVIEWER", "R"):
+            for separator in ("=", ":", " ", " = ", " : ", "\t"):
+                with self.subTest(alias=alias, separator=separator):
+                    parsed = SELECTOR.parse_arguments(f"{alias}{separator}6luna:high", required_roles=("reviewer",))
+                    self.assertEqual(parsed, {"reviewer": "6luna:high"})
+        for text in ("r:6luna:high REVIEWER 6luna:high", "r 6luna:HIGH", "r:6luna: high", "r:"):
+            with self.subTest(text=text), self.assertRaisesRegex(ValueError, "reviewer=<model>:<effort>"):
+                SELECTOR.parse_arguments(text, required_roles=("reviewer",))
+
     def test_reviewer_only_aliases_need_no_worker_inventory(self):
         for alias in ("reviewer", "review", "r", "check"):
             with self.subTest(alias=alias):

@@ -14,7 +14,16 @@ $dev-review reviewer=6.1-terra:high
 
 使用当前客户端的完整入口名；型号只是示例，必须在当前 Harness 的子代理工具中可用。入口实际必需的参数必须由用户在本次调用中显式提供，每项恰好一次，model 与 effort 均非空。dev-review 不为接口统一强制 worker；兼容旧调用的可选 worker，提供时同样校验，不因此派发执行代理。后续具体流程确需执行型子代理时才显式要求 worker，且不增加现有写入或派发权限。缺必需项立即中断当前 Skill，列出缺项和该入口的正确格式；不得先执行后补参数。重复、非法、旧 `plan / final` 角色或旧强度覆写参数同样 BLOCKED，不混用两套配置。
 
-固定参数别名：worker 接受 `worker / work / w / code`；reviewer 接受 `reviewer / review / r / check`。先归一化，再检查入口必需角色是否齐全；例如 `$dev-delegate w=6-luna:high r=6.1-terra:high`、`$dev-review check=6.1-terra:high` 等价于各自完整格式。内部输出、ledger 和 Harness 派发只使用 worker / reviewer，不产生其他角色。同一角色的多个别名同时出现（包括值相同）立即报重复参数，不按最后一个覆盖；别名区分大小写，不支持其他推断。
+固定参数别名：worker 接受 `worker / work / w / code`；reviewer 接受 `reviewer / review / r / check`。文本角色名不区分大小写，角色与值之间接受 `=`、`:` 或空白，符号两侧允许空白；完整名称与别名规则相同，各参数可混用分隔方式。例如：
+
+| 角色 | 等号分隔 | 冒号分隔 | 空白分隔 |
+| --- | --- | --- | --- |
+| reviewer | `r=6luna:high` | `r:6luna:high` | `r 6luna:high` |
+| worker | `w=6luna:high` | `w:6luna:high` | `w 6luna:high` |
+
+先归一化角色与分隔符，再检查入口必需角色是否齐全；例如 `$dev-delegate W : 6-luna:high reviewer 6.1-terra:high`、`$dev-review check=6.1-terra:high` 等价于各自完整格式。内部输出、ledger 和 Harness 派发只使用 worker / reviewer，不产生其他角色。同一角色的多个别名同时出现（包括大小写或分隔方式不同、值相同）立即报重复参数，不按最后一个覆盖。
+
+只放宽角色与值之间的分隔方式，值内部仍须完整使用 `<model>:<effort>`，不接受内部空白、缺项或额外冒号；model 与 effort 保留原始大小写，不补连字符、不纠正型号或推断强度。表中的 `6luna` 只展示参数语法，是否可用仍由当前 Harness 模型清单决定，不新增模型别名。无法明确解析时 BLOCKED。
 
 `dev-delegate`、`dev-review` 在入口首先校验，早于需求文件读取、报告创建与正式派发。`dev-auto` 会间接委派，必须在读取准备契约、生成 SPEC / PLAN 前完成参数和 Harness 能力校验；将同一对已验证配置传给执行器，不重新选型。`dev-prepare`、`dev-simplify`、`dev-runtime-check` 当前由主模型处理，无子代理时无需参数；如果获准转入会委派的流程，在交接入口先校验本次显式参数。此契约不增加它们派生代理的权限。
 
@@ -57,6 +66,6 @@ Codex 使用 [Codex adapter](codex.md) 及共享 helper；其他 Harness 按对�
 
 dev-review 的 JSON 必填 reviewer、inventory_source、models，无需 worker；可只提供 reviewer 型号的当前名单。
 
-从显式调用提取的模型参数串可用共享 `parse_arguments` 解析；默认两角色必填，dev-review 传 `required_roles=("reviewer",)`。它只接收模型参数，不接收入口名或任务正文，缺项、重复或非法格式抛出带该入口正确格式的 ValueError，调用方必须停止。JSON 参数也接受上述固定别名，归一化后只输出已提供的 worker / reviewer；值直接传相同的 `<model>:<effort>` 字符串，不接受其他角色、默认值或主模型元数据。
+从显式调用提取的模型参数串可用共享 `parse_arguments` 解析；默认两角色必填，dev-review 传 `required_roles=("reviewer",)`。它只接收模型参数，不接收入口名或任务正文，缺项、重复或非法格式抛出带该入口正确格式的 ValueError，调用方必须停止。JSON 协议保持不变，键使用上述小写固定别名，归一化后只输出已提供的 worker / reviewer；值直接传相同的 `<model>:<effort>` 字符串，不接受其他角色、默认值或主模型元数据。
 
 成功退出 0，输出 `status=READY`、已提供角色的 `{model,effort}` 与对应 `display`；reviewer 单参数只输出 reviewer 和一行 display。失败退出 2，输出 `status=BLOCKED`、安全原因和该入口的 `usage`。不回显不可信输入或异常内容。helper 仅校验传入元数据；主模型负责其本轮真实性和实际原生派发参数，不能把 helper READY 当作已启动或已验证真实模型执行。

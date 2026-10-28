@@ -64,7 +64,7 @@ dsh 桌面版使用项目 Skill `$sync-dsh`（Claude / agy 为 `/sync-dsh`），
 
 `dev-prepare` 结合项目规则和现有代码生成 SPEC / PLAN 文件，统一确认一次后结束，不开发；`dev-delegate` 只消费已确定的文件执行 SDD，缺失时提示先准备；`dev-auto` 复用同一准备契约和执行器，自动检查后连续开发，正常需求不确认，仅重大歧义、未授权破坏性操作、安全边界不清允许集中询问一次。始终遵循 `SPEC > PLAN > Coder interpretation`。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code--agy--dsh)。
 
-SPEC / PLAN 默认保存在 `docs/personal-dev/specs/<task-id>-design.md` 和 `docs/personal-dev/plans/<task-id>.md`，单任务也保存，完成后保留。dev-delegate / dev-auto 仍必须显式提供 `worker=<model>:<effort> reviewer=<model>:<effort>`；dev-review 只需 `reviewer=<model>:<effort>`。worker 支持 `worker / work / w / code`，reviewer 支持 `reviewer / review / r / check`，别名归一化且重复报错；dev-auto 在生成文档前校验。执行型用 worker，审查、复验与 Final Reviewer 用 reviewer，主会话模型不变；缺必需参数、不支持型号或 effort 立即停止，不自动选模型或 fallback。
+SPEC / PLAN 默认保存在 `docs/personal-dev/specs/<task-id>-design.md` 和 `docs/personal-dev/plans/<task-id>.md`，单任务也保存，完成后保留。dev-delegate / dev-auto 仍必须显式提供 `worker=<model>:<effort> reviewer=<model>:<effort>`；dev-review 只需 `reviewer=<model>:<effort>`。worker 支持 `worker / work / w / code`，reviewer 支持 `reviewer / review / r / check`，文本角色名不区分大小写，角色和值可用 `=`、`:` 或空白分隔（如 `w:6-luna:high r 6.1-terra:high`），值内部仍为 `<model>:<effort>`。别名归一化且重复报错；dev-auto 在生成文档前校验。执行型用 worker，审查、复验与 Final Reviewer 用 reviewer，主会话模型不变；缺必需参数、不支持型号或 effort 立即停止，不自动选模型或 fallback。
 
 dev-delegate 默认走 `worker → reviewer → 必要修复 → 最终 fresh verification → DONE`，单 worker 顺序执行；有 blocker 通常修一次并复验，持续存在才继续，三轮保留为最大上限。并行、ledger / 恢复、fresh coder 和依赖冻结仅按实际需要启用；ledger 仍在被 Git 忽略的 `.personal-dev/sdd/<task-id>/progress.md`，普通少量串行任务在可写 PLAN 简记进度。主模型始终整体检查并核验最终版本；独立 Final Reviewer 的原有触发条件保留：用户要求、安全权限、并发事务、破坏性迁移或明显公共 API 不兼容风险，不按改动量或复杂度触发。
 

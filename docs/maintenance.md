@@ -61,7 +61,7 @@ agent-marketplace/
 
 五个 Plugin 都提供 Claude Code `.claude-plugin/plugin.json`；Codex 侧除 `agent-manager` 外使用便携 `plugin.json`，该 Plugin 使用原生 `.codex-plugin/plugin.json` 并显式发现 `skills/` 与 `codex-skills/`。`am-context` 放在后者，因此仅 Codex 可发现；`am-config` 仍共享。三个第三方分类另存 `licenses/<name>/`，两个 Marketplace 均指向 `./plugins/<plugin>`。当前 Codex 有 28 个 Skills、Claude Code / agy / dsh 各有 27 个：第三方三类共 20 个，`agent-manager` 分别有 2 / 1 / 1 / 1 个，`personal-dev` 四端各有 6 个。`dev-prepare` / `dev-auto` 复用 `references/preparation.md`；`dev-auto` 直接读取 `dev-delegate` 正文，执行端按 Harness 使用 `references/codex.md` / `references/claude.md` / `references/agy.md` / `references/dsh.md`，Codex 使用现有模型检查器，不新增 Plugin 或调度系统。
 
-`personal-dev` 当前模型规则见[子代理模型契约](../plugins/personal-dev/references/subagent-models.md)：`dev-review` 只必填 `reviewer=<model>:<effort>`，支持 `reviewer / review / r / check`；`dev-delegate` / `dev-auto` 仍必填 worker + reviewer。额外提供的 worker 也须校验。检查器按当前工具元数据校验显式型号和 effort，不自动选型、不 fallback。
+`personal-dev` 当前模型规则见[子代理模型契约](../plugins/personal-dev/references/subagent-models.md)：`dev-review` 只必填 `reviewer=<model>:<effort>`，支持 `reviewer / review / r / check`；`dev-delegate` / `dev-auto` 仍必填 worker + reviewer。额外提供的 worker 也须校验。文本角色与值支持 `=`、`:` 或空白分隔，角色名不区分大小写；共享解析器保留 `<model>:<effort>` 与 JSON 协议。检查器按当前工具元数据校验显式型号和 effort，不自动选型、不 fallback。
 
 执行默认采用短路径：委派为 `worker → reviewer → 必要修复 → 最终 fresh verification → DONE`，审查为 `reviewer → 主模型核验证据 → 输出报告`。普通任务单 worker 顺序执行，普通审查单 reviewer；修复通过即停止，三轮仅是上限。并行、ledger / 恢复、fresh coder、依赖冻结、严重或争议发现的独立复核及重专项验证均按实际需要启用，Final Reviewer 保留原有高风险触发条件。维护时以当前入口、共享契约、adapter 和脚本为准；`docs/superpowers/` 的既有 SPEC / PLAN 保留为阶段记录，当前用法见[使用手册](usage.md#个人开发工具codex--claude-code--agy--dsh)。
 

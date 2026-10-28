@@ -254,6 +254,38 @@ class ModelArgumentsTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "duplicate"):
                         SELECTOR.parse_arguments(f"{text} {duplicate}")
 
+    def test_role_separators_accept_aliases_case_and_surrounding_whitespace(self):
+        separators = ("=", ":", " ", " = ", " : ", "\t")
+        for worker in ("worker", "work", "w", "code", "WORKER", "W"):
+            for reviewer in ("reviewer", "review", "r", "check", "Reviewer", "R"):
+                for worker_separator in separators:
+                    for reviewer_separator in separators:
+                        text = f" \t{reviewer}{reviewer_separator}6luna:high  {worker}{worker_separator}6luna:high\n"
+                        with self.subTest(text=text):
+                            self.assertEqual(SELECTOR.parse_arguments(text), {
+                                "reviewer": "6luna:high", "worker": "6luna:high",
+                            })
+
+    def test_mixed_separators_still_reject_duplicate_normalized_roles(self):
+        for duplicate in ("W:6-luna:high", "work 6-luna:high", "Reviewer : 6.1-terra:high", "R 6.1-terra:high"):
+            with self.subTest(duplicate=duplicate), self.assertRaisesRegex(ValueError, "duplicate"):
+                SELECTOR.parse_arguments(f"w=6-luna:high r:6.1-terra:high {duplicate}")
+
+    def test_relaxed_separators_do_not_relax_values_or_guess_models(self):
+        invalid = ("w::6-luna:high", "w==6-luna:high", "w:=6-luna:high", "worker6-luna:high",
+                   "w 6-luna", "w 6-luna:", "w 6-luna: high", "w 6-luna :high",
+                   "w 6-luna:HIGH", "w 6-luna:high:extra", "w 6-luna:high,r:6.1-terra:high",
+                   "w 6-luna:high task", "plan 6-luna:high", "w", "w:", "w =")
+        for text in invalid:
+            with self.subTest(text=text), self.assertRaises(ValueError):
+                SELECTOR.parse_arguments(f"{text} reviewer:6.1-terra:high")
+        parsed = SELECTOR.parse_arguments("W 6luna:high R:6.1-terra:high")
+        blocked = SELECTOR.select_models(payload_with() | parsed)
+        self.assertEqual(blocked["status"], "BLOCKED")
+        self.assertIn("worker model", blocked["reasons"][0])
+        parsed = SELECTOR.parse_arguments("Worker : 6-luna:high R 6.1-terra:high")
+        self.assertEqual(SELECTOR.select_models(payload_with() | parsed), SELECTOR.select_models(payload_with()))
+
     def test_missing_diagnostic_names_each_missing_parameter(self):
         for text, role in (("worker=6-luna:high", "reviewer"),
                            ("reviewer=6.1-terra:high", "worker")):

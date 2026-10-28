@@ -14,7 +14,7 @@ Only use when explicitly invoked by the user. Codex 使用 `$personal-dev:dev-de
 
 ## 1. 校验需求文件与委派能力
 
-入口首先读取[子代理模型契约](../../references/subagent-models.md)，先归一化固定别名，再校验本次显式 `worker=<model>:<effort> reviewer=<model>:<effort>` 及 Harness 能力；缺任一参数立即中断，列出缺项和正确格式。此检查早于读取需求文件和任何写入，不使用默认值。
+入口首先读取[子代理模型契约](../../references/subagent-models.md)，先归一化角色别名与分隔符，再校验本次显式 `worker=<model>:<effort> reviewer=<model>:<effort>` 及 Harness 能力；缺任一参数立即中断，列出缺项和正确格式。此检查早于读取需求文件和任何写入，不使用默认值。
 
 确认 Harness 与项目规则。Codex 读取 [Codex](../../references/codex.md)，用 `scripts/select_models.py` 校验；Claude Code 读取 [Claude](../../references/claude.md)，agy 读取 [agy](../../references/agy.md)，dsh 读取 [dsh](../../references/dsh.md)，按原生 schema 落实配置，不运行 Codex helper。未知 Harness、缺少委派、配置覆写或干净上下文时 BLOCKED，不安装、改全局配置或由主模型接手编码绕过。
 

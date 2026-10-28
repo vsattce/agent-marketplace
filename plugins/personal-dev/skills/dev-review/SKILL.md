@@ -16,7 +16,7 @@ Only use when the user explicitly invokes this skill. Codex 使用 `$personal-de
 
 ## 1. 先完成一次预检
 
-入口首先读取[子代理模型契约](../../references/subagent-models.md)，归一化 `reviewer / review / r / check` 后校验本次显式 `reviewer=<model>:<effort>`，不要求 worker。缺 reviewer 立即中断，提示缺项和正确格式，早于源码审查、报告创建和任何子代理派发。兼容旧调用显式提供的 worker 时仍校验它，但不因此启动执行代理；后续流程确需执行型子代理时才显式要求 worker，并遵守已有权限边界。
+入口首先读取[子代理模型契约](../../references/subagent-models.md)，归一化角色别名与分隔符后校验本次显式 `reviewer=<model>:<effort>`，不要求 worker。缺 reviewer 立即中断，提示缺项和正确格式，早于源码审查、报告创建和任何子代理派发。兼容旧调用显式提供的 worker 时仍校验它，但不因此启动执行代理；后续流程确需执行型子代理时才显式要求 worker，并遵守已有权限边界。
 
 入口同时确认真实 Harness，不能从模型品牌猜客户端。Codex 读取 [Codex adapter](../../references/codex.md)，用本 Skill 的 `scripts/select_models.py` 调用共享校验器，以 reviewer 为唯一必填角色，核验实际派发名单和强度。Claude Code 读取 [Claude adapter](../../references/claude.md)，agy 读取 [agy adapter](../../references/agy.md)，dsh 桌面版读取 [dsh adapter](../../references/dsh.md)；后三者按原生 schema 落实相同显式配置，不运行 Codex helper。模型、effort 或覆写能力不支持立即中断。其他或未知 Harness `BLOCKED / UNSUPPORTED AGENT`。
 

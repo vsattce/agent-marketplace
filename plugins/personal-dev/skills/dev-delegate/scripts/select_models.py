@@ -15,6 +15,7 @@ _ROLE_ALIASES = {
 }
 _INPUT_FIELDS = {*_ROLE_ALIASES, "inventory_source", "models"}
 _SETTING_RE = re.compile(r"([A-Za-z0-9][A-Za-z0-9._/-]*):([a-z]+)")
+_ARGUMENT_RE = re.compile(r"\s*([A-Za-z]+)(?:\s*[=:]\s*|\s+)(\S+)")
 
 
 def _blocked(reason: str, usage: str = USAGE) -> dict:
@@ -26,11 +27,15 @@ def parse_arguments(arguments: str, *, required_roles: tuple = _ROLES) -> dict:
     usage = " ".join(f"{role}=<model>:<effort>" for role in required_roles)
     if not isinstance(arguments, str):
         raise ValueError(f"model arguments must be text; use {usage}")
+    arguments = arguments.strip()
     roles = {}
-    for token in arguments.split():
-        key, separator, value = token.partition("=")
-        if not separator or key not in _ROLE_ALIASES:
-            raise ValueError(f"unsupported model argument; use {usage}")
+    position = 0
+    while position < len(arguments):
+        match = _ARGUMENT_RE.match(arguments, position)
+        if match is None or match[1].lower() not in _ROLE_ALIASES:
+            raise ValueError(f"unsupported model argument; separate role and value with =, : or whitespace; use {usage}")
+        key, value = match[1].lower(), match[2]
+        position = match.end()
         key = _ROLE_ALIASES[key]
         if key in roles:
             raise ValueError(f"duplicate {key} parameter; use {usage}")
