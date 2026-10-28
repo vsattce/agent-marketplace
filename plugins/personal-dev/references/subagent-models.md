@@ -1,48 +1,36 @@
 # 子代理模型与思考强度契约
 
-所有 personal-dev 自定义 Skills 只维护 `worker`、`reviewer` 两类子代理模型配置；主会话保持用户原本选择的模型与强度，不读取或修改主模型配置来决定子代理。
+所有 personal-dev 入口共用本契约，只维护 `worker`、`reviewer` 两类子代理配置；主会话模型与强度不变，也不用于选型。
 
 ## 显式参数与入口校验
 
-`dev-delegate` / `dev-auto` 显式提供 worker + reviewer，`dev-review` 默认只需 reviewer。规范格式为 `worker=<model>:<effort> reviewer=<model>:<effort>`，也接受下述等价写法：
+`dev-delegate` / `dev-auto` 必填本次显式 worker + reviewer；`dev-review` 只需 reviewer，可选 worker 提供时同样校验，不因此派发执行代理。后续确需执行型子代理才要求 worker，不增加权限。规范格式为 `worker=<model>:<effort> reviewer=<model>:<effort>`，等价写法包括：
 
 ```text
 $dev-delegate w 6luna high r 6.1terra high
 $dev-delegate w 6luna:high r 6.1terra:high
 $dev-delegate w=6luna:high r=6.1terra:high
-$dev-delegate w 6-luna:high r 6.1-terra:high
 $dev-auto worker gpt-6-luna high reviewer gpt-6.1-terra high
 $dev-review reviewer=6.1terra:HIGH
 ```
 
-使用当前客户端的完整入口名；型号只是示例，必须在当前 Harness 的子代理工具中可用。入口实际必需的参数必须由用户在本次调用中显式提供，每项恰好一次，model 与 effort 均非空。dev-review 不为接口统一强制 worker；兼容旧调用的可选 worker，提供时同样校验，不因此派发执行代理。后续具体流程确需执行型子代理时才显式要求 worker，且不增加现有写入或派发权限。缺必需项立即中断当前 Skill，列出缺项和该入口的正确格式；不得先执行后补参数。重复、非法、旧 `plan / final` 角色或旧强度覆写参数同样 BLOCKED，不混用两套配置。
+入口名按当前客户端使用，型号仅作示例。worker 别名为 `worker / work / w / code`，reviewer 为 `reviewer / review / r / check`，不区分大小写；角色与值用 `=`、`:` 或空白分隔，值用 `<model>:<effort>` 或 `<model> <effort>`，符号两侧可有空白，各参数可混用。输出、ledger、派发只使用两个规范角色名。
 
-固定参数别名：worker 接受 `worker / work / w / code`；reviewer 接受 `reviewer / review / r / check`。文本角色名不区分大小写，角色与值之间接受 `=`、`:` 或空白，符号两侧允许空白；完整名称与别名规则相同，各参数可混用分隔方式。例如：
+每项恰好一次且 model / effort 非空；同一角色的别名重复，即使值相同也 BLOCKED，不覆盖。缺项、额外值、非法或歧义参数、旧 `plan / final` 角色与旧强度覆写参数均 BLOCKED，列出安全原因、缺项及入口规范格式。
 
-| 角色 | 等号分隔 | 冒号分隔 | 空白分隔 |
-| --- | --- | --- | --- |
-| reviewer | `r=6luna:high` | `r:6luna:high` | `r 6luna:high` |
-| worker | `w=6luna:high` | `w:6luna:high` | `w 6luna:high` |
-
-值接受 `<model>:<effort>` 或 `<model> <effort>`，冒号两侧允许空白，各参数可混用。例如 `$dev-delegate W : 6luna high reviewer 6.1terra:high`、`$dev-review check=6.1terra:H` 等价于各自规范格式。内部输出、ledger 和 Harness 派发只使用 worker / reviewer，不产生其他角色。同一角色的多个别名同时出现（包括大小写或分隔方式不同、值相同）立即报重复参数，不按最后一个覆盖。
-
-三个入口共用本契约，执行顺序为：解析角色 / model / effort → 常见格式归一化 → 与当前 Harness 实际模型唯一匹配 → 校验该型号的 effort → 展示精确配置并执行。语义明确的格式差异不构成 BLOCKED；缺项、重复、额外值或无法明确解析的参数仍 BLOCKED。
-
-`dev-delegate`、`dev-review` 在入口首先校验，早于需求文件读取、报告创建与正式派发。`dev-auto` 会间接委派，必须在读取准备契约、生成 SPEC / PLAN 前完成参数和 Harness 能力校验；将同一对已验证配置传给执行器，不重新选型。`dev-prepare`、`dev-simplify`、`dev-runtime-check` 当前由主模型处理，无子代理时无需参数；如果获准转入会委派的流程，在交接入口先校验本次显式参数。此契约不增加它们派生代理的权限。
-
-模型参数从本次调用中提取，与任务描述分开；不能从示例、PLAN、旧 ledger、缓存、默认配置或历史会话补值。恢复时重新校验本次显式配置；已有代理配置与之不一致则停止续接，说明差异，不偷偷沿用旧配置。保留修复计数、证据和运行中代理状态。
+参数仅从本次调用提取，与任务正文分开；不从示例、PLAN、历史会话、ledger、缓存或默认配置补值。dev-delegate / dev-review 在读取需求或源码、创建报告和派发前校验；dev-auto 在读取准备契约及生成 SPEC / PLAN 前校验，将同一对已验证配置传给执行器。dev-prepare / dev-simplify / dev-runtime-check 无子代理时无需参数，获准转入委派时才在交接入口校验。
 
 ## 当前 Harness 校验
 
-以本轮实际子代理工具的模型名单、每个型号支持的 effort 以及可用覆写参数为依据，核验入口必需及额外显式提供的配置。dev-review 只传 reviewer 时无需 worker 型号或执行能力。宽松解析只归一化以下形式，最终执行始终使用当前清单返回的精确 ID 和 effort：
+顺序固定为：解析角色 / model / effort → 常见格式归一化 → 与本轮实际子代理模型清单唯一匹配 → 校验该型号的 effort → 展示精确配置并执行。语义明确的格式差异不阻塞：
 
-- 模型名不区分大小写。对完整的数字版本 + 系列名称，允许省略 `gpt` 前缀，以及前缀后、版本与系列之间的连字符；`6luna / 6-luna / gpt6luna / gpt-6-luna` 归为同一键，`6.1terra / 6.1-terra / gpt6.1terra / gpt-6.1-terra` 同理。版本中的小数点和完整系列名称保留；其他原生模型名仅忽略大小写，不作模糊匹配。
-- 请求与当前清单按相同规则归一化，必须恰好命中一个实际 ID。零命中或多个 ID 归一化重名均 BLOCKED，不能用 effort、精确拼写优先级、最新版本或能力排序消除歧义。`terra` 不补版本；当前有多个 Terra 型号时仍 BLOCKED。
-- effort 不区分大小写，仅额外支持 `h → high`、`m → medium`；归一化后必须唯一匹配所选型号支持的 effort。不推断缺失强度，不把非法值换成其他等级，也不换一个支持该强度的模型。
+- 模型忽略大小写；完整数字版本 + 系列名可省略 `gpt` 前缀及前缀后、版本与系列间的连字符。`6luna / 6-luna / gpt6luna / gpt-6-luna` 同键，`6.1terra / 6.1-terra / gpt6.1terra / gpt-6.1-terra` 同理。保留小数点与完整系列名；其他原生 ID 仅忽略大小写，不模糊匹配或为 `terra` 补版本。
+- 请求和清单用相同归一化规则，必须恰好命中一个实际 ID；零命中或重名均 BLOCKED，不以 effort、精确拼写优先级、代际、价格、能力或最新版本挑型号。
+- effort 忽略大小写，仅额外支持 `h → high`、`m → medium`；必须唯一匹配所选型号支持的值，不推断缺项、不把非法值替换为其他等级、不换模型满足强度。
 
-缺少模型名单、effort 支持证据、独立上下文或实际覆写能力时，立即 BLOCKED，说明具体 Harness、角色与缺失能力。模型不可用或 effort 不支持时同样中断；不替换模型、不升降 effort、不继承原生默认、不交由主模型代做。原生调用拒绝或返回不同的实际配置时停止该流程，报告请求值与失败原因；不重试另一配置、不修改全局设置或嵌套客户端补能力。
+校验所有必需及额外提供的角色，依据必须是本轮工具的型号、各型号 effort 和覆写能力；reviewer 单参数无需 worker 型号或执行能力。缺少名单、支持证据、独立上下文或实际覆写能力，型号不可用或 effort 不支持，均立即 BLOCKED，说明 Harness、角色与缺口。不替换模型、不升降 effort、不 fallback、不继承默认或由主模型代做；不改全局设置、嵌套客户端补能力。原生拒绝或返回不同配置时停止，报告请求值与原因，不重试另一配置。
 
-Codex 使用 [Codex adapter](codex.md) 及共享 helper；其他 Harness 按对应 adapter 和本轮 schema 做等价校验，无需 Python。校验成功后只展示已提供角色的 `worker 模型：<实际 ID>｜思考强度：<effort>` / `reviewer 模型：<实际 ID>｜思考强度：<effort>`，直接执行，已有明确参数不再询问确认。
+Codex 的共享 helper 协议见 [Codex adapter](codex.md#模型校验与显示)；其他 Harness 按各自 adapter 与本轮原生 schema 等价校验，不运行该 Python helper。成功后只展示已提供角色的 `<角色> 模型：<实际 ID>｜思考强度：<effort>`，使用当前清单的精确值直接执行，不再确认。
 
 ## 所有子代理的传递规则
 
@@ -51,28 +39,6 @@ Codex 使用 [Codex adapter](codex.md) 及共享 helper；其他 Harness 按对�
 | 写代码、搜索/读取文件、查引用、执行命令、修改配置、补测试、初次 Coder、修复与按需 fresh coder | `worker` |
 | 代码审查、SPEC / PLAN 符合性、验证结果与回归风险检查、独立检查、任务验收、复验、Final Reviewer | `reviewer` |
 
-多个并行 Worker 共享同一 worker 配置，多个 Reviewer 共享同一 reviewer 配置。按任务职责选这两个键，不能为规划、审查、终审或某一轮修复另建模型角色。Reviewer 检查验证证据；需要执行有副作用的验证时仍交主模型安排 Worker。配置一致不代表复用上下文：现有独立验收、只读权限、禁止子代理再派生、并行范围与槽位限制全部保留。
+同角色的并行、新建、重建、修复及 Final Reviewer 均用同一配置，不新增规划 / 终审专用角色。Reviewer 检查验证证据，有副作用的验证由主模型安排 Worker；困难审查先补证据和裁决，不自动升级强度。独立验收、只读、禁止子代理再派生、并行范围及槽位限制仍适用。
 
-新建、重建和恢复代理均须落实对应配置。Final Reviewer 使用 reviewer，困难审查先补证据并按既有规则裁决，不自动升级思考强度。fresh coder 只在原代理不可恢复、上下文失效或同根因反复无进展时启用，使用同一 worker，不按第三轮机械换人；三轮上限、失败隔离能力和终审触发条件不变。
-
-## Python helper 协议
-
-共享实现为 `skills/dev-delegate/scripts/select_models.py`，dev-auto 复用它，dev-review 的同名脚本调用它并指定 `required_roles=("reviewer",)`，无独立解析或选型规则。dev-delegate 的 JSON stdin 必填：
-
-```json
-{
-  "worker": "6luna high",
-  "reviewer": "6.1terra:HIGH",
-  "inventory_source": "current-spawn-tool",
-  "models": [
-    {"id": "gpt-6-luna", "efforts": ["high"]},
-    {"id": "gpt-6.1-terra", "efforts": ["high"]}
-  ]
-}
-```
-
-dev-review 的 JSON 必填 reviewer、inventory_source、models，无需 worker；可只提供 reviewer 型号的当前名单。
-
-从显式调用提取的模型参数串统一使用共享 `parse_arguments` 解析；默认两角色必填，dev-review 传 `required_roles=("reviewer",)`。它只接收模型参数，不接收入口名或任务正文，将两种值分隔方式整理为 `<model>:<effort>`；缺项、重复或非法格式抛出带该入口规范格式的 ValueError，调用方必须停止。再将解析结果与本轮清单交给共享 `select_models`，执行模型与 effort 归一化和严格校验。JSON 字段协议保持不变，键使用上述小写固定别名，角色值也接受空白分隔，结果只输出已提供的 worker / reviewer；不接受其他角色、默认值或主模型元数据。
-
-成功退出 0，输出 `status=READY`、已提供角色的 `{model,effort}` 与对应 `display`；reviewer 单参数只输出 reviewer 和一行 display。失败退出 2，输出 `status=BLOCKED`、安全原因和该入口的 `usage`。不回显不可信输入或异常内容。helper 仅校验传入元数据；主模型负责其本轮真实性和实际原生派发参数，不能把 helper READY 当作已启动或已验证真实模型执行。
+恢复时重新校验本次显式配置并与已有代理核对；不一致或无法核验则停止续接并说明。保留累计修复次数、证据和运行中代理状态，fresh coder 条件、三轮预算、失败隔离及终审条件依入口契约，不因配置归一化改变。

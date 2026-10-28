@@ -1,18 +1,36 @@
 # Codex 委派适配
 
-仅用于已确认的 Codex Harness。入口首先遵守[子代理模型契约](subagent-models.md)：dev-delegate / dev-auto 校验显式 worker + reviewer，dev-review 只要求 reviewer，额外提供 worker 时同样校验；主会话模型保持用户原本选择，不取主模型身份或 effort 来选子代理。
+仅用于已确认的 Codex Harness，先读[子代理模型契约](subagent-models.md)：dev-delegate / dev-auto 必填 worker + reviewer，dev-review 只要求 reviewer；额外 worker 同样校验。
 
 ## 模型校验与显示
 
-根据本轮派发工具声明整理实际模型 ID 与各型号支持的 effort。网页、缓存和默认配置不能替代当前允许名单；工具不支持显式覆写模型或 reasoning_effort 时立即 BLOCKED。
+根据本轮派发工具声明整理实际 ID、各型号 effort 及覆写字段，网页、缓存和默认配置不能替代。缺少 model / reasoning_effort 覆写或独立上下文时 BLOCKED。
 
-三个入口统一使用共享 `skills/dev-delegate/scripts/select_models.py` 的解析与校验；dev-auto 复用它，dev-review 的同名 helper 调用它并指定 reviewer 为唯一必填角色。JSON 必填入口所需角色（各为 `<model>:<effort>` 或 `<model> <effort>` 字符串）、inventory_source=current-spawn-tool、models（每项含 id 与 efforts）；reviewer 单参数无需 worker 型号或执行能力。按共享契约归一化常见模型格式、大小写及 effort 简写后，必须唯一匹配当前实际型号并校验该型号支持的 effort；派发只取返回的精确值。不排序或自动挑型号，不接受主模型、旧角色与终审专用参数。
+三个入口共用 `skills/dev-delegate/scripts/select_models.py`；dev-auto 复用它，dev-review 的同名脚本调用它并传 `required_roles=("reviewer",)`。文本参数先用共享 `parse_arguments`，只传模型参数、不传入口名或任务正文；默认两角色必填，dev-review 传上述 required_roles。它整理值为 `<model>:<effort>`；缺项、重复或非法格式抛出含入口规范格式的 ValueError，必须停止。
 
-用符合环境规则的现有 Python，不安装依赖、不修改目标项目运行时、PATH 或全局配置。解释器缺失时 BLOCKED。退出 0 且 READY 才能派发，原样展示返回的已提供角色 display；退出 2 或 BLOCKED 立即停止，不补默认值或换配置。helper 只校验元数据，不能代替主模型核验来源或落实派发。
+将解析结果与本轮清单交给共享 `select_models`，或用以下 JSON stdin 协议运行对应入口脚本：
+
+```json
+{
+  "worker": "6luna high",
+  "reviewer": "6.1terra:HIGH",
+  "inventory_source": "current-spawn-tool",
+  "models": [
+    {"id": "gpt-6-luna", "efforts": ["high"]},
+    {"id": "gpt-6.1-terra", "efforts": ["high"]}
+  ]
+}
+```
+
+角色键用规范名或契约中的小写别名，值为 `<model>:<effort>` / `<model> <effort>`；models 每项仅含 id 与 efforts。不接受协议外字段、角色、默认值或主模型元数据。reviewer 单参数只需 reviewer、inventory_source、models，可只列其型号，无需 worker 或执行能力。
+
+成功退出 0，返回 status=READY、已提供角色的 `{model,effort}` 与 display；reviewer 单参数只输出 reviewer 和一行 display。失败退出 2，返回 status=BLOCKED、安全原因及入口 usage，不回显不可信输入或异常。退出 0 且 READY 才按返回精确值展示并派发；helper 仅校验元数据，主模型仍核验来源和原生调用，READY 不代表已启动或已验证真实执行。
+
+使用符合环境规则的现有 Python；缺失则 BLOCKED。不安装依赖或改变项目运行时、PATH、全局配置。
 
 ## 所有角色的原生参数
 
-执行型（Coder、搜索/文件读取、引用查询、命令、配置、补测试和修复）均取结果 `worker`；判断型（代码审查、SPEC / PLAN 检查、验证结果检查、回归风险、独立验收、复验、Final Reviewer）均取结果 `reviewer`。每次原生 spawn 都显式传：
+角色按模型契约确定，role 仅为 worker / reviewer 配置键，不猜造 agent_type。每次原生 `spawn_agent` 都显式传：
 
 ```text
 model = result[role]["model"]
@@ -20,20 +38,12 @@ reasoning_effort = result[role]["effort"]
 fork_turns = "none"
 ```
 
-其中 role 只能是 worker 或 reviewer。多个并行 Worker 使用同一 worker；多个 Reviewer 使用同一 reviewer。role 是配置键，不猜造原生 agent_type。需要覆写时使用干净上下文；当前工具不支持这些必要参数或独立上下文则 BLOCKED。原生拒绝请求或实际返回配置不一致立即停止，不忽略参数、不降低 effort、不继承主模型、不嵌套 Codex CLI。
-
-Final Reviewer 仅按主 Skill 条件启动，固定使用同一 reviewer，不做会话低一档或思考升级。fresh coder 仅按角色契约需要启用，固定使用同一 worker。继续原代理前核对已有配置与本次显式配置一致；无法确认或不一致就停止续接并说明，不能默认沿用。新建代理仍保留修复计数与证据。
+新代理用干净上下文，支持 fork_turns 时固定为 none；缺所需参数或原生拒绝、返回配置不一致即停止，按模型契约报告，不忽略配置或嵌套 Codex CLI。
 
 ## 派发与继续
 
-以本轮工具声明为准，使用原生 `spawn_agent`，显式传校验结果的 `model` 与 `reasoning_effort`；新代理使用干净上下文，支持 `fork_turns` 时传 `"none"`。没有所需能力则 `BLOCKED`，不嵌套启动 Codex CLI。
+V2 原编码代理返工优先用 `followup_task`，运行中补充信息用 `send_message`；V1 / 其他接口按实际声明用 resume / follow-up。等待、状态、中断用当前 wait / list / interrupt 工具，不编造参数或用 Codex 聊天管理工具创建用户可见新聊天替代子代理。
 
-V2 原编码代理返工优先用 `followup_task`，运行中补充信息可用 `send_message`；V1 或其他接口按实际声明使用 resume / follow-up，不编造参数。等待、状态和中断分别用当前可用的 wait / list / interrupt 工具。仅原代理不可恢复、上下文失效或同根因反复无进展时用 fresh coder 重建精简上下文，累计修复次数不清零。不得用 Codex 聊天管理工具创建用户可见的新聊天来替代子代理。
+dev-delegate 默认单 worker 顺序执行；仅按共享编排安全条件并行，先启动本批再等待，使用实际槽位，不改配置补能力。dev-review 默认单 reviewer，主模型核证出报告，严重或争议发现再独立复核。
 
-`dev-delegate` 默认单 worker 顺序执行；仅多个独立任务确有并行收益或用户要求且安全条件满足时，按共享编排并行，先启动本批再等待。仅使用本轮已确认的原生能力和实际槽位，不改配置补能力。ledger 按调度或恢复需要启用，记录 Agent/task id、实际配置、阶段及轮次；普通少量串行任务在可写 PLAN 简记。恢复先核对当前代理状态，不能因通知延迟再派发重叠写代理。dev-review 默认单 reviewer，主模型核证后出报告，严重或争议发现再独立复核。模型选择与覆写策略保持不变。
-
-当前 CLI 包装与加载证据记在 [维护指南](../../../docs/maintenance.md)；实际模型权限、额度与委派接口仍按本轮工具核对。
-
-## dev-delegate 的按需修复
-
-通常修一次并复验，持续存在 blocker 才继续，最多三轮；fresh coder 按角色契约需要启用并使用同一 worker。复验和 Final Reviewer 使用同一 reviewer，不自动改变模型或 effort。
+fresh coder、Final Reviewer、修复预算及 ledger 沿用入口契约。记录实际 Agent/task id、配置、阶段与轮次于可写 PLAN 或按需 ledger；恢复先核对当前配置与代理状态，保留计数和证据，通知延迟时不派发重叠写代理。CLI 包装与加载证据见[维护指南](../../../docs/maintenance.md)，实际权限、额度及接口仍按本轮工具核对。

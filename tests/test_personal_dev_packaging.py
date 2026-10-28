@@ -144,7 +144,8 @@ class PersonalDevPackagingTests(unittest.TestCase):
         self.assertTrue(orchestration.is_file())
         sources = [PLUGIN / "skills" / name / "SKILL.md" for name in DEVELOPMENT_SKILLS]
         sources += [orchestration, SKILL / "references/roles.md",
-                    PLUGIN / "references/preparation.md", PLUGIN / "references/artifacts.md"]
+                    PLUGIN / "references/preparation.md", PLUGIN / "references/artifacts.md",
+                    PLUGIN / "references/subagent-models.md"]
         for source in sources:
             references = re.findall(r"\[[^\]]+\]\(([^)]+\.md)(?:#[^)]*)?\)", source.read_text(encoding="utf-8"))
             self.assertTrue(references, source)
@@ -198,10 +199,32 @@ class PersonalDevPackagingTests(unittest.TestCase):
                 for value in (frontmatter["description"], metadata["interface"]["display_name"],
                               metadata["interface"]["short_description"]):
                     self.assertRegex(value, r"[\u4e00-\u9fff]")
-                # Protect against the observed native Codex 8000-byte prefix boundary.
-                self.assertLessEqual(len(source.read_bytes()), 8000)
+                # Reserve headroom for the delegate entry below the observed
+                # native Codex 8000-byte prefix boundary, including CRLF checkouts.
+                byte_limit = 6000 if name == "dev-delegate" else 8000
+                self.assertLessEqual(len(source.read_bytes()), byte_limit)
                 self.assertLessEqual(len(source.read_text(encoding="utf-8")
-                                         .replace("\n", "\r\n").encode("utf-8")), 8000)
+                                         .replace("\n", "\r\n").encode("utf-8")), byte_limit)
+
+    def test_codex_helper_protocol_example_uses_the_shared_validator(self):
+        from test_personal_dev import SELECTOR
+
+        adapter = (PLUGIN / "references/codex.md").read_text(encoding="utf-8")
+        example = re.search(r"```json\n(.*?)\n```", adapter, re.DOTALL)
+        self.assertIsNotNone(example)
+        payload = json.loads(example[1])
+        for required_roles in (("worker", "reviewer"), ("reviewer",)):
+            with self.subTest(required_roles=required_roles):
+                request = {key: value for key, value in payload.items()
+                           if key != "worker" or "worker" in required_roles}
+                result = SELECTOR.select_models(request, required_roles=required_roles)
+                self.assertEqual(result["status"], "READY")
+                self.assertEqual(set(result), {"status", "display", *required_roles})
+                for role in required_roles:
+                    self.assertEqual(result[role], {
+                        "model": "gpt-6-luna" if role == "worker" else "gpt-6.1-terra",
+                        "effort": "high",
+                    })
 
     def test_auto_routes_to_shared_preparation_and_the_existing_executor(self):
         auto = PLUGIN / "skills/dev-auto"
