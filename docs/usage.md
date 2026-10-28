@@ -6,7 +6,7 @@
 
 当前支持 Codex、Claude Code、Antigravity CLI（agy）与 DeepSeek Harness 桌面版（dsh）。安装与作用域边界分别见 [agy 说明](#antigravity-cliagy)和 [dsh 桌面版说明](#deepseek-harness-桌面版dsh)。
 
-产品目录共有 **5 个 Plugin**；Codex 共 **28 个 Skills**，Claude Code / agy / dsh 各有 **27 个**。dsh 通过一个原生 Skill provider 加载产品包内容。三个第三方聚合 Plugin 收录 20 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，Claude Code / agy / dsh 各有 1 项，`personal-dev` 各端各有 6 项。第三方来源、作者与许可证边界见 [README](../README.md)。
+产品目录共有 **5 个 Plugin**；Codex 共 **29 个 Skills**，Claude Code / agy / dsh 各有 **28 个**。dsh 通过一个原生 Skill provider 加载产品包内容。三个第三方聚合 Plugin 收录 21 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，Claude Code / agy / dsh 各有 1 项，`personal-dev` 各端各有 6 项。第三方来源、作者与许可证边界见 [README](../README.md)。
 
 ## 日常调用
 
@@ -21,7 +21,7 @@
 
 可用入口以当前会话实际显示的清单为准。Skill 改名发布后，刷新客户端安装副本并开启新会话或重载 Plugin；旧完整调用名不作为别名保留。
 
-**仅手动调用**：`handoff`、`grill-me`、`grill-with-docs`、`improve-codebase-architecture`、`agent-manager` 和 `personal-dev` 中的 Skills。其他 Skill 可在任务匹配时由 Agent 选用，也可手动指定；自动选用不保证每次发生，启用 Plugin 不会自行执行任务。
+**仅手动调用**：`setup-matt-pocock-skills`、`handoff`、`grill-me`、`grill-with-docs`、`improve-codebase-architecture`、`agent-manager` 和 `personal-dev` 中的 Skills。其他 Skill 可在任务匹配时由 Agent 选用，也可手动指定；自动选用不保证每次发生，启用 Plugin 不会自行执行任务。
 
 例如在 Codex 中：
 
@@ -36,6 +36,7 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 
 | Plugin | Skill | 用途 | 调用方式 |
 | --- | --- | --- | --- |
+| common-workflow | setup-matt-pocock-skills | 首次使用 Matt Pocock 工程 Skills 前，配置项目的问题跟踪方式、分诊标签与领域文档布局 | 用户主动（仅手动） |
 | common-workflow | handoff | 整理进度、决定和后续工作，供新会话接续 | 仅手动 |
 | common-workflow | diagnosing-bugs | 排查复杂 Bug、报错、故障和性能回归 | 任务匹配 / 手动 |
 | common-workflow | codebase-design | 使用深模块原则设计接口、确定可替换与可测试的边界 | 任务匹配 / 手动 |
@@ -66,6 +67,8 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 | personal-dev | dev-runtime-check | 使用当前 Harness 原生 Shell / SSH 对指定远端主机、容器或服务取证；默认只读 | 仅手动 |
 
 `grill-with-docs` 调用 `grilling` + `domain-modeling`；`improve-codebase-architecture` 调用 `codebase-design` + `grilling` + `domain-modeling`。这些依赖全部在同一 Plugin，安装 `common-workflow` 即包含完整目录和资源。`grill-me` 仅调用 `grilling`。三个入口保留上游的 `disable-model-invocation: true` 与 `allow_implicit_invocation: false`；依赖保留上游可由模型调用的策略与描述，不额外限制其触发条件。
+
+`setup-matt-pocock-skills` 同样保留上游仅手动调用策略，用于初始化目标项目的工程 Skill 配置；先检查现状并确认草稿，再写入问题跟踪与领域文档约定。仅在目标项目已安装 `triage` 时配置分诊标签。安装此 Skill 不会自动运行初始化；执行时遵守目标项目规则，例如本仓库的 `CLAUDE.md` 仅导入 `AGENTS.md`。
 
 `java-spring-boot` 已替换为 GitHub `awesome-copilot` 的 `java-springboot`，调用名同步改为 `$software-dev:java-springboot` / `/software-dev:java-springboot`。
 

@@ -3,6 +3,10 @@ groups:
   common-workflow:
     displayName: 通用工作流
     skills:
+      - name: setup-matt-pocock-skills
+        repo: mattpocock/skills
+        path: skills/engineering/setup-matt-pocock-skills
+        ref: main
       - name: handoff
         repo: mattpocock/skills
         path: skills/productivity/handoff

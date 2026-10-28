@@ -89,8 +89,8 @@ class PackagingTests(unittest.TestCase):
             count += len(list((root / "skills").glob("*/SKILL.md")))
             codex_count += len(list((root / "skills").glob("*/SKILL.md")))
             codex_count += len(list((root / "codex-skills").glob("*/SKILL.md")))
-        self.assertEqual(count, 27)
-        self.assertEqual(codex_count, 28)
+        self.assertEqual(count, 28)
+        self.assertEqual(codex_count, 29)
         software = next(entry for entry in claude["plugins"] if entry["name"] == "software-dev")
         software_manifest = json.loads((ROOT / "plugins/software-dev/.claude-plugin/plugin.json").read_text(encoding="utf-8"))
         codex_software = next(entry for entry in codex["plugins"] if entry["name"] == "software-dev")
@@ -168,9 +168,13 @@ class PackagingTests(unittest.TestCase):
         plugin = ROOT / "plugins/common-workflow"
         sources = yaml.safe_load((ROOT / "sources.yaml").read_text("utf-8"))["groups"]
         common_sources = sources["common-workflow"]["skills"]
-        self.assertEqual(len(common_sources), 12)
+        self.assertEqual(len(common_sources), 13)
         self.assertEqual(sum(item["name"] == "codebase-design" for item in common_sources), 1)
         expected = {
+            "setup-matt-pocock-skills": ("engineering", {
+                "SKILL.md", "agents/openai.yaml", "domain.md", "issue-tracker-github.md",
+                "issue-tracker-gitlab.md", "issue-tracker-local.md", "triage-labels.md",
+            }),
             "grill-with-docs": ("engineering", {"SKILL.md", "agents/openai.yaml"}),
             "improve-codebase-architecture": ("engineering", {"SKILL.md", "agents/openai.yaml", "HTML-REPORT.md"}),
             "grilling": ("productivity", {"SKILL.md", "agents/openai.yaml"}),
@@ -199,10 +203,10 @@ class PackagingTests(unittest.TestCase):
                 metadata = yaml.safe_load(text.split("---", 2)[1])
                 policy = yaml.safe_load((directory / "agents/openai.yaml").read_text("utf-8"))
                 self.assertEqual(metadata["name"], name)
-                if name in dependencies:
+                if name in dependencies or name == "setup-matt-pocock-skills":
                     self.assertIs(metadata["disable-model-invocation"], True)
                     self.assertIs(policy["policy"]["allow_implicit_invocation"], False)
-                    for dependency in dependencies[name]:
+                    for dependency in dependencies.get(name, set()):
                         self.assertIn(f'"{dependency}"', text)
                         entry = plugin / "skills" / dependency / "SKILL.md"
                         dependency_metadata = yaml.safe_load(entry.read_text("utf-8").split("---", 2)[1])
@@ -211,6 +215,8 @@ class PackagingTests(unittest.TestCase):
                     self.assertNotIn("disable-model-invocation", metadata)
                     self.assertTrue(policy.get("policy", {}).get("allow_implicit_invocation", True))
                 for target in re.findall(r"\]\(([^)\s]+)\)", text):
+                    if "://" in target or target.startswith("#"):
+                        continue
                     self.assertTrue((directory / target).is_file(), target)
         manifest = json.loads((plugin / "plugin.json").read_text("utf-8"))
         catalog = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text("utf-8"))

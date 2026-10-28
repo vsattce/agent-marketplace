@@ -4,7 +4,7 @@
 
 代码托管使用 [Gitee](https://gitee.com/vsattce/agent-marketplace) 和 [GitHub](https://github.com/vsattce/agent-marketplace) 双远端：`origin` 为 Gitee（`git@gitee.com:vsattce/agent-marketplace.git`），`github` 为 GitHub（`git@github.com:vsattce/agent-marketplace.git`）。提交后优先推送 Gitee，再推送 GitHub；GitHub 推送失败不阻塞任务。提交、推送与拉取约定见 [AGENTS.md](AGENTS.md#仓库维护规则)。
 
-产品目录包含 **5 个 Plugin**；Codex 有 **28 个 Skills**，Claude Code / agy / dsh 各有 **27 个**。以上为仓库产品入口数量，不代表当前会话已加载。dsh 使用一个原生 Skill provider 加载五个产品包的内容与资源。三个第三方聚合 Plugin 共 20 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，其他三端各有 1 项，`personal-dev` 四端各有 6 项。
+产品目录包含 **5 个 Plugin**；Codex 有 **29 个 Skills**，Claude Code / agy / dsh 各有 **28 个**。以上为仓库产品入口数量，不代表当前会话已加载。dsh 使用一个原生 Skill provider 加载五个产品包的内容与资源。三个第三方聚合 Plugin 共 21 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，其他三端各有 1 项，`personal-dev` 四端各有 6 项。
 
 `software-dev` 收录第三方上游项目的 Skills，仅供个人使用与整理；原作者署名、上游内容及许可证均按原样保留。该说明只适用于 `software-dev`；`agent-manager` 和 `personal-dev` 是本仓库自有并直接维护的 Plugin。
 
@@ -12,7 +12,7 @@
 
 | Plugin | 用途 | Skills |
 | --- | --- | --- |
-| `common-workflow` | 通用工作流 | handoff、diagnosing-bugs、codebase-design、grill-with-docs、improve-codebase-architecture、grilling、grill-me、domain-modeling、tdd、research、writing-for-agents、find-skills |
+| `common-workflow` | 通用工作流 | setup-matt-pocock-skills、handoff、diagnosing-bugs、codebase-design、grill-with-docs、improve-codebase-architecture、grilling、grill-me、domain-modeling、tdd、research、writing-for-agents、find-skills |
 | `software-dev` | 软件开发 | frontend-design、web-design-guidelines、vue、fastapi、java-springboot |
 | `engineering-tools` | 跨技术栈工程工具 | docker-build-strategies、docker-compose-patterns、playwright-cli |
 | `agent-manager` | Agent 管理工具 | am-config；am-context（仅 Codex） |
@@ -38,6 +38,7 @@ dsh 桌面版使用项目 Skill `$sync-dsh`（Claude / agy 为 `/sync-dsh`），
 
 | 操作 | Codex | Claude Code |
 | --- | --- | --- |
+| 初始化 Matt Pocock 工程 Skills 的项目配置 | `$common-workflow:setup-matt-pocock-skills` | `/common-workflow:setup-matt-pocock-skills` |
 | 使用 Vue 3 基础 Skill | `$software-dev:vue` | `/software-dev:vue` |
 | 使用 FastAPI Skill | `$software-dev:fastapi` | `/software-dev:fastapi` |
 | 使用 Docker 构建策略 | `$engineering-tools:docker-build-strategies` | `/engineering-tools:docker-build-strategies` |
