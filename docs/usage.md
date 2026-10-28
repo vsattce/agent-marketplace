@@ -100,6 +100,8 @@ dev-delegate / dev-auto 须同时显式提供 worker + reviewer；dev-review 默
 
 三个入口共用[子代理模型契约](../plugins/personal-dev/references/subagent-models.md)：角色、model 和 effort 不区分大小写；`6luna / 6-luna / gpt6luna / gpt-6-luna` 可唯一匹配当前的 `gpt-6-luna`，`6.1terra` 等形式同理；effort 额外支持 `h → high`、`m → medium`。归一化只处理格式，仍保留完整版本和系列名；`terra` 不补版本，不按能力或最新型号猜测。匹配必须唯一，且该型号确实支持所请求 effort；派发使用当前清单的精确值。非法、歧义、重复或缺项立即中断，不替换模型或升降 effort。
 
+若上述简写仍被旧的严格格式规则拦截，按[安装与更新](#安装与更新)刷新 `personal-dev` 安装副本至 `0.9.3` 或更新版本，再新建聊天；界面未刷新时重开客户端。仓库源码与安装缓存是独立副本，以新会话实际加载的正文为准。
+
 dev-auto 在生成 SPEC / PLAN 前校验并传递同一对配置；dev-review 兼容额外提供的 worker，提供时仍校验，后续流程确需执行型子代理才显式要求它，不因此扩权。dev-prepare、dev-simplify、dev-runtime-check 当前无子代理时无需参数，转入委派时在交接入口校验。执行型工作统一 worker；审查、符合性、验证结果、回归风险、独立复核和 Final Reviewer 统一 reviewer。并行代理按角色共用配置，主会话模型不变。
 
 模型及 effort 必须在当前 Harness 的原生工具中可用且能显式落实，不支持立即说明原因并中断，不自动选型号、推断或升降强度、替换模型或继承默认。当前 Agent 不提供 effort 覆写字段时同样中断；这可能使该 Harness 的委派流程暂不可用，无子代理的入口仍可使用。四端策略和 helper 协议见[子代理模型契约](../plugins/personal-dev/references/subagent-models.md)，工具字段按 [Codex](../plugins/personal-dev/references/codex.md)、[Claude](../plugins/personal-dev/references/claude.md)、[agy](../plugins/personal-dev/references/agy.md)、[dsh](../plugins/personal-dev/references/dsh.md) 适配，派发前展示实际配置后直接执行，不修改全局配置。

@@ -14,7 +14,7 @@ disable-model-invocation: true
 
 ## 1. 校验需求文件与委派能力
 
-入口首先读取[子代理模型契约](../../references/subagent-models.md)，按共享规则校验本次显式 `worker=<model>:<effort> reviewer=<model>:<effort>`，接受等价写法。缺任一参数立即中断，列出缺项和规范格式；模型与 Harness 校验须早于需求文件读取和任何写入。
+入口首先读取[子代理模型契约](../../references/subagent-models.md)，按共享规则校验本次显式 `worker=<model>:<effort> reviewer=<model>:<effort>`，接受 `w 6luna high r 6.1terra high` 等简写，先归一化再校验，不因空格或省略连字符拒绝含义明确的输入。缺任一参数立即中断，列出缺项和规范格式；模型与 Harness 校验须早于需求文件读取和任何写入。
 
 确认项目规则与实际 Harness，读取对应 adapter：[Codex](../../references/codex.md)、[Claude](../../references/claude.md)、[agy](../../references/agy.md) 或 [dsh](../../references/dsh.md)。未知 Harness、缺少委派、配置覆写或干净上下文时 BLOCKED，不安装、改全局配置或由主模型接手编码绕过。
 

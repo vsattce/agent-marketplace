@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "personal-dev",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "仅手动调用的需求准备、轻量委派与审查、自动开发、精简建议及远端诊断，支持 Codex、Claude Code、agy 和 dsh 桌面版。",
   "license": "MIT",
   "extensions": {
