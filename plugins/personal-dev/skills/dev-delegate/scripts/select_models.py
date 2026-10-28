@@ -14,8 +14,17 @@ _ROLE_ALIASES = {
     "reviewer": "reviewer", "review": "reviewer", "r": "reviewer", "check": "reviewer",
 }
 _INPUT_FIELDS = {*_ROLE_ALIASES, "inventory_source", "models"}
-_SETTING_RE = re.compile(r"([A-Za-z0-9][A-Za-z0-9._/-]*):([a-z]+)")
-_ARGUMENT_RE = re.compile(r"\s*([A-Za-z]+)(?:\s*[=:]\s*|\s+)(\S+)")
+_SETTING_RE = re.compile(r"([A-Za-z0-9][A-Za-z0-9._/-]*)(?:\s*:\s*|\s+)([A-Za-z]+)")
+_ARGUMENT_RE = re.compile(rf"\s*([A-Za-z]+)(?:\s*[=:]\s*|\s+)({_SETTING_RE.pattern})(?=\s|$)")
+_EFFORT_ALIASES = {"h": "high", "m": "medium"}
+
+
+def _normalize_model(model_id: str) -> str:
+    model_id = model_id.lower()
+    match = re.fullmatch(r"(?:gpt-?)?([0-9]+(?:\.[0-9]+)*)-?([a-z][a-z0-9]*(?:-[a-z0-9]+)*)", model_id)
+    if match:
+        return f"gpt-{match[1]}-{match[2]}"
+    return model_id
 
 
 def _blocked(reason: str, usage: str = USAGE) -> dict:
@@ -34,14 +43,12 @@ def parse_arguments(arguments: str, *, required_roles: tuple = _ROLES) -> dict:
         match = _ARGUMENT_RE.match(arguments, position)
         if match is None or match[1].lower() not in _ROLE_ALIASES:
             raise ValueError(f"unsupported model argument; separate role and value with =, : or whitespace; use {usage}")
-        key, value = match[1].lower(), match[2]
+        key = match[1].lower()
         position = match.end()
         key = _ROLE_ALIASES[key]
         if key in roles:
             raise ValueError(f"duplicate {key} parameter; use {usage}")
-        if _SETTING_RE.fullmatch(value) is None:
-            raise ValueError(f"{key} must use <model>:<effort>; use {usage}")
-        roles[key] = value
+        roles[key] = f"{match[3]}:{match[4]}"
     missing = [role for role in required_roles if role not in roles]
     if missing:
         raise ValueError(f"missing required parameter(s): {', '.join(missing)}; use {usage}")
@@ -74,10 +81,12 @@ def select_models(payload: dict, *, required_roles: tuple = _ROLES) -> dict:
         if role not in roles:
             continue
         value = roles[role]
-        match = _SETTING_RE.fullmatch(value) if isinstance(value, str) else None
+        match = _SETTING_RE.fullmatch(value.strip()) if isinstance(value, str) else None
         if match is None:
-            return blocked(f"{role} must use <model>:<effort>")
-        requested[role] = match.groups()
+            return blocked(f"{role} must provide model and effort; use <model>:<effort> or <model> <effort>")
+        model_id, effort = match.groups()
+        effort = effort.lower()
+        requested[role] = (_normalize_model(model_id), _EFFORT_ALIASES.get(effort, effort))
     if payload.get("inventory_source") != "current-spawn-tool":
         return blocked("inventory_source must be current-spawn-tool")
     models = payload.get("models")
@@ -102,16 +111,18 @@ def select_models(payload: dict, *, required_roles: tuple = _ROLES) -> dict:
 
     result = {"status": "READY"}
     for role, (model_id, effort) in requested.items():
-        # The sole shorthand omits the literal gpt- prefix and must match one
-        # exact current-tool ID. No family or latest-version selection occurs.
+        # Normalize format on both sides, preserving the full version and family.
+        # Resolve collisions before checking effort so it cannot choose a model.
         candidates = [candidate for candidate in models_by_id
-                      if candidate == model_id or candidate == f"gpt-{model_id}"]
+                      if _normalize_model(candidate) == model_id]
         if len(candidates) != 1:
             return blocked(f"{role} model is unavailable or ambiguous in the current Harness")
         actual_id = candidates[0]
-        if effort not in models_by_id[actual_id]:
-            return blocked(f"{role} effort is not supported by the requested model in the current Harness")
-        result[role] = {"model": actual_id, "effort": effort}
+        actual_efforts = [supported for supported in models_by_id[actual_id]
+                          if supported.lower() == effort]
+        if len(actual_efforts) != 1:
+            return blocked(f"{role} effort is unsupported or ambiguous for the requested model in the current Harness")
+        result[role] = {"model": actual_id, "effort": actual_efforts[0]}
     result["display"] = [
         f"{role} 模型：{result[role]['model']}｜思考强度：{result[role]['effort']}"
         for role in requested

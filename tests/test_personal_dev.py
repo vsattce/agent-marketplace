@@ -84,7 +84,7 @@ class ExplicitModelContract:
     def test_empty_or_malformed_role_has_no_defaults(self):
         for role in ("worker", "reviewer"):
             for value in (None, [], {}, 1, "", "high", "6-luna", ":high",
-                          "6-luna:", "6-luna:high:extra", "6-luna: high", "6-luna:HIGH"):
+                          "6-luna:", "6-luna:high:extra", "6luna high extra", "6luna :"):
                 with self.subTest(role=role, value=value):
                     self.assert_blocked(payload_with() | {role: value}, role)
 
@@ -118,6 +118,50 @@ class ExplicitModelContract:
         result = self.selector(payload_with() | {"worker": "gpt-6-luna:low"})
         self.assertEqual(result["worker"]["effort"], "low")
 
+    def test_common_model_and_effort_formats_use_exact_inventory_values(self):
+        expected = self.selector(payload_with())
+        for worker in ("6luna", "6-luna", "gpt6luna", "gpt-6-luna", "GPT6LUNA"):
+            for reviewer in ("6.1terra", "6.1-terra", "gpt6.1terra", "gpt-6.1-terra", "GPT6.1TERRA"):
+                for separator in (":", " ", " : "):
+                    with self.subTest(worker=worker, reviewer=reviewer, separator=separator):
+                        payload = payload_with() | {
+                            "worker": f" {worker}{separator}HIGH ",
+                            "reviewer": f"{reviewer}{separator}h",
+                        }
+                        self.assertEqual(self.selector(payload), expected)
+        payload = payload_with(model("GPT-6-LUNA", "Medium"), model("gpt-6.1-terra", "high"))
+        result = self.selector(payload | {"worker": "6luna:M"})
+        self.assertEqual(result["worker"], {"model": "GPT-6-LUNA", "effort": "Medium"})
+
+    def test_normalization_preserves_version_and_family_and_never_falls_back(self):
+        payload = payload_with(
+            model("gpt-6-luna", "high"), model("gpt-6.1-terra", "high"),
+            model("gpt-6-terra", "high"), model("gpt-61-terra", "high"),
+        )
+        for value in ("terra:high", "gpt-terra:high", "6.2terra:high", "6.1ter:high", "6_luna:high"):
+            with self.subTest(value=value):
+                self.assert_blocked(payload | {"worker": value}, "model")
+        result = self.selector(payload | {"reviewer": "61terra:HIGH"})
+        self.assertEqual(result["reviewer"]["model"], "gpt-61-terra")
+        for effort in ("max", "ultra", "hh", "med"):
+            self.assert_blocked(payload | {"worker": f"6luna:{effort}"}, "effort")
+        self.assert_blocked(payload | {"worker": "6.2luna:h"}, "model")
+        self.assert_blocked(payload_with(model("gpt-6.1-terra", "high")), "model")
+        for effort in ("h", "m"):
+            self.assert_blocked(payload_with(
+                model("gpt-6-luna", "low", "max"), model("gpt-6.1-terra", "high"),
+            ) | {"worker": f"6luna:{effort}"}, "effort")
+
+    def test_normalized_inventory_collisions_block_before_effort_selection(self):
+        payload = payload_with(
+            model("gpt-6-luna", "high"), model("gpt6luna", "low"),
+            model("gpt-6.1-terra", "high"),
+        )
+        for requested in ("6luna:high", "gpt-6-luna:high"):
+            self.assert_blocked(payload | {"worker": requested}, "ambiguous")
+        payload = payload_with(model("gpt-6-luna", "high", "HIGH"), model("gpt-6.1-terra", "high"))
+        self.assert_blocked(payload, "effort")
+
     def test_effort_is_only_checked_against_requested_model(self):
         payload = payload_with(model("opus", "native-effort"), model("sonnet", "high"))
         # A syntactically valid native effort need not belong to a Codex ranking.
@@ -131,10 +175,7 @@ class ExplicitModelContract:
             model("gpt-6.1-terra", "high"),
         )
         self.assert_blocked(payload, "ambiguous")
-        self.assertEqual(
-            self.selector(payload | {"worker": "gpt-6-luna:high"})["worker"]["model"],
-            "gpt-6-luna",
-        )
+        self.assert_blocked(payload | {"worker": "gpt-6-luna:high"}, "ambiguous")
 
     def test_inventory_must_be_current_and_nonempty(self):
         for updates in ({"inventory_source": None}, {"inventory_source": []},
@@ -220,6 +261,22 @@ class SelectModelsTests(ExplicitModelContract, unittest.TestCase):
 
 
 class ModelArgumentsTests(unittest.TestCase):
+    def test_requested_formats_parse_and_validate_to_exact_models(self):
+        for text in (
+            "w 6luna high r 6.1terra high",
+            "w 6luna:high r 6.1terra:high",
+            "w=6luna:high r=6.1terra:high",
+            "w 6-luna:high r 6.1-terra:high",
+            "worker 6-luna high reviewer 6.1-terra high",
+            "worker gpt-6-luna high reviewer gpt-6.1-terra high",
+            "W = GPT6LUNA : H R GPT6.1TERRA HIGH",
+            "r 6.1terra : high\tw 6luna h",
+        ):
+            with self.subTest(text=text):
+                parsed = SELECTOR.parse_arguments(text)
+                self.assertEqual(SELECTOR.select_models(payload_with() | parsed),
+                                 SELECTOR.select_models(payload_with()))
+
     def test_parse_both_parameters_in_either_order(self):
         for text in (
             "worker=6-luna:high reviewer=6.1-terra:high",
@@ -271,20 +328,29 @@ class ModelArgumentsTests(unittest.TestCase):
             with self.subTest(duplicate=duplicate), self.assertRaisesRegex(ValueError, "duplicate"):
                 SELECTOR.parse_arguments(f"w=6-luna:high r:6.1-terra:high {duplicate}")
 
-    def test_relaxed_separators_do_not_relax_values_or_guess_models(self):
+    def test_relaxed_separators_still_reject_missing_or_extra_values(self):
         invalid = ("w::6-luna:high", "w==6-luna:high", "w:=6-luna:high", "worker6-luna:high",
-                   "w 6-luna", "w 6-luna:", "w 6-luna: high", "w 6-luna :high",
-                   "w 6-luna:HIGH", "w 6-luna:high:extra", "w 6-luna:high,r:6.1-terra:high",
+                   "w 6-luna", "w 6-luna:", "w 6-luna:high:extra", "w 6-luna high extra",
+                   "w 6-luna:high,r:6.1-terra:high", "w 6luna h r 6.1terra",
                    "w 6-luna:high task", "plan 6-luna:high", "w", "w:", "w =")
         for text in invalid:
             with self.subTest(text=text), self.assertRaises(ValueError):
                 SELECTOR.parse_arguments(f"{text} reviewer:6.1-terra:high")
-        parsed = SELECTOR.parse_arguments("W 6luna:high R:6.1-terra:high")
-        blocked = SELECTOR.select_models(payload_with() | parsed)
-        self.assertEqual(blocked["status"], "BLOCKED")
-        self.assertIn("worker model", blocked["reasons"][0])
-        parsed = SELECTOR.parse_arguments("Worker : 6-luna:high R 6.1-terra:high")
-        self.assertEqual(SELECTOR.select_models(payload_with() | parsed), SELECTOR.select_models(payload_with()))
+
+    def test_semantic_errors_are_blocked_after_parsing(self):
+        for text, reason in (
+            ("w unknown high r 6.1terra high", "model"),
+            ("w 6luna high r terra high", "model"),
+            ("w 6luna imaginary r 6.1terra high", "effort"),
+            ("w 6luna max r 6.1terra high", "effort"),
+        ):
+            with self.subTest(text=text):
+                parsed = SELECTOR.parse_arguments(text)
+                payload = payload_with()
+                payload["models"].append(model("gpt-6-terra", "high"))
+                result = SELECTOR.select_models(payload | parsed)
+                self.assertEqual(result["status"], "BLOCKED")
+                self.assertIn(reason, result["reasons"][0])
 
     def test_missing_diagnostic_names_each_missing_parameter(self):
         for text, role in (("worker=6-luna:high", "reviewer"),
@@ -310,6 +376,13 @@ class CliContract:
         self.assertEqual(len(process.stdout.splitlines()), 1)
         self.assertEqual(json.loads(process.stdout)["reviewer"],
                          {"model": "gpt-6.1-terra", "effort": "high"})
+
+    def test_cli_normalizes_model_and_effort_formats(self):
+        process = self.run_cli(json.dumps(payload_with() | {
+            "worker": "GPT6LUNA H", "reviewer": "6.1terra:HIGH",
+        }))
+        self.assertEqual(process.returncode, 0, process.stderr)
+        self.assertEqual(json.loads(process.stdout), SELECTOR.select_models(payload_with()))
 
     def test_cli_normalizes_aliases_and_blocks_duplicate_roles(self):
         payload = payload_with()

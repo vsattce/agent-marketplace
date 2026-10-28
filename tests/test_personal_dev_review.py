@@ -26,9 +26,24 @@ class ReviewModelAdapterTests(ExplicitModelContract, unittest.TestCase):
                 with self.subTest(alias=alias, separator=separator):
                     parsed = SELECTOR.parse_arguments(f"{alias}{separator}6luna:high", required_roles=("reviewer",))
                     self.assertEqual(parsed, {"reviewer": "6luna:high"})
-        for text in ("r:6luna:high REVIEWER 6luna:high", "r 6luna:HIGH", "r:6luna: high", "r:"):
+        for text in ("r:6luna:high REVIEWER 6luna:high", "r 6luna", "r:"):
             with self.subTest(text=text), self.assertRaisesRegex(ValueError, "reviewer=<model>:<effort>"):
                 SELECTOR.parse_arguments(text, required_roles=("reviewer",))
+
+    def test_reviewer_only_uses_shared_normalization(self):
+        for text in ("r 6.1terra high", "r=6.1terra:high", "reviewer GPT6.1TERRA H", "r : 6.1-terra : HIGH"):
+            with self.subTest(text=text):
+                parsed = SELECTOR.parse_arguments(text, required_roles=("reviewer",))
+                payload = {
+                    **parsed,
+                    "inventory_source": "current-spawn-tool",
+                    "models": [model("gpt-6.1-terra", "high")],
+                }
+                self.assertEqual(self.selector(payload), {
+                    "status": "READY",
+                    "reviewer": {"model": "gpt-6.1-terra", "effort": "high"},
+                    "display": ["reviewer 模型：gpt-6.1-terra｜思考强度：high"],
+                })
 
     def test_reviewer_only_aliases_need_no_worker_inventory(self):
         for alias in ("reviewer", "review", "r", "check"):

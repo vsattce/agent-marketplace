@@ -61,6 +61,10 @@
 | 记录损坏 | 恢复时 ledger 缺失、截断或与代码不一致；用户催促重做 | 保留现有证据并恢复真实状态，不当作全部未开发或 fix_rounds=0 |
 | 清理 | 所有子任务 PASS，但整体检查待做、流程 blocked，或授权 Git 收尾失败 | 保留本次记录；全部验收、整体检查和授权收尾完成后才安全清理本次目录，不动其他任务 |
 | Codex 策略 | 主模型 7，显式 worker=6-luna:high reviewer=6.1-terra:high，两项当前可用 | 按精确 ID 与 effort 派发，与主模型代际无关；主会话配置不变 |
+| 等价格式 | `w 6luna high r 6.1terra high`、`w 6luna:high r 6.1terra:high`、`w=6luna:high r=6.1terra:high` 或 `worker gpt-6-luna high reviewer gpt-6.1-terra high` | 三入口按同一契约归一化；当前名单唯一支持时输出精确 `gpt-6-luna` / `gpt-6.1-terra` 与 `high`，不因格式阻塞 |
+| effort 简写 | `w GPT6LUNA H r 6.1terra M`，对应型号分别支持 high / medium | 忽略大小写，分别归一化 high / medium；不支持时 BLOCKED，不升降 effort 或更换型号 |
+| 模型歧义 | `r terra high` 且有多个 Terra 型号，或多个实际 ID 归一化成同一键 | BLOCKED；不补版本，不靠 effort 或精确拼写优先级挑型号 |
+| 无效参数 | 不存在的模型、非法或型号不支持的 effort，或缺少 model / effort / 必需角色 | BLOCKED；不从主模型、历史记录或默认值补参数，dev-auto 不生成文档 |
 | Claude 策略 | 显式 worker / reviewer 已提供，原生 Agent 没有 effort 覆写参数 | 入口立即 BLOCKED 并说明无法落实强度；不省略字段继承默认，不要求 Codex 参数或改全局配置 |
 
 | 缺参数 | dev-delegate / dev-auto 缺 worker 或 reviewer；dev-review 缺 reviewer | 立即中断，列缺项与对应入口格式；不创建文档/报告、不读取执行文件、不派发；dev-review 不要求 worker |

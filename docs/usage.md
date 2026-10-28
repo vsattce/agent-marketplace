@@ -86,17 +86,21 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 ```text
 $personal-dev:dev-prepare 给现有列表增加状态筛选，保持分页和接口兼容
 # 确认 SPEC / PLAN 后，此入口结束；再单独调用：
-$personal-dev:dev-delegate worker=6-luna:high reviewer=6.1-terra:high 按 docs/personal-dev/specs/<task-id>-design.md 和 docs/personal-dev/plans/<task-id>.md 执行
+$personal-dev:dev-delegate w 6luna high r 6.1terra high 按 docs/personal-dev/specs/<task-id>-design.md 和 docs/personal-dev/plans/<task-id>.md 执行
 $personal-dev:dev-delegate worker=6-luna:medium reviewer=6.1-terra:xhigh 按已确定的 SPEC / PLAN 执行
 # 或者从需求到开发连续完成：
-$personal-dev:dev-auto worker=6-luna:high reviewer=6.1-terra:high 给现有列表增加状态筛选，保持分页和接口兼容
+$personal-dev:dev-auto w=6luna:high r=6.1terra:high 给现有列表增加状态筛选，保持分页和接口兼容
 ```
 
 `SPEC > PLAN > Coder interpretation`。SPEC 记录目标、范围、不做项、现有约束、关键行为和验收标准；PLAN 记录任务、依赖、write_scope、目标、验证和完成标准。简单需求保持简短。默认写入 `docs/personal-dev/specs/<task-id>-design.md` 与 `docs/personal-dev/plans/<task-id>.md`，共用 task-id，prepare 确认及执行完成后均保留，可随项目版本管理；后续 Agent 读取路径而非反复复制聊天。临时交接、日志与证据放在 `.personal-dev/sdd/<task-id>/`，全部验收及已授权收尾完成后仅清理本次执行现场。用户指定位置和项目规则优先；旧布局按明确路径继续消费或恢复，不自动搬迁。PLAN 与 SPEC 冲突由主模型按 SPEC 修正并记录裁决，不让 Coder / Reviewer 改写明确需求。
 
 `dev-auto` 直接读取共享准备规则和 dev-delegate 正文，无需嵌套调用手动 Skill，也无需用户再次输入 dev-delegate。它从准备到执行只允许因重大歧义、当前未授权的破坏性操作或安全边界不清集中询问一次；普通细节自行合理裁决，不确认 SPEC、PLAN、模型、effort，不在任务之间询问。必需能力缺失或环境不满足时如实报告限制；该入口不扩大平台或项目权限。共同定义见[准备与消费契约](../plugins/personal-dev/references/preparation.md)。
 
-dev-delegate / dev-auto 仍须同时显式提供 `worker=<model>:<effort> reviewer=<model>:<effort>`；dev-review 默认只需 `reviewer=<model>:<effort>`。worker 支持 `worker / work / w / code`，reviewer 支持 `reviewer / review / r / check`，例如 `$dev-delegate w=6-luna:high r=6.1-terra:high` 或 `$dev-review check=6.1-terra:high`。文本角色名不区分大小写；角色与值可用 `=`、`:` 或空白分隔，符号两侧允许空白，例如 `$dev-delegate W : 6-luna:high reviewer 6.1-terra:high` 或 `$dev-review r:6-luna:high`。值内部仍须完整使用 `<model>:<effort>`，不转换 model / effort 的大小写、不推断型号或强度。别名归一化为两个内部角色，重复立即报错；缺入口必需项立即中断。dev-auto 在生成 SPEC / PLAN 前校验并传递同一对配置；dev-review 兼容额外提供的 worker，提供时仍校验，后续流程确需执行型子代理才显式要求它，不因此扩权。dev-prepare、dev-simplify、dev-runtime-check 当前无子代理时无需参数，转入委派时在交接入口校验。执行型工作统一 worker；审查、符合性、验证结果、回归风险、独立复核和 Final Reviewer 统一 reviewer。并行代理按角色共用配置，主会话模型不变。
+dev-delegate / dev-auto 须同时显式提供 worker + reviewer；dev-review 默认只需 reviewer。worker 支持 `worker / work / w / code`，reviewer 支持 `reviewer / review / r / check`。角色与值可用 `=`、`:` 或空白分隔，model 与 effort 可用冒号或空白分隔，符号两侧允许空白；例如 `$dev-delegate w 6luna high r 6.1terra high`、`$dev-auto w=6luna:high r=6.1terra:high`、`$dev-review check 6.1terra H`。
+
+三个入口共用[子代理模型契约](../plugins/personal-dev/references/subagent-models.md)：角色、model 和 effort 不区分大小写；`6luna / 6-luna / gpt6luna / gpt-6-luna` 可唯一匹配当前的 `gpt-6-luna`，`6.1terra` 等形式同理；effort 额外支持 `h → high`、`m → medium`。归一化只处理格式，仍保留完整版本和系列名；`terra` 不补版本，不按能力或最新型号猜测。匹配必须唯一，且该型号确实支持所请求 effort；派发使用当前清单的精确值。非法、歧义、重复或缺项立即中断，不替换模型或升降 effort。
+
+dev-auto 在生成 SPEC / PLAN 前校验并传递同一对配置；dev-review 兼容额外提供的 worker，提供时仍校验，后续流程确需执行型子代理才显式要求它，不因此扩权。dev-prepare、dev-simplify、dev-runtime-check 当前无子代理时无需参数，转入委派时在交接入口校验。执行型工作统一 worker；审查、符合性、验证结果、回归风险、独立复核和 Final Reviewer 统一 reviewer。并行代理按角色共用配置，主会话模型不变。
 
 模型及 effort 必须在当前 Harness 的原生工具中可用且能显式落实，不支持立即说明原因并中断，不自动选型号、推断或升降强度、替换模型或继承默认。当前 Agent 不提供 effort 覆写字段时同样中断；这可能使该 Harness 的委派流程暂不可用，无子代理的入口仍可使用。四端策略和 helper 协议见[子代理模型契约](../plugins/personal-dev/references/subagent-models.md)，工具字段按 [Codex](../plugins/personal-dev/references/codex.md)、[Claude](../plugins/personal-dev/references/claude.md)、[agy](../plugins/personal-dev/references/agy.md)、[dsh](../plugins/personal-dev/references/dsh.md) 适配，派发前展示实际配置后直接执行，不修改全局配置。
 

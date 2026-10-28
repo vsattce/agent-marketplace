@@ -6,7 +6,7 @@
 
 根据本轮派发工具声明整理实际模型 ID 与各型号支持的 effort。网页、缓存和默认配置不能替代当前允许名单；工具不支持显式覆写模型或 reasoning_effort 时立即 BLOCKED。
 
-使用共享 `skills/dev-delegate/scripts/select_models.py`；dev-review 的同名 helper 调用它并指定 reviewer 为唯一必填角色。JSON 必填入口所需角色（各为 `<model>:<effort>` 字符串）、inventory_source=current-spawn-tool、models（每项含 id 与 efforts）；reviewer 单参数无需 worker 型号或执行能力。省略字面 gpt- 前缀只能精确唯一匹配，不排序或自动挑型号；不接受主模型、旧角色与终审专用参数。
+三个入口统一使用共享 `skills/dev-delegate/scripts/select_models.py` 的解析与校验；dev-auto 复用它，dev-review 的同名 helper 调用它并指定 reviewer 为唯一必填角色。JSON 必填入口所需角色（各为 `<model>:<effort>` 或 `<model> <effort>` 字符串）、inventory_source=current-spawn-tool、models（每项含 id 与 efforts）；reviewer 单参数无需 worker 型号或执行能力。按共享契约归一化常见模型格式、大小写及 effort 简写后，必须唯一匹配当前实际型号并校验该型号支持的 effort；派发只取返回的精确值。不排序或自动挑型号，不接受主模型、旧角色与终审专用参数。
 
 用符合环境规则的现有 Python，不安装依赖、不修改目标项目运行时、PATH 或全局配置。解释器缺失时 BLOCKED。退出 0 且 READY 才能派发，原样展示返回的已提供角色 display；退出 2 或 BLOCKED 立即停止，不补默认值或换配置。helper 只校验元数据，不能代替主模型核验来源或落实派发。
 
