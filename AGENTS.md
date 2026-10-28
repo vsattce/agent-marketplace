@@ -44,6 +44,6 @@
 - Windows / PowerShell 优先使用 `Remove-Item -LiteralPath <已核实的绝对路径> -Recurse -ErrorAction Stop` 普通递归删除；禁止 `Remove-Item` 及 `rm`、`ri` 等别名使用 `-Force`（含参数缩写）。删除动作保持独立、简单，不与其他含 `-Force` 的命令拼接在同一 Shell 调用中。
 - 普通删除因占用、只读、权限或 Codex 执行策略拒绝而失败时，停止清理、保留目录，并在最终结果报告路径及原因；除非残留影响实际功能或测试正确性，否则不判定开发任务失败。不得继续强制删除，或改用 `cmd /c rd /s /q`、Python `shutil.rmtree`、其他 Shell 包装器规避检查；不得为清理修改全局 Codex 安全策略、用户级配置或系统权限。
 - 委派开发仅在确需长期保留额外复杂任务记录或验收证据时使用 `docs/personal-dev/tasks/<task-id>/`，不重复复制 specs / plans 中的文件；多任务恢复使用临时 ledger，不强制额外长期文档。
-- 增强审查报告默认写入 `docs/personal-dev/reviews/<review-id>/report.md`，长审查的轻量进度记录与报告同目录。审查只写报告和必要进度记录，不自动提交或推送。
+- 增强审查默认在聊天中输出；仅用户明确要求保存时才写报告，未指定位置时使用 `docs/personal-dev/reviews/<review-id>/report.md`。要求保存且长审查确需中断恢复时，轻量进度记录与报告同目录。审查只写获准保存的报告和必要进度记录，不自动提交或推送。
 - 远端诊断默认在聊天中汇报，只有用户要求保存时写入 `docs/personal-dev/runtime/<diagnostic-id>/report.md`。`dev-simplify` 不要求文档。
 - ID 使用用户时区的日期、时间和主题；冲突追加唯一后缀且不覆盖。目标项目规则和用户指定位置优先。`am-config` 的目标旁 `.am-config-*` 原子替换临时文件与 `.configure-project.lock` 保持原位。

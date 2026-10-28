@@ -32,7 +32,7 @@ class PersonalDevPackagingTests(unittest.TestCase):
     def test_model_preflight_precedes_preparation_and_review_outputs(self):
         for name, downstream in (("dev-auto", "2. 读取[准备与消费契约]"),
                                  ("dev-delegate", "先读取[准备与消费契约的执行入口]"),
-                                 ("dev-review", "报告默认写到项目的")):
+                                 ("dev-review", "报告默认在聊天中输出")):
             source = (PLUGIN / "skills" / name / "SKILL.md").read_text(encoding="utf-8")
             with self.subTest(skill=name):
                 arguments = ("reviewer=<model>:<effort>" if name == "dev-review" else

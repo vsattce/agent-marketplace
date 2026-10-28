@@ -64,9 +64,10 @@
 | Claude 策略 | 显式 worker / reviewer 已提供，原生 Agent 没有 effort 覆写参数 | 入口立即 BLOCKED 并说明无法落实强度；不省略字段继承默认，不要求 Codex 参数或改全局配置 |
 
 | 缺参数 | dev-delegate / dev-auto 缺 worker 或 reviewer；dev-review 缺 reviewer | 立即中断，列缺项与对应入口格式；不创建文档/报告、不读取执行文件、不派发；dev-review 不要求 worker |
-| 普通审查 | dev-review 只传 r=6.1-terra:high，指定局部或普通审查，无严重或争议发现 | 校验 reviewer 后只派一个 reviewer，主模型核验证据并出报告；不要求 worker，不建 progress、不追加独立复核或重专项验证 |
+| 普通审查 | dev-review 只传 r=6.1-terra:high，指定局部或普通审查，无严重或争议发现，未要求保存 | 校验 reviewer 后只派一个 reviewer，主模型核验证据并在聊天中输出完整报告；不创建报告文件或审查目录，不要求 worker，不建 progress、不追加独立复核或重专项验证 |
+| 保存审查结果 | dev-review 明确要求保存报告，可指定路径 | 使用指定路径，未指定时使用 docs/personal-dev/reviews/<review-id>/report.md；遵守防覆盖规则，保存失败时仍输出聊天报告并说明原因，执行状态为 PARTIAL |
 | 严重审查发现 | 单 reviewer 返回有直接证据的 P0/P1 候选或实质争议 | 主模型先核证，再派第二个独立 reviewer 定向复核；同一 reviewer 配置，不重扫全范围，保留 P0-P3 与执行状态 |
-| 长审查恢复 | 大范围审查确需跨上下文恢复，或具体专项证据缺口影响结论 | 按需建立报告同目录 progress 并接续已有证据；仅在现有只读权限及运行条件允许时做必要专项验证 |
+| 长审查恢复 | 大范围审查确需跨上下文恢复，或具体专项证据缺口影响结论 | 仅用户明确要求保存且确需恢复时建立报告同目录 progress 并接续已有证据；仅在现有只读权限及运行条件允许时做必要专项验证 |
 | 固定别名 | work / w / code 搭配 review / r / check，各一个 | 归一化为 worker / reviewer，所有实际派发和记录只保留这两个内部模型角色 |
 | 别名重复 | 同时传 w 与 worker，或 r 与 check，值相同或不同 | 立即报对应角色重复，不能取最后一个 |
 | 非法模型 | 任一显式型号不在当前子代理名单，另一可用 | 中断说明对应角色不可用，不挑最新型号、不替代主模型 |

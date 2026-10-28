@@ -28,7 +28,7 @@ ID 使用用户时区的日期、时间和主题，同一 SPEC / PLAN 与执行�
 ## 个人开发记录
 
 - `docs/personal-dev/tasks/<task-id>/`：仅当确需长期保留复杂任务记录或验收证据时创建，不重复复制 specs / plans 中的需求与计划。多任务恢复使用临时 ledger；持久证据由 ledger 引用，不维护重复的进度状态。既有目录中的 SPEC / PLAN 继续有效。
-- `docs/personal-dev/reviews/<review-id>/report.md`：增强审查报告的默认位置。长审查需要进度记录时，将 `progress.md` 放在同一目录。增强审查只写报告及必要的轻量进度记录，不修改源码、配置或 Git 状态，也不自动提交或推送。
+- `docs/personal-dev/reviews/<review-id>/report.md`：仅在用户明确要求保存增强审查结果且未指定位置时使用；默认在聊天中输出，不创建审查目录。要求保存且长审查确需中断恢复时，将 `progress.md` 放在报告同目录。增强审查只写获准保存的报告及必要的轻量进度记录，不修改源码、配置或 Git 状态，也不自动提交或推送。
 - `docs/personal-dev/runtime/<diagnostic-id>/report.md`：仅在用户明确要求保存远端诊断结果时创建；默认在聊天中汇报，不落盘。
 
 所有持久目录均按需创建。ID 由用户时区的日期、时间和主题组成；冲突时追加唯一后缀，不覆盖已有文件。需要的文件无法写入时，按对应 Skill 的阻塞与报告规则处理。

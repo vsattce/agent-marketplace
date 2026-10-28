@@ -68,7 +68,7 @@ SPEC / PLAN 默认保存在 `docs/personal-dev/specs/<task-id>-design.md` 和 `d
 
 dev-delegate 默认走 `worker → reviewer → 必要修复 → 最终 fresh verification → DONE`，单 worker 顺序执行；有 blocker 通常修一次并复验，持续存在才继续，三轮保留为最大上限。并行、ledger / 恢复、fresh coder 和依赖冻结仅按实际需要启用；ledger 仍在被 Git 忽略的 `.personal-dev/sdd/<task-id>/progress.md`，普通少量串行任务在可写 PLAN 简记进度。主模型始终整体检查并核验最终版本；独立 Final Reviewer 的原有触发条件保留：用户要求、安全权限、并发事务、破坏性迁移或明显公共 API 不兼容风险，不按改动量或复杂度触发。
 
-`dev-review` 仅在显式调用后审查，例如 `$personal-dev:dev-review reviewer=6.1-terra:high`。默认走 `reviewer → 主模型核验证据 → 输出报告`，普通审查只派一个 reviewer；严重或争议发现再独立复核，多 reviewer 并行、progress / resume 与重专项验证仅按需启用。默认仍覆盖当前项目全部自有代码，即使无 diff，指定范围时严格遵守。源码与配置只读，无生产证据仍可完成代码层审查；P0–P3 和 COMPLETE / PARTIAL / BLOCKED 保留。报告默认写入 `docs/personal-dev/reviews/<review-id>/report.md`；默认位置不可写时先在聊天给出结果并注明未落盘，不自动提交或推送。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code--agy--dsh)。
+`dev-review` 仅在显式调用后审查，例如 `$personal-dev:dev-review reviewer=6.1-terra:high`。默认走 `reviewer → 主模型核验证据 → 输出报告`，普通审查只派一个 reviewer；严重或争议发现再独立复核，多 reviewer 并行、progress / resume 与重专项验证仅按需启用。默认仍覆盖当前项目全部自有代码，即使无 diff，指定范围时严格遵守。源码与配置只读，无生产证据仍可完成代码层审查；P0–P3 和 COMPLETE / PARTIAL / BLOCKED 保留。报告默认在聊天中输出，只有用户明确要求保存时才写文件；未指定位置时使用 `docs/personal-dev/reviews/<review-id>/report.md`，保存失败时在聊天说明原因，不自动提交或推送。使用与边界见[个人开发工具](docs/usage.md#个人开发工具codex--claude-code--agy--dsh)。
 
 `dev-runtime-check` 仅在显式调用后通过当前 Harness 的原生 Shell / SSH 工具检查指定的主机、容器或服务；默认只读并在聊天中汇报，用户明确要求修复时仅处理授权范围内的操作。只有用户要求保存结果时才写入 `docs/personal-dev/runtime/<diagnostic-id>/report.md`。报告以目标证据、采样间隔和单位为准，不记录凭据。使用与边界见[使用手册](docs/usage.md#远端运行诊断)。
 

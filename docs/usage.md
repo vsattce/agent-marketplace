@@ -120,11 +120,11 @@ Codex / Claude / agy 按各自 Plugin 入口加载，dsh 通过桌面版 Skill p
 
 ### 增强代码审查
 
-`$personal-dev:dev-review` / `/personal-dev:dev-review` 仅在用户显式调用时运行，例如 `$personal-dev:dev-review reviewer=6.1-terra:high`，也支持 `review / r / check`；只必填 reviewer，校验后再创建报告和派发。默认路径为 `reviewer → 主模型核验证据 → 输出报告`，小范围或普通审查只派一个 reviewer。只有有依据的 P0/P1 候选或实质争议，才再派第二个独立 reviewer 定向复核；多 reviewer 并行仅在大范围可独立分工且确有收益时启用。审查与复核共用 reviewer。默认范围仍为当前项目全部自有代码，包括存量和工作区源码，即使无 diff；指定范围时严格限定，不依赖 Git，也不启动原生 `/review`。
+`$personal-dev:dev-review` / `/personal-dev:dev-review` 仅在用户显式调用时运行，例如 `$personal-dev:dev-review reviewer=6.1-terra:high`，也支持 `review / r / check`；只必填 reviewer，校验完成后才派发审查或输出报告。默认路径为 `reviewer → 主模型核验证据 → 输出报告`，小范围或普通审查只派一个 reviewer。只有有依据的 P0/P1 候选或实质争议，才再派第二个独立 reviewer 定向复核；多 reviewer 并行仅在大范围可独立分工且确有收益时启用。审查与复核共用 reviewer。默认范围仍为当前项目全部自有代码，包括存量和工作区源码，即使无 diff；指定范围时严格限定，不依赖 Git，也不启动原生 `/review`。
 
-主模型派发前一次性核对项目规则、范围、源码可读性、基线、报告位置与当前 Harness adapter。Codex 核对 reviewer、工具名单与强度及解释器；Claude 核对原生 Agent 与非 fork 子代理；agy 核对 invoke_subagent、独立上下文与结果读取；dsh 核对 spawn、干净上下文与完成通知。各端均核验已提供配置及实际覆写能力，不依赖主模型身份。缺少必需项时集中输出 `BLOCKED`；生产权限、凭证、配额或实时数据是可选证据，缺少时仍做代码层审查，相关运行结论列待验证。更重的专项验证仅在具体证据缺口影响结论或用户要求且只读条件允许时启用。
+主模型派发前一次性核对项目规则、范围、源码可读性、基线与当前 Harness adapter；仅要求保存时核对报告位置。Codex 核对 reviewer、工具名单与强度及解释器；Claude 核对原生 Agent 与非 fork 子代理；agy 核对 invoke_subagent、独立上下文与结果读取；dsh 核对 spawn、干净上下文与完成通知。各端均核验已提供配置及实际覆写能力，不依赖主模型身份。缺少必需项时集中输出 `BLOCKED`；生产权限、凭证、配额或实时数据是可选证据，缺少时仍做代码层审查，相关运行结论列待验证。更重的专项验证仅在具体证据缺口影响结论或用户要求且只读条件允许时启用。
 
-默认报告写到项目 `docs/personal-dev/reviews/<review-id>/report.md`，按审查规模组织内容，不强制逐维度表格或代理元数据登记。默认位置不可写时先在聊天给出报告并注明未落盘；用户明确要求必须保存文件时，说明未完成项并请求可写位置。普通审查不建 progress，仅长审查确需中断恢复时在报告同目录简记并接续。代码、配置和 Git 状态只读，不自动修复、提交或推送。报告区分 `COMPLETE`、`PARTIAL`、`BLOCKED` 执行状态与 P0–P3 风险等级；发现问题不等于执行阻塞，没有高等级发现也不代表项目绝对安全。
+报告默认在聊天中输出完整结果，按审查规模组织内容，不强制逐维度表格或代理元数据登记，也不创建报告文件或审查目录。只有用户明确要求保存时才写入指定位置，未指定时使用项目 `docs/personal-dev/reviews/<review-id>/report.md`。保存失败时仍在聊天给出报告，说明原因并请求可写位置；明确要求的保存未完成时标为 `PARTIAL`。普通审查不建 progress，仅要求保存且长审查确需中断恢复时在报告同目录简记并接续。代码、配置和 Git 状态只读，不自动修复、提交或推送。报告区分 `COMPLETE`、`PARTIAL`、`BLOCKED` 执行状态与 P0–P3 风险等级；默认聊天输出不降低执行状态，发现问题不等于执行阻塞，没有高等级发现也不代表项目绝对安全。
 
 ### 远端运行诊断
 
