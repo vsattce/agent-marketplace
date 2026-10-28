@@ -47,3 +47,13 @@
 - 增强审查默认在聊天中输出；仅用户明确要求保存时才写报告，未指定位置时使用 `docs/personal-dev/reviews/<review-id>/report.md`。要求保存且长审查确需中断恢复时，轻量进度记录与报告同目录。审查只写获准保存的报告和必要进度记录，不自动提交或推送。
 - 远端诊断默认在聊天中汇报，只有用户要求保存时写入 `docs/personal-dev/runtime/<diagnostic-id>/report.md`。`dev-simplify` 不要求文档。
 - ID 使用用户时区的日期、时间和主题；冲突追加唯一后缀且不覆盖。目标项目规则和用户指定位置优先。`am-config` 的目标旁 `.am-config-*` 原子替换临时文件与 `.configure-project.lock` 保持原位。
+
+## Agent skills
+
+### Issue tracker
+
+需要创建、读取或跟踪 Issue 时，使用本地 Markdown，规则见 `docs/agents/issue-tracker.md`。
+
+### Domain docs
+
+采用 single-context 布局；探索领域术语或架构决策时，先按 `docs/agents/domain.md` 读取相关文档。

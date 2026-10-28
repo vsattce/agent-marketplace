@@ -26,6 +26,8 @@ dsh 桌面版使用项目 Skill `$sync-dsh`（Claude / agy 为 `/sync-dsh`），
 
 ## 从哪里开始
 
+本仓库的工程 Skills 使用[本地 Markdown Issue](docs/agents/issue-tracker.md) 和[单上下文领域文档](docs/agents/domain.md)；配置入口见 [AGENTS.md](AGENTS.md#agent-skills)。
+
 | 需要做什么 | 文档入口 |
 | --- | --- |
 | 已安装，查看调用方式和示例 | [使用手册 · 日常调用](docs/usage.md#日常调用) |
