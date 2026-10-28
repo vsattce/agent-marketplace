@@ -216,6 +216,12 @@ class DesktopSyncTests(unittest.TestCase):
 
 
 class DesktopPatchTests(unittest.TestCase):
+    def test_inspection_accepts_other_desktop_versions(self):
+        payload = {"version": "future-version", "skills": []}
+        result = mock.Mock(returncode=0, stdout="DSH_INSPECTION:" + json.dumps(payload), stderr="")
+        with mock.patch.object(sync.subprocess, "run", return_value=result):
+            self.assertEqual(sync.inspect(Path("desktop"), [], Path("home")), payload)
+
     def test_empty_sequence_and_expressions_remain_valid(self):
         for original in ("# empty\n[]\n", "- id: untouched\n  disabled: !!js process.platform\n"):
             with self.subTest(original=original):

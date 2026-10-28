@@ -15,8 +15,8 @@ description: 同步 dsh 桌面版 Skills：用于用户要求检查或同步本�
    ```
 
 3. 用户明确要求同步 / 刷新桌面版，即授权本次产品内容复制及 desktop profile 中的专属 Skill provider 配置。预检通过后执行同一命令并去掉 `--check-only`；仅要求检查时结束。自动匹配本入口不构成全局写入授权。本 Skill 不提交、推送或执行其他客户端同步。
-4. 脚本用桌面版自带的 Electron 与 Skill provider 在隔离上下文中读取每项 Skill，核对清单、路径和调用策略；不启动 Host、模型、SSH 或子代理。当前验证版本为 `0.2.1-rc.2`，其他版本先报告限制。
+4. 脚本用桌面版自带的 Electron 与 Skill provider 在隔离上下文中读取每项 Skill，核对清单、路径和调用策略；不按版本号拦截，实际加载或校验失败时停止。不启动 Host、模型、SSH 或子代理。
 5. 完整产品目录存入 `~/.dsh/marketplaces/agent-marketplace/releases/<内容摘要>/plugins/`；桌面版 `cordis.patch.yml` 仅新增 / 刷新带标记的独立 `agent-marketplace-skills` provider，指向各包 `skills/`。它不覆盖现有 Skill provider、默认根目录、模型、权限或 MCP。同名用户 Skill、手改快照、配置并发修改、重定向路径或同步锁冲突时停止，保留原有配置。已有 provider 的禁用状态保留；旧内容快照保留，不自动删除用户文件。
-6. 报告版本、五个产品 / 27 个 Skills、实际快照位置、启用状态及未完成项。请用户重开桌面版确认 `/vue`、`/am-config`、`/dev-auto` 等入口；隔离原生读取不等于当前桌面会话已加载，也不证明真实模型或委派流程已运行。
+6. 报告版本、产品与 Skill 数量、实际快照位置、启用状态及未完成项。请用户重开桌面版确认 `/vue`、`/am-config`、`/dev-auto` 等入口；隔离原生读取不等于当前桌面会话已加载，也不证明真实模型或委派流程已运行。
 
 `--dsh-home` 可显式指定数据根，默认为 `DSH_HOME` 或 `~/.dsh`。本同步采用 dsh 原生文件系统 Skill provider，产品分类保留在磁盘目录中，不注册五个 npm 扩展。自有流程见随包 `personal-dev/references/dsh.md` 与 `agent-manager/references/dsh.md`。

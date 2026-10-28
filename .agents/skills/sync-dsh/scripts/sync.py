@@ -23,7 +23,6 @@ ROOT = Path(__file__).resolve().parents[4]
 BEGIN = "# BEGIN agent-marketplace sync-dsh"
 END = "# END agent-marketplace sync-dsh"
 PROVIDER_ID = "agent-marketplace-skills"
-SUPPORTED_VERSIONS = {"0.2.1-rc.2"}
 EXCLUDED = {"codex-skills", ".codex-plugin", ".claude-plugin", ".antigravity-plugin", "__pycache__"}
 
 
@@ -197,8 +196,6 @@ def inspect(desktop: Path, roots: list[Path], home: Path, *, defaults: bool = Fa
         detail = result.stderr.strip()[:1000] or "No inspection result returned"
         raise SyncError(f"Installed Desktop's isolated skill inspection failed: {detail}")
     payload = json.loads(payloads[0])
-    if payload["version"] not in SUPPORTED_VERSIONS:
-        raise SyncError(f"Desktop runtime {payload['version']} is not yet verified by this synchronizer")
     return payload
 
 

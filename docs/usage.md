@@ -207,7 +207,7 @@ pwsh -NoProfile -File .agents/skills/sync-agy/scripts/sync.ps1
 
 ### DeepSeek Harness 桌面版（dsh）
 
-桌面版原生加载机制已在 `0.2.1-rc.2` 验证：通过自带的文件系统 Skill provider 加载五个产品包；当前仓库提供 27 个共享 Skills 与完整资源，实际加载以同步后的验证为准，`am-context` 仅 Codex。项目同步入口为 Codex `$sync-dsh`、Claude Code / agy `/sync-dsh`，不进入产品目录。这里使用已安装的桌面版，无需 npm CLI。
+桌面版通过自带的文件系统 Skill provider 加载五个产品包的共享 Skills 与完整资源，`am-context` 仅 Codex。同步不按版本号拦截，但会使用已安装桌面版的原生加载器校验实际兼容性。项目同步入口为 Codex `$sync-dsh`、Claude Code / agy `/sync-dsh`，不进入产品目录。这里使用已安装的桌面版，无需 npm CLI。
 
 在仓库根按项目规则核验 `mise current`、`python --version`（3.12+）及 uv，再运行；`--desktop-path` 使用实际安装路径：
 

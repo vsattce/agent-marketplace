@@ -22,7 +22,7 @@ Codex / Claude Code 按分类安装，完整身份为 `<plugin>@agent-marketplac
 
 agy 使用本地产品插件安装，进入本仓库后调用项目 Skill `$sync-agy`（Claude / agy 为 `/sync-agy`），检查或同步当前工作区的全部产品插件到 agy 全局；不导入本仓库开发工具。agy 使用 `/vue`、`/am-config`、`/dev-auto` 等当前会话实际提供的入口。安装、更新及项目作用域限制见[使用手册 · agy](docs/usage.md#antigravity-cliagy)。
 
-dsh 桌面版使用项目 Skill `$sync-dsh`（Claude / agy 为 `/sync-dsh`），同步当前产品 Skills 与完整资源，通过已安装桌面版自带的加载器验证；调用方式为 `/vue`、`/am-config`、`/dev-auto` 等。当前验证版本 `0.2.1-rc.2`，不需要 npm CLI。见[使用手册 · dsh 桌面版](docs/usage.md#deepseek-harness-桌面版dsh)。
+dsh 桌面版使用项目 Skill `$sync-dsh`（Claude / agy 为 `/sync-dsh`），同步当前产品 Skills 与完整资源，通过已安装桌面版自带的加载器验证；调用方式为 `/vue`、`/am-config`、`/dev-auto` 等。不按版本号拦截，不需要 npm CLI。见[使用手册 · dsh 桌面版](docs/usage.md#deepseek-harness-桌面版dsh)。
 
 ## 从哪里开始
 
