@@ -8,7 +8,7 @@ description: 同步 agy 全局插件：用于用户要求将 agent-marketplace �
 仅在当前仓库使用。Codex 可调用 `$sync-agy`，Claude Code 可调用 `/sync-agy`，agy 可调用 `/sync-agy`。同步对象来自 `.agents/plugins/marketplace.json` 的产品 Plugin，不包括 `.agents/skills/`、项目 MCP、Superpowers 或本 Skill；不从 Claude / Codex 全局缓存批量导入。`testing-automation` 已并入 `engineering-tools`；若仍安装旧包，先报告并由用户通过原生 CLI 卸载，脚本在写入前停止以避免重复 `/playwright-cli`。
 
 1. 从本文件目录解析 `../../..` 得到仓库根，确认 Git 根与 catalog，检查用户已有改动。同步当前工作区内容，不自动拉取、切换分支、升级来源、提交或推送。
-2. 先运行只读预检：
+2. 执行命令前读取[命令与资源契约](../../../plugins/personal-dev/references/execution-resources.md)：设置有限预算，保留未结束命令 ID，确认旧同步进程退出后才重试，不停止用户正在使用的 agy。先运行只读预检：
 
    ```powershell
    pwsh -NoProfile -File .agents/skills/sync-agy/scripts/sync.ps1 -CheckOnly

@@ -42,6 +42,8 @@ fork_turns = "none"
 
 ## 派发与继续
 
+执行命令、测试或清理前读取[命令与资源契约](execution-resources.md)。通过 `functions.exec` 包装 `exec_command` / `write_stdin` 时，至少返回 `{output, session_id, exit_code}`；只打印 `r.output` 会丢失未结束命令的 ID。有 `session_id` 时继续原会话直到取得退出码；`yield_time_ms` 和外层 `Script completed` 均不证明子进程退出。按当前实际工具字段执行，不编造接口。
+
 V2 原编码代理返工优先用 `followup_task`，运行中补充信息用 `send_message`；V1 / 其他接口按实际声明用 resume / follow-up。等待、状态、中断用当前 wait / list / interrupt 工具，不编造参数或用 Codex 聊天管理工具创建用户可见新聊天替代子代理。
 
 dev-delegate 默认单 worker 顺序执行；仅按共享编排安全条件并行，先启动本批再等待，使用实际槽位，不改配置补能力。dev-review 默认单 reviewer，主模型核证出报告，严重或争议发现再独立复核。

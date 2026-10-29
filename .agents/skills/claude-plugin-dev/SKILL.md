@@ -9,6 +9,8 @@ Use the relevant official reference bundled at `.agents/plugin-dev/upstream/`. S
 
 Keep temporary validation artifacts under `.agent-tmp/tests/<run-id>/` and short-lived task logs under `.agent-tmp/tasks/<task-id>/`. Create long-term task notes only when needed to resume work or retain acceptance evidence; follow the [task artifact locations](../../../plugins/personal-dev/references/artifacts.md).
 
+Before running validators, test clients, hooks, or MCP fixtures, read the [command and resource contract](../../../plugins/personal-dev/references/execution-resources.md). Track native background IDs through exit, including failure and cancellation; close only this task's test processes before cleaning its directories. Reuse sufficient evidence instead of repeatedly starting clients or scanning the same scope.
+
 | Topic | Start here | Related upstream material |
 | --- | --- | --- |
 | Plugin manifests and discovery | `skills/plugin-structure/SKILL.md` | `skills/plugin-structure/references/manifest-reference.md`, `skills/plugin-structure/README.md`, `.claude-plugin/plugin.json` |

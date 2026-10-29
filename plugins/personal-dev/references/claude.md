@@ -20,4 +20,4 @@ Claude 的 effort 不等于 Codex reasoning_effort；若本轮 Agent 只有 mode
 
 依据：[Claude Code subagents](https://code.claude.com/docs/en/sub-agents)、[Skills 与手动调用](https://code.claude.com/docs/en/skills)。开发验证与实际业务执行分别记录；隔离捕获加载请求不代表已执行真实模型委派。
 
-`dev-delegate` 通常修一次并复验，持续存在 blocker 才继续，最多三轮；fresh coder 按角色契约需要启用并使用同一 worker。独立 Final Reviewer 按主 Skill 条件触发并使用同一 reviewer。主模型始终做整体检查与最终 fresh verification，不能用额外 Reviewer 取代。
+`dev-delegate` 通常修一次并复验，持续存在 blocker 才继续，最多三轮；fresh coder 按角色契约需要启用并使用同一 worker。风险终审按主 Skill 复用已覆盖风险的独立验收，需额外 Final Reviewer 时使用同一 reviewer。主模型始终做整体检查与最终 fresh verification；执行命令时遵守[命令与资源契约](execution-resources.md)，接续原生后台 ID 并确认退出。

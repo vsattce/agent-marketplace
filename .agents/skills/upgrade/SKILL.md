@@ -26,6 +26,8 @@ Codex 用户调用 `$upgrade`，Claude Code 用户通过 `.claude/skills/upgrade
 
 ## 执行升级
 
+执行同步或测试前读取[命令与资源契约](../../../plugins/personal-dev/references/execution-resources.md)，为 Git / Python / 测试命令保留后台 ID 与退出状态；失败、中断或超时先结束本次进程，再决定恢复。清理暂存目录前确认其进程与文件句柄已释放，不能仅因同步输出结束就删除。
+
 环境核对通过后，在仓库根执行一次：
 
 ```powershell

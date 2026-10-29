@@ -8,7 +8,7 @@ description: 同步 dsh 桌面版 Skills：用于用户要求检查或同步本�
 仅用于当前 agent-marketplace 仓库。Codex 使用 `$sync-dsh`；Claude Code / agy 使用 `/sync-dsh` 项目入口。读取 `.agents/plugins/marketplace.json` 中的产品，只同步五个产品包的共享 Skills 与资源；`am-context` 仅 Codex，仓库开发 Skills、Superpowers、MCP 和本入口不导出。
 
 1. 检查 Git 状态，保留用户改动；确认用户指定的是已安装的 **桌面版**及其 `DeepSeek Harness.exe`。数据根 `<dsh-home>` 按 `--dsh-home`、`DSH_HOME`、`~/.dsh` 的优先级选定，读取其 `profiles/desktop/package.json`。不使用 npm CLI、不安装或升级客户端、不清理其他安装。
-2. 按仓库规则核验 Python 3.12+、mise 和 uv。脚本复用同步工具已有的 PyYAML 6.x，通过 uv 隔离运行，不修改依赖清单或全局环境。先执行只读预检，将路径替换为实际安装位置：
+2. 按仓库规则核验 Python 3.12+、mise 和 uv。执行命令前读取[命令与资源契约](../../../plugins/personal-dev/references/execution-resources.md)，确认本次 Python / Electron 隔离进程退出后才重试或清理；用户的 DeepSeek Harness 桌面进程不属于清理对象。脚本复用同步工具已有的 PyYAML 6.x，通过 uv 隔离运行，不修改依赖清单或全局环境。先执行只读预检，将路径替换为实际安装位置：
 
    ```powershell
    uv run --python (mise which python) --no-python-downloads --script .agents/skills/sync-dsh/scripts/sync.py --desktop-path "D:\DeepSeek Harness\DeepSeek Harness.exe" --check-only

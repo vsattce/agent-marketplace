@@ -111,11 +111,13 @@ dev-auto 在生成 SPEC / PLAN 前校验并传递同一对配置；dev-review �
 
 dev-delegate 默认路径为 `worker → reviewer → 必要修复 → 最终 fresh verification → DONE`。PLAN 仍按完整功能拆分并标注并行候选，执行默认单 worker 顺序进行；只有多个独立任务确有收益或用户要求且范围、共享契约、验证资源和槽位均安全时才并行，通常两个、最多三个写代理。can_parallel 仅是候选资格，旧 PLAN 无标记不妨碍按需判断，显式串行要求保留。下游等上游独立验收通过且契约确定。ledger / 恢复仅按调度或恢复需要启用，普通少量串行任务在可写 PLAN 简记进度；恢复核对文件、代码、Git 与代理状态，不重复派发或重置修复次数。
 
-每个任务由独立 Coder 和干净只读 Reviewer 分工。无 blocker 直接最终核验；有 blocker 通常修一次并复验，持续存在才继续，三轮是最大上限。优先原 Coder，仅不可恢复、上下文失效或同根因反复无进展时启用 fresh coder，始终使用同一 worker 与 SPEC / PLAN，不按轮次机械换人。普通建议与偏好不阻塞，范围外要求拒绝；复验聚焦修复及影响，同根因或新 finding 不重开预算。第三轮后主模型 adjudication / convergence，核心 blocker 未解记 FAILED；依赖冻结仅在真实失败、未决契约或具体风险传播时启用，其他安全任务继续，不默认全局熔断。完整规则见[角色契约](../plugins/personal-dev/skills/dev-delegate/references/roles.md)与[编排恢复](../plugins/personal-dev/skills/dev-delegate/references/orchestration.md)。
+每个任务由独立 Coder 和干净只读 Reviewer 分工。无 blocker 直接最终核验；有 blocker 通常修一次并复验，持续存在才继续，三轮是最大上限。首轮修复后同根因仍在或补丁引入新 blocker，主模型先在既有 PLAN / ledger 完成根因裁决与失败交错测试，再用剩余轮次修复。“继续执行 / 别中断”不自动取消上限；用户明确更改预算时保留累计次数并记录有限范围与收敛条件。优先原 Coder，仅不可恢复、上下文失效或同根因反复无进展时启用 fresh coder，始终使用同一 worker 与 SPEC / PLAN。普通建议与偏好不阻塞，范围外要求拒绝；复验聚焦修复及影响，同根因或新 finding 不重开预算。第三轮后主模型裁决，核心 blocker 未解记 FAILED；仅冻结实际依赖与风险范围。完整规则见[角色契约](../plugins/personal-dev/skills/dev-delegate/references/roles.md)与[编排恢复](../plugins/personal-dev/skills/dev-delegate/references/orchestration.md)。
 
-主模型始终对照 SPEC 检查总需求、跨任务联动、范围和最终版本，并完成最终 fresh verification：最后修改后运行最小有效验证，已有对应最终版本的当前轮实测可复用，不重复全量验证；部分失败仍汇总未完成项。额外独立 Final Reviewer 只在用户明确要求、安全 / 权限、并发 / 事务一致性、破坏性数据迁移或明显公共 API 不兼容风险时默认触发。代码多、任务多、复杂本身不触发；普通页面、样式、常规联调、兼容性 API 增加与一般功能无需额外 Reviewer。触发时仍使用同一 reviewer 配置，不另设终审模型或自动升级 effort，不启动第二套全项目 dev-review。最终发现仍沿用任务剩余修复次数，不能产生第四轮。
+主模型始终对照 SPEC 检查总需求、跨任务联动、范围和最终版本，并完成最终 fresh verification：最后修改后运行最小有效验证，已有对应最终版本的当前轮实测可复用，不重复全量验证。用户明确要求、安全 / 权限、并发 / 事务一致性、破坏性数据迁移或明显公共 API 不兼容风险须覆盖风险终审；单个完整验收单元可复用已覆盖风险的最终独立验收，只为具体覆盖缺口、未覆盖的跨任务风险或用户明确要求另一位终审者增加 Final Reviewer。仍使用同一 reviewer，不启动第二套全项目 dev-review，沿用任务剩余修复次数。代码量和任务量本身不增加审查层级。
 
 失败、中断或收尾未完成时保留 SPEC / PLAN 和 ledger。部分失败不宣称全部完成，不自动提交、推送或发布混合的失败实现；全部通过后只按目标项目已有授权收尾，安全清理本次临时目录。Codex 检查器只校验传入模型元数据，不发现型号、不验证来源、不拦截原生派发；使用已有工具环境，不安装或切换运行时。隔离加载测试不代表真实模型已完成 SDD，也不承诺固定 token 或额度节省。
+
+测试 / 构建 / 浏览器验证及 SSH 命令遵循[命令与资源契约](../plugins/personal-dev/references/execution-resources.md)：工具返回后台 ID 时继续跟踪到退出，失败也释放本次进程；清理目录或 worktree 前先关闭本次服务、测试与文件句柄。Windows 不能仅靠命令行包含目录判断占用，也不按名称批量停止用户进程。命令等待时间不是超时，测试摘要不是退出证明。`am-config` 的独立随包约束见[隔离验证](../plugins/agent-manager/skills/am-config/references/project-edits.md#隔离加载验证)；纯文档准备和 `am-context` 不启动验证进程。
 
 ### 精简当前改动
 

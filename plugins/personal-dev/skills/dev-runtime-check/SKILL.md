@@ -20,7 +20,11 @@ disable-model-invocation: true
 
 支持 Codex、Claude Code、agy 与 dsh 桌面版。由当前模型使用当前 Harness 可用的 Shell / 终端工具和已有 SSH 配置、Agent 或密钥：Codex 使用其当前可用终端执行能力；Claude Code 使用原生 Bash 工具；agy 使用当前原生命令工具（如 `run_command`，按实际 schema）；dsh 使用当前原生 Shell 工具。不要把一个 Harness 的参数、Python helper、子代理或客户端命令要求套到另一个 Harness；默认不委派、不嵌套启动客户端。当前无子代理，无需 worker / reviewer；只有明确授权转入委派流程时，才在该入口按[子代理模型契约](../../references/subagent-models.md)先校验本次显式两类配置，此规则不增加派生权限。
 
-连接信息与诊断目标明确后，使用有限连接超时直接连接，并为每条远端命令设置有限执行超时；按当前 Harness 工具支持的方式实现。连接或命令失败只在适用的暂时性故障下有限重试，不无限等待或循环重试。Linux 目标的只读起始示例：
+连接信息与诊断目标明确后，使用有限连接超时直接连接，并为每条远端命令设置有限执行超时；按当前 Harness 工具支持的方式实现。连接或命令失败只在适用的暂时性故障下有限重试，不无限等待或循环重试。
+
+命令开始前读取[命令与资源契约](../../references/execution-resources.md)，记录异步 SSH / 本次采样的原生 ID 与退出状态。结束时仅停止本次诊断启动的采样和连接；本地 SSH 退出不证明远端采样已退出，须核对目标上的本次 PID / 启动时间。原有业务进程、服务和容器不属于诊断临时资源，不能因“释放占用”停止它们。
+
+Linux 目标的只读起始示例：
 
 ```sh
 ssh -o ConnectTimeout=10 <user>@<host> 'hostname; date -Is; uptime'

@@ -145,7 +145,8 @@ class PersonalDevPackagingTests(unittest.TestCase):
         sources = [PLUGIN / "skills" / name / "SKILL.md" for name in DEVELOPMENT_SKILLS]
         sources += [orchestration, SKILL / "references/roles.md",
                     PLUGIN / "references/preparation.md", PLUGIN / "references/artifacts.md",
-                    PLUGIN / "references/subagent-models.md"]
+                    PLUGIN / "references/subagent-models.md",
+                    PLUGIN / "references/execution-resources.md"]
         for source in sources:
             references = re.findall(r"\[[^\]]+\]\(([^)]+\.md)(?:#[^)]*)?\)", source.read_text(encoding="utf-8"))
             self.assertTrue(references, source)
@@ -154,6 +155,32 @@ class PersonalDevPackagingTests(unittest.TestCase):
                     target = (source.parent / reference).resolve()
                     self.assertTrue(target.is_relative_to(PLUGIN.resolve()), reference)
                     self.assertTrue(target.is_file(), reference)
+
+    def test_command_entries_and_adapters_reach_bundled_resource_contract(self):
+        contract = (PLUGIN / "references/execution-resources.md").resolve()
+        sources = [PLUGIN / "skills" / name / "SKILL.md" for name in
+                   ("dev-delegate", "dev-review", "dev-simplify", "dev-runtime-check")]
+        sources += [PLUGIN / "references" / f"{name}.md" for name in
+                    ("codex", "claude", "agy", "dsh", "artifacts")]
+        sources += [ROOT / ".agents/skills" / name / "SKILL.md" for name in
+                    ("upgrade", "sync-agy", "sync-dsh", "claude-plugin-dev")]
+        for source in sources:
+            with self.subTest(source=source.relative_to(ROOT)):
+                links = re.findall(r"\[[^\]]+\]\(([^)]*execution-resources\.md)\)",
+                                   source.read_text(encoding="utf-8"))
+                self.assertEqual(len(links), 1)
+                self.assertEqual((source.parent / links[0]).resolve(), contract)
+        # The independently installed manager package must keep its own contract.
+        manager = ROOT / "plugins/agent-manager"
+        edits = manager / "skills/am-config/references/project-edits.md"
+        for source in (manager / "skills/am-config/SKILL.md",
+                       manager / "references/agy.md", manager / "references/dsh.md"):
+            links = re.findall(r"\[[^\]]+\]\(([^)]+project-edits\.md)(?:#[^)]*)?\)",
+                               source.read_text(encoding="utf-8"))
+            self.assertTrue(links, source)
+            for link in links:
+                self.assertEqual((source.parent / link).resolve(), edits.resolve())
+        self.assertNotIn("personal-dev/", edits.read_text(encoding="utf-8"))
 
     def test_plugin_execution_artifacts_are_ignored_by_git(self):
         paths = [
@@ -252,7 +279,7 @@ class PersonalDevPackagingTests(unittest.TestCase):
             {"dev-prepare", "dev-delegate", "dev-auto", "dev-review", "dev-simplify", "dev-runtime-check"},
         )
         self.assertEqual(manifest["name"], entries[0]["name"])
-        self.assertEqual(manifest["version"], "0.9.4")
+        self.assertEqual(manifest["version"], "0.9.5")
         self.assertEqual(manifest["extensions"]["com.openai"]["interface"], entries[0]["interface"])
         self.assertTrue((SKILL / "scripts/select_models.py").is_file())
         self.assertTrue((SKILL / "references/roles.md").is_file())

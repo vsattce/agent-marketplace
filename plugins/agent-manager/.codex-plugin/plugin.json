@@ -1,6 +1,6 @@
 {
   "name": "agent-manager",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "description": "仅手动自检本轮可见上下文，或编辑 Codex / Claude 项目指令、安装指定 Skill、准备注册项目 Plugin 与配置开关；支持只读冲突检查。",
   "author": {
     "name": "hjy"
