@@ -75,7 +75,7 @@ Codex 便携 manifest 的中文信息位于 `extensions.com.openai.interface`；
 
 lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，不参与版本选择，不手工维护。
 
-当前来源包含三个分类、20 个第三方 Skill：`common-workflow` 12 个、`software-dev` 5 个、`engineering-tools` 3 个。`common-workflow` 包含 Matt Pocock 的 `codebase-design`、`tdd`，以及用户主动调用的 `grill-me`、`grill-with-docs`、`improve-codebase-architecture` 和允许依赖被动调用的 `grilling`、`domain-modeling`；Docker Compose 使用 Docker 官方 `docker-compose-patterns`，Java 使用 GitHub `awesome-copilot` 的 `java-springboot`。准确来源、路径与固定策略以 sources 配置为准。
+当前来源包含三个分类、21 个第三方 Skill：`common-workflow` 13 个、`software-dev` 5 个、`engineering-tools` 3 个。`common-workflow` 包含 Matt Pocock 的 `codebase-design`、`tdd`，以及用户主动调用的 `setup-matt-pocock-skills`、`grill-me`、`grill-with-docs`、`improve-codebase-architecture` 和允许依赖被动调用的 `grilling`、`domain-modeling`；Docker Compose 使用 Docker 官方 `docker-compose-patterns`，Java 使用 GitHub `awesome-copilot` 的 `java-springboot`。准确来源、路径与固定策略以 sources 配置为准。
 
 `software-dev` 收录第三方上游项目的 Skills，仅由本仓库汇集、整理供个人使用；作者署名、上游内容及许可证均按原样保留。该说明不适用于 `agent-manager`、`personal-dev` 等本仓库自有 Plugin。
 
@@ -95,7 +95,7 @@ lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，�
 
 ### 使用项目 Skill
 
-在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入Codex / Claude Code Marketplace 的 28 / 27 个 Skills。
+在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入 Codex / Claude Code Marketplace 的 29 / 28 个 Skills。
 
 Agent 核对目标、Git 状态与运行时后，按 sources 的既定来源 / ref 同步，保留用户改动，检查差异并运行相关验证。按 [AGENTS.md](../AGENTS.md) 默认提交、推送当前分支；当前任务明确不提交或不推送时遵从该要求。环境、同步或验证失败时停止，零差异不制造提交。
 

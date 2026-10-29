@@ -61,7 +61,7 @@ dsh 桌面版使用项目 Skill `$sync-dsh`（Claude / agy 为 `/sync-dsh`），
 | 精简当前改动 | `$personal-dev:dev-simplify` | `/personal-dev:dev-simplify` |
 | 诊断远端运行问题 | `$personal-dev:dev-runtime-check` | `/personal-dev:dev-runtime-check` |
 
-`handoff`、`grill-me`、`grill-with-docs`、`improve-codebase-architecture`、`agent-manager` 和 `personal-dev` 中的 Skills **仅手动调用**；其余 Skill 可按任务匹配，也可显式调用。启用 Plugin 不会自行执行任务。
+`setup-matt-pocock-skills`、`handoff`、`grill-me`、`grill-with-docs`、`improve-codebase-architecture`、`agent-manager` 和 `personal-dev` 中的 Skills **仅手动调用**；其余 Skill 可按任务匹配，也可显式调用。启用 Plugin 不会自行执行任务。
 
 `grill-with-docs` 依赖 `grilling` + `domain-modeling`；`improve-codebase-architecture` 依赖现有 `codebase-design` + `grilling` + `domain-modeling`，全部随 `common-workflow` 提供。`grill-me` 依赖已有 `grilling`，仅启动方案访谈。三个入口由用户主动调用，依赖允许由 Skill 被动调用；第三方正文、描述及触发策略保持上游原样，不给依赖增加仅手动限制。
 
