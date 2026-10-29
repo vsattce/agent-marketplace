@@ -1,0 +1,19 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "matt",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "developerName": "hjy",
+        "category": "Developer Tools",
+        "websiteURL": "https://gitee.com/vsattce/agent-marketplace",
+        "brandColor": "#475569",
+        "displayName": "Matt 精选工作流",
+        "shortDescription": "精选 Matt Pocock 原始 Skills：需求澄清、Spec / Ticket、普通开发、按需并行、诊断、审查与复盘。",
+        "longDescription": "只同步 sources.yaml 明确选择的 17 个完整 Skill 目录，保留 upstream 正文、触发条件与资源，不添加 wrapper、模型路由或 Harness adapter。\n\n推荐：grill-with-docs → to-spec → 按需 to-tickets → implement。普通开发使用 implement；仅大型、多 Ticket 且适合多 Agent 并行时使用 implement-spec。\n\nsetup-matt-pocock-skills 配置 issue tracker 与领域文档。grilling、domain-modeling、tdd、codebase-design、code-review 保持主链依赖完整。\n\n独立工具：handoff（交接）、diagnosing-bugs（困难 Bug）、research（资料研究）、improve-codebase-architecture（架构改进）、writing-for-agents（Agent 文档）、retro（手动复盘，不加入默认完成流程）。\n\n调用前缀按客户端实际发现入口使用；仓库同步不代表已安装客户端或当前会话已加载。"
+      }
+    }
+  },
+  "version": "1.0.0",
+  "description": "精选 Matt Pocock 原始 Skills：需求澄清、Spec / Ticket、普通开发、按需并行、诊断、审查与复盘。"
+}

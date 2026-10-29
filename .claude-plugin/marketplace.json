@@ -10,7 +10,12 @@
     {
       "name": "common-workflow",
       "source": "./plugins/common-workflow",
-      "description": "项目初始化、任务交接、问题诊断、模块设计、方案推敲、架构改进、测试先行与资料研究工具。"
+      "description": "非 Matt 通用能力：查找和发现可安装的 Skills。"
+    },
+    {
+      "name": "matt",
+      "source": "./plugins/matt",
+      "description": "精选 Matt Pocock 原始 Skills：需求澄清、Spec / Ticket、普通开发、按需并行、诊断、审查与复盘。"
     },
     {
       "name": "software-dev",
@@ -25,7 +30,7 @@
     {
       "name": "personal-dev",
       "source": "./plugins/personal-dev",
-      "description": "仅手动调用的需求准备、轻量委派与审查、自动开发、精简建议及远端诊断，支持 Claude Code、Codex、agy 和 dsh 桌面版。"
+      "description": "仅手动调用的增强代码审查、精简建议与远端诊断工具。"
     },
     {
       "name": "engineering-tools",

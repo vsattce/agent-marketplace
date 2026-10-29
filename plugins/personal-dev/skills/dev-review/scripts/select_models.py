@@ -9,7 +9,7 @@ import sys
 
 
 SIBLING_HELPER_PATH = (
-    Path(__file__).resolve().parents[2] / "dev-delegate/scripts/select_models.py"
+    Path(__file__).with_name("model_validation.py")
 )
 USAGE = "reviewer=<model>:<effort>"
 

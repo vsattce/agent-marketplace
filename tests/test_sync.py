@@ -70,6 +70,36 @@ class SyncTests(unittest.TestCase):
         self.assertEqual((self.root / "plugins/common-workflow/licenses/alpha/LICENSE").read_bytes(), (self.upstream / "LICENSE").read_bytes())
         self.assertEqual(json.loads((self.root / "sources.lock.json").read_text())["skills"]["alpha"]["commit"], self.commit)
 
+    def test_matt_copies_complete_selected_directory_without_importing_siblings(self):
+        plugin = self.root / "plugins/matt"
+        plugin.mkdir()
+        (plugin / "plugin.json").write_text('{"name":"matt"}', encoding="utf-8")
+        selected = self.upstream / "skills/alpha"
+        resources = {
+            "tests.md": b"Testing guidance\n",
+            "mocking.md": b"Mocking guidance\n",
+            "templates/issue.md": b"Issue template\n",
+            "scripts/check.sh": b"#!/bin/sh\nexit 0\n",
+            "agents/openai.yaml": b"interface: {}\n",
+            "assets/sample.bin": b"\x00\xff\r\n",
+        }
+        for relative, content in resources.items():
+            path = selected / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(content)
+        self.write_skill("unselected")
+        (self.root / "sources.yaml").write_text(yaml.safe_dump({"groups": {
+            "matt": {"displayName": "Matt", "skills": self.sources},
+        }}), encoding="utf-8")
+        self.run_sync()
+        for relative, content in resources.items():
+            self.assertEqual((plugin / "skills/alpha" / relative).read_bytes(), content)
+        self.assertFalse((plugin / "skills/unselected").exists())
+        self.assertEqual(json.loads((self.root / "sources.lock.json").read_text())["skills"]["alpha"]["group"], "matt")
+        before = self.snapshot()
+        self.run_sync()
+        self.assertEqual(self.snapshot(), before)
+
     def test_sync_retains_unique_run_directories_until_authorized_cleanup(self):
         destinations = []
 
@@ -206,7 +236,7 @@ class SyncTests(unittest.TestCase):
         target = plugin / "skills" / "alpha" / "SKILL.md"
         self.assertTrue(target.is_file())
         self.assertEqual(json.loads((self.root / "sources.lock.json").read_text(encoding="utf-8"))["skills"]["alpha"]["group"], "software-dev")
-        self.assertEqual(skill_sync.MANAGED_PLUGINS, frozenset({"common-workflow", "software-dev", "engineering-tools"}))
+        self.assertEqual(skill_sync.MANAGED_PLUGINS, frozenset({"common-workflow", "matt", "software-dev", "engineering-tools"}))
 
         for obsolete in ("frontend-dev", "backend-dev"):
             with self.subTest(obsolete=obsolete):

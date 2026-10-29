@@ -12,7 +12,7 @@ disable-model-invocation: true
 
 ## 1. 确认参数与范围
 
-先读取[子代理模型契约](../../references/subagent-models.md)，本次显式参数的规范格式为 `reviewer=<model>:<effort>`，同时接受契约中的空白分隔、模型别名和 effort 简写。复用 dev-delegate 的共享解析与校验，归一化后唯一匹配当前实际模型并校验 effort，不要求 worker；额外提供 worker 时同样校验。缺 reviewer 立即中断，提示规范格式；此校验早于源码审查、报告创建和子代理派发。
+先读取[子代理模型契约](../../references/subagent-models.md)，本次显式参数的规范格式为 `reviewer=<model>:<effort>`，同时接受契约中的空白分隔、模型别名和 effort 简写。复用本 Skill 随包的解析与校验，归一化后唯一匹配当前实际模型并校验 effort，不要求 worker；额外提供 worker 时同样校验。缺 reviewer 立即中断，提示规范格式；此校验早于源码审查、报告创建和子代理派发。
 
 确认实际 Harness，并读取对应 adapter：[Codex](../../references/codex.md)、[Claude Code](../../references/claude.md)、[agy](../../references/agy.md) 或 [dsh 桌面版](../../references/dsh.md)。Codex 使用本 Skill 的 `scripts/select_models.py` 校验当前工具清单；其他客户端按原生 schema 校验。派发前展示 reviewer 的实际型号和强度，所有审查与复核使用同一配置。模型、effort、覆写能力或必要权限不足时 `BLOCKED`，说明缺口；未知 Harness 为 `BLOCKED / UNSUPPORTED AGENT`。不补默认值、不替换模型、不嵌套启动客户端。
 

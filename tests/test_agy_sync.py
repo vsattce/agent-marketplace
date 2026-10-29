@@ -119,7 +119,7 @@ class AgySyncTests(unittest.TestCase):
         result = self.run_sync("fail")
         self.assertIn("exit 3", result["failure"])
         installs = [call for call in result["calls"] if call.startswith("plugin|install|")]
-        self.assertEqual(len(installs), 2)
+        self.assertEqual(len(installs), 3)
         self.assertFalse(any("uninstall" in call for call in result["calls"]))
 
     def test_missing_installed_skill_stops_verification(self):

@@ -1,14 +1,14 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "common-workflow",
-  "version": "1.4.0",
-  "description": "项目初始化、任务交接、问题诊断、模块设计、方案推敲、架构改进、测试先行与资料研究工具。",
+  "version": "2.0.0",
+  "description": "非 Matt 通用能力：查找和发现可安装的 Skills。",
   "extensions": {
     "com.openai": {
       "interface": {
         "displayName": "通用工作流",
-        "shortDescription": "项目初始化、任务交接、问题诊断、模块设计、方案推敲、架构改进、测试先行与资料研究工具。",
-        "longDescription": "项目初始化、任务交接、问题诊断、模块设计、方案推敲、架构改进、测试先行与资料研究工具。\n\nsetup-matt-pocock-skills（工程 Skills 初始化）：首次使用 Matt Pocock 工程 Skills 前，配置项目的问题跟踪方式、分诊标签与领域文档布局。触发：用户主动（仅手动）。\nhandoff（任务交接）：将当前会话的进度、决定和后续工作整理成交接文档，供新会话继续。触发：被动（仅手动）。\ndiagnosing-bugs（问题诊断）：逐步排查复杂 Bug、报错、故障和性能回归，核验证据与原因。触发：主动（诊断任务）／被动（手动）。\ncodebase-design（代码库设计）：用深模块原则设计接口、确定可替换与可测试的边界。触发：主动（模块设计任务）／被动（手动）。\ngrill-with-docs（方案推敲与文档）：推敲方案或设计，随讨论记录 ADR 与领域词汇。触发：用户主动（仅手动）；依赖 grilling + domain-modeling。\nimprove-codebase-architecture（架构改进）：寻找架构改进机会，生成 HTML 报告后推敲选定方案。触发：用户主动（仅手动）；依赖 codebase-design + grilling + domain-modeling。\ngrilling（逐轮提问）：通过逐轮提问检验计划、决定或想法。触发：允许依赖被动调用，保留上游任务匹配与手动调用。\ngrill-me（方案访谈）：仅手动启动逐轮访谈以推敲计划或设计；依赖 grilling。触发：用户主动（仅手动）。\ndomain-modeling（领域建模）：澄清领域术语，维护 GLOSSARY.md 与 ADR。触发：允许依赖被动调用，保留上游任务匹配与手动调用。\ntdd（测试驱动开发）：先确认测试边界，再逐项执行失败测试与最小实现的循环。触发：主动（测试先行任务）／被动（手动）。\nresearch（资料研究）：从可信来源收集资料和 API 文档，形成可追溯的研究记录。触发：主动（研究任务）／被动（手动）。\nwriting-for-agents（Agent 文档编写）：创建或修改 Skill、AGENTS.md、CLAUDE.md 等供 Agent 使用的文档。触发：主动（Agent 文档任务）／被动（手动）。\nfind-skills（Skill 查找）：按需求寻找可用 Skill，了解其能力与安装方式。触发：主动（查找 Skill 时）／被动（手动）。\n\n任务自动选用、用户显式调用与 Skill 依赖调用均遵循上游原始触发规则。setup-matt-pocock-skills、grill-me、grill-with-docs 与 improve-codebase-architecture 仅由用户主动调用；grilling 与 domain-modeling 可作为依赖被动调用。启用插件不会自行执行任务。",
+        "shortDescription": "非 Matt 通用能力：查找和发现可安装的 Skills。",
+        "longDescription": "find-skills：按需求查找可用 Skill，了解能力与安装方式。Matt Pocock Skills 已独立放入 matt Plugin。",
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://gitee.com/vsattce/agent-marketplace",

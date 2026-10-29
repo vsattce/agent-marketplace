@@ -10,7 +10,7 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT_PATH = ROOT / "plugins/personal-dev/skills/dev-delegate/scripts/select_models.py"
+SCRIPT_PATH = ROOT / "plugins/personal-dev/skills/dev-review/scripts/model_validation.py"
 
 
 def load_selector(path):

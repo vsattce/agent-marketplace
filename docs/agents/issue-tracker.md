@@ -11,6 +11,7 @@
 - 存在依赖时，用 `Blocked by: NN, NN` 引用同目录的 Issue；全部依赖解决后才能开始。
 - 评论和讨论追加到文件末尾的 `## Comments` 下。
 - 领取任务时设为 `claimed`；完成后记录结果与验证证据，再设为 `resolved`。
+- Skill 要求标签时，在文件开头使用 `Labels:` 记录；`ready-for-agent` 表示需求已明确、可由 Agent 实现。Spec 与拆分后的 Ticket 使用该标签，不需要安装或运行独立的 `triage` Skill。
 
 ## Skill 操作映射
 
@@ -19,5 +20,5 @@
 
 ## 与现有流程的关系
 
-`personal-dev` 的需求、计划和执行记录继续遵循项目既有目录规则。
-Issue 引用已有文档路径，避免重复保存同一份需求或计划。
+Matt 的 `to-spec`、`to-tickets`、`implement` 与 `implement-spec` 使用上述本地 tracker 约定；已有规格说明可通过路径引用，避免重复保存。
+`personal-dev` 仅保留审查、精简与运行诊断，报告按各入口约定按需保存；既有历史需求与计划保留。

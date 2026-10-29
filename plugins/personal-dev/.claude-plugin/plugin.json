@@ -1,7 +1,9 @@
 {
   "name": "personal-dev",
-  "description": "仅手动调用的需求准备、轻量委派与审查、自动开发、精简建议及远端诊断，支持 Claude Code、Codex、agy 和 dsh 桌面版。",
-  "author": {"name": "hjy"},
+  "description": "仅手动调用的增强代码审查、精简建议与远端诊断工具。",
+  "author": {
+    "name": "hjy"
+  },
   "homepage": "https://github.com/vsattce/agent-marketplace",
   "repository": "https://github.com/vsattce/agent-marketplace",
   "license": "MIT"

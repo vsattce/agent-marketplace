@@ -71,9 +71,9 @@ class PackagingTests(unittest.TestCase):
         claude = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
         self.assertEqual(claude["name"], codex["name"])
         self.assertEqual({entry["name"] for entry in claude["plugins"]}, {entry["name"] for entry in codex["plugins"]})
-        self.assertEqual(len(claude["plugins"]), 5)
+        self.assertEqual(len(claude["plugins"]), 6)
         self.assertEqual({entry["name"] for entry in claude["plugins"]}, {
-            "common-workflow", "software-dev", "engineering-tools", "agent-manager", "personal-dev",
+            "common-workflow", "matt", "software-dev", "engineering-tools", "agent-manager", "personal-dev",
         })
         count = 0
         codex_count = 0
@@ -89,8 +89,8 @@ class PackagingTests(unittest.TestCase):
             count += len(list((root / "skills").glob("*/SKILL.md")))
             codex_count += len(list((root / "skills").glob("*/SKILL.md")))
             codex_count += len(list((root / "codex-skills").glob("*/SKILL.md")))
-        self.assertEqual(count, 28)
-        self.assertEqual(codex_count, 29)
+        self.assertEqual(count, 30)
+        self.assertEqual(codex_count, 31)
         software = next(entry for entry in claude["plugins"] if entry["name"] == "software-dev")
         software_manifest = json.loads((ROOT / "plugins/software-dev/.claude-plugin/plugin.json").read_text(encoding="utf-8"))
         codex_software = next(entry for entry in codex["plugins"] if entry["name"] == "software-dev")
@@ -108,7 +108,7 @@ class PackagingTests(unittest.TestCase):
             obsolete_root = ROOT / "plugins" / obsolete
             self.assertFalse((obsolete_root / "plugin.json").exists())
             self.assertEqual(list(obsolete_root.rglob("SKILL.md")), [])
-        handoff = (ROOT / "plugins/common-workflow/skills/handoff/SKILL.md").read_text(encoding="utf-8")
+        handoff = (ROOT / "plugins/matt/skills/handoff/SKILL.md").read_text(encoding="utf-8")
         self.assertIs(yaml.safe_load(handoff.split("---", 2)[1])["disable-model-invocation"], True)
 
     def test_new_skills_are_bundled_and_removed_skills_are_not_discoverable(self):
@@ -163,67 +163,6 @@ class PackagingTests(unittest.TestCase):
         self.assertEqual(lock["group"], "engineering-tools")
         self.assertRegex(lock["commit"], r"^[0-9a-f]{40}$")
         self.assertFalse((ROOT / "plugins/testing-automation").exists())
-
-    def test_common_workflow_intake_preserves_dependencies_resources_and_invocation(self):
-        plugin = ROOT / "plugins/common-workflow"
-        sources = yaml.safe_load((ROOT / "sources.yaml").read_text("utf-8"))["groups"]
-        common_sources = sources["common-workflow"]["skills"]
-        self.assertEqual(len(common_sources), 13)
-        self.assertEqual(sum(item["name"] == "codebase-design" for item in common_sources), 1)
-        expected = {
-            "setup-matt-pocock-skills": ("engineering", {
-                "SKILL.md", "agents/openai.yaml", "domain.md", "issue-tracker-github.md",
-                "issue-tracker-gitlab.md", "issue-tracker-local.md", "triage-labels.md",
-            }),
-            "grill-with-docs": ("engineering", {"SKILL.md", "agents/openai.yaml"}),
-            "improve-codebase-architecture": ("engineering", {"SKILL.md", "agents/openai.yaml", "HTML-REPORT.md"}),
-            "grilling": ("productivity", {"SKILL.md", "agents/openai.yaml"}),
-            "grill-me": ("productivity", {"SKILL.md", "agents/openai.yaml"}),
-            "domain-modeling": ("engineering", {"SKILL.md", "agents/openai.yaml", "ADR-FORMAT.md", "GLOSSARY-FORMAT.md"}),
-        }
-        dependencies = {
-            "grill-with-docs": {"grilling", "domain-modeling"},
-            "grill-me": {"grilling"},
-            "improve-codebase-architecture": {"codebase-design", "grilling", "domain-modeling"},
-        }
-        lock = json.loads((ROOT / "sources.lock.json").read_text("utf-8"))["skills"]
-        for name, (category, files) in expected.items():
-            with self.subTest(skill=name):
-                source, = [item for item in common_sources if item["name"] == name]
-                self.assertEqual(source, {"name": name, "repo": "mattpocock/skills",
-                                          "path": f"skills/{category}/{name}", "ref": "main"})
-                self.assertEqual({key: lock[name][key] for key in source}, source)
-                self.assertEqual(lock[name]["group"], "common-workflow")
-                self.assertRegex(lock[name]["commit"], r"^[0-9a-f]{40}$")
-                directory = plugin / "skills" / name
-                self.assertEqual({path.relative_to(directory).as_posix()
-                                  for path in directory.rglob("*") if path.is_file()}, files)
-                self.assertTrue((plugin / "licenses" / name / "LICENSE").is_file())
-                text = (directory / "SKILL.md").read_text("utf-8")
-                metadata = yaml.safe_load(text.split("---", 2)[1])
-                policy = yaml.safe_load((directory / "agents/openai.yaml").read_text("utf-8"))
-                self.assertEqual(metadata["name"], name)
-                if name in dependencies or name == "setup-matt-pocock-skills":
-                    self.assertIs(metadata["disable-model-invocation"], True)
-                    self.assertIs(policy["policy"]["allow_implicit_invocation"], False)
-                    for dependency in dependencies.get(name, set()):
-                        self.assertIn(f'"{dependency}"', text)
-                        entry = plugin / "skills" / dependency / "SKILL.md"
-                        dependency_metadata = yaml.safe_load(entry.read_text("utf-8").split("---", 2)[1])
-                        self.assertFalse(dependency_metadata.get("disable-model-invocation", False))
-                else:
-                    self.assertNotIn("disable-model-invocation", metadata)
-                    self.assertTrue(policy.get("policy", {}).get("allow_implicit_invocation", True))
-                for target in re.findall(r"\]\(([^)\s]+)\)", text):
-                    if "://" in target or target.startswith("#"):
-                        continue
-                    self.assertTrue((directory / target).is_file(), target)
-        manifest = json.loads((plugin / "plugin.json").read_text("utf-8"))
-        catalog = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text("utf-8"))
-        registered = next(item for item in catalog["plugins"] if item["name"] == "common-workflow")
-        self.assertEqual(manifest["extensions"]["com.openai"]["interface"], registered["interface"])
-        for name in expected:
-            self.assertIn(name, registered["interface"]["longDescription"])
 
     def test_bundled_local_references_resolve(self):
         for document in PLUGIN.rglob("*.md"):

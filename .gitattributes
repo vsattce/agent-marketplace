@@ -4,6 +4,8 @@
 .agents/superpowers/LICENSE -text
 plugins/common-workflow/skills/** -text
 plugins/common-workflow/licenses/** -text
+plugins/matt/skills/** -text
+plugins/matt/licenses/** -text
 plugins/software-dev/skills/** -text
 plugins/software-dev/licenses/** -text
 plugins/engineering-tools/skills/** -text

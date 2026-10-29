@@ -1,6 +1,0 @@
-interface:
-  display_name: "需求与计划准备"
-  short_description: "仅手动调用；结合项目规则与代码生成 SPEC、PLAN，统一确认一次后结束。"
-  default_prompt: "使用 $personal-dev:dev-prepare 整理当前需求和方案，生成 SPEC / PLAN 并统一确认一次，不执行开发。"
-policy:
-  allow_implicit_invocation: false

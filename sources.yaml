@@ -1,11 +1,59 @@
-# 第三方 Skill 的唯一来源维护入口。ref 保留现有分支 / 固定快照策略。
+# 第三方 Skill 的唯一来源维护入口；只登记实际选择的完整 Skill 目录，不镜像上游仓库。
 groups:
   common-workflow:
     displayName: 通用工作流
     skills:
+      - name: find-skills
+        repo: vercel-labs/skills
+        path: skills/find-skills
+        ref: main
+
+  matt:
+    displayName: Matt 精选工作流
+    skills:
       - name: setup-matt-pocock-skills
         repo: mattpocock/skills
         path: skills/engineering/setup-matt-pocock-skills
+        ref: main
+      - name: grill-with-docs
+        repo: mattpocock/skills
+        path: skills/engineering/grill-with-docs
+        ref: main
+      - name: grilling
+        repo: mattpocock/skills
+        path: skills/productivity/grilling
+        ref: main
+      - name: domain-modeling
+        repo: mattpocock/skills
+        path: skills/engineering/domain-modeling
+        ref: main
+      - name: to-spec
+        repo: mattpocock/skills
+        path: skills/engineering/to-spec
+        ref: main
+      - name: to-tickets
+        repo: mattpocock/skills
+        path: skills/engineering/to-tickets
+        ref: main
+      - name: implement
+        repo: mattpocock/skills
+        path: skills/engineering/implement
+        ref: main
+      - name: implement-spec
+        repo: mattpocock/skills
+        path: skills/engineering/implement-spec
+        ref: main
+      - name: tdd
+        repo: mattpocock/skills
+        path: skills/engineering/tdd
+        ref: main
+      - name: codebase-design
+        repo: mattpocock/skills
+        path: skills/engineering/codebase-design
+        ref: main
+      - name: code-review
+        repo: mattpocock/skills
+        path: skills/engineering/code-review
         ref: main
       - name: handoff
         repo: mattpocock/skills
@@ -15,45 +63,21 @@ groups:
         repo: mattpocock/skills
         path: skills/engineering/diagnosing-bugs
         ref: main
-      - name: codebase-design
+      - name: research
         repo: mattpocock/skills
-        path: skills/engineering/codebase-design
-        ref: main
-      - name: grill-with-docs
-        repo: mattpocock/skills
-        path: skills/engineering/grill-with-docs
+        path: skills/engineering/research
         ref: main
       - name: improve-codebase-architecture
         repo: mattpocock/skills
         path: skills/engineering/improve-codebase-architecture
         ref: main
-      - name: grilling
-        repo: mattpocock/skills
-        path: skills/productivity/grilling
-        ref: main
-      - name: grill-me
-        repo: mattpocock/skills
-        path: skills/productivity/grill-me
-        ref: main
-      - name: domain-modeling
-        repo: mattpocock/skills
-        path: skills/engineering/domain-modeling
-        ref: main
-      - name: tdd
-        repo: mattpocock/skills
-        path: skills/engineering/tdd
-        ref: main
-      - name: research
-        repo: mattpocock/skills
-        path: skills/engineering/research
-        ref: main
       - name: writing-for-agents
         repo: mattpocock/skills
         path: skills/productivity/writing-for-agents
         ref: main
-      - name: find-skills
-        repo: vercel-labs/skills
-        path: skills/find-skills
+      - name: retro
+        repo: mattpocock/skills
+        path: skills/engineering/retro
         ref: main
 
   software-dev:

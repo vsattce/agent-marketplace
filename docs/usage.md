@@ -6,7 +6,7 @@
 
 当前支持 Codex、Claude Code、Antigravity CLI（agy）与 DeepSeek Harness 桌面版（dsh）。安装与作用域边界分别见 [agy 说明](#antigravity-cliagy)和 [dsh 桌面版说明](#deepseek-harness-桌面版dsh)。
 
-产品目录共有 **5 个 Plugin**；Codex 共 **29 个 Skills**，Claude Code / agy / dsh 各有 **28 个**。dsh 通过一个原生 Skill provider 加载产品包内容。三个第三方聚合 Plugin 收录 21 项；本仓库自有的 `agent-manager` 在 Codex 有 2 项，Claude Code / agy / dsh 各有 1 项，`personal-dev` 各端各有 6 项。第三方来源、作者与许可证边界见 [README](../README.md)。
+产品目录共有 **6 个 Plugin**，Codex **31 个 Skills**，Claude Code / agy / dsh 各 **30 个**；第三方共 26 项。personal-dev 仅保留 3 项。数量不代表当前会话已加载。
 
 ## 日常调用
 
@@ -21,12 +21,12 @@
 
 可用入口以当前会话实际显示的清单为准。Skill 改名发布后，刷新客户端安装副本并开启新会话或重载 Plugin；旧完整调用名不作为别名保留。
 
-**仅手动调用**：`setup-matt-pocock-skills`、`handoff`、`grill-me`、`grill-with-docs`、`improve-codebase-architecture`、`agent-manager` 和 `personal-dev` 中的 Skills。其他 Skill 可在任务匹配时由 Agent 选用，也可手动指定；自动选用不保证每次发生，启用 Plugin 不会自行执行任务。
+**仅手动调用**：`setup-matt-pocock-skills`、`handoff`、`grill-with-docs`、`improve-codebase-architecture`、`to-spec`、`to-tickets`、`implement`、`implement-spec`、`retro`、`agent-manager` 和 `personal-dev` 中的 Skills。其他 Skill 可在任务匹配时由 Agent 选用，也可手动指定；自动选用不保证每次发生，启用 Plugin 不会自行执行任务。
 
 例如在 Codex 中：
 
 ```text
-$common-workflow:handoff 整理当前进度，供新会话继续
+$matt:handoff 整理当前进度，供新会话继续
 $agent-manager:am-context
 $agent-manager:am-config 只检查当前项目与全局规则的冲突，不修改
 $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”改为“只提交、不推送”
@@ -36,18 +36,23 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 
 | Plugin | Skill | 用途 | 调用方式 |
 | --- | --- | --- | --- |
-| common-workflow | setup-matt-pocock-skills | 首次使用 Matt Pocock 工程 Skills 前，配置项目的问题跟踪方式、分诊标签与领域文档布局 | 用户主动（仅手动） |
-| common-workflow | handoff | 整理进度、决定和后续工作，供新会话接续 | 仅手动 |
-| common-workflow | diagnosing-bugs | 排查复杂 Bug、报错、故障和性能回归 | 任务匹配 / 手动 |
-| common-workflow | codebase-design | 使用深模块原则设计接口、确定可替换与可测试的边界 | 任务匹配 / 手动 |
-| common-workflow | grill-with-docs | 推敲方案或设计，并随讨论记录 ADR 与领域词汇 | 用户主动（仅手动） |
-| common-workflow | improve-codebase-architecture | 扫描架构改进机会，生成 HTML 报告后推敲选定方案 | 用户主动（仅手动） |
-| common-workflow | grilling | 逐轮提问以检验计划、决定或想法 | 依赖调用 / 上游任务匹配 / 手动 |
-| common-workflow | grill-me | 启动逐轮访谈，推敲计划或设计；依赖 grilling | 用户主动（仅手动） |
-| common-workflow | domain-modeling | 澄清领域术语，维护 GLOSSARY.md 与 ADR | 依赖调用 / 上游任务匹配 / 手动 |
-| common-workflow | tdd | 先确认测试边界，再逐项执行失败测试与最小实现的循环 | 任务匹配 / 手动 |
-| common-workflow | research | 从可信来源收集资料和 API 文档，形成研究记录 | 任务匹配 / 手动 |
-| common-workflow | writing-for-agents | 编写 Skill、AGENTS.md、CLAUDE.md 等 Agent 文档 | 任务匹配 / 手动 |
+| matt | setup-matt-pocock-skills | 首次使用 Matt Pocock 工程 Skills 前，配置项目的问题跟踪方式、分诊标签与领域文档布局 | 用户主动（仅手动） |
+| matt | handoff | 整理进度、决定和后续工作，供新会话接续 | 仅手动 |
+| matt | diagnosing-bugs | 排查复杂 Bug、报错、故障和性能回归 | 任务匹配 / 手动 |
+| matt | codebase-design | 使用深模块原则设计接口、确定可替换与可测试的边界 | 任务匹配 / 手动 |
+| matt | grill-with-docs | 推敲方案或设计，并随讨论记录 ADR 与领域词汇 | 用户主动（仅手动） |
+| matt | improve-codebase-architecture | 扫描架构改进机会，生成 HTML 报告后推敲选定方案 | 用户主动（仅手动） |
+| matt | grilling | 逐轮提问以检验计划、决定或想法 | 依赖调用 / 上游任务匹配 / 手动 |
+| matt | domain-modeling | 澄清领域术语，维护 GLOSSARY.md 与 ADR | 依赖调用 / 上游任务匹配 / 手动 |
+| matt | tdd | 先确认测试边界，再逐项执行失败测试与最小实现的循环 | 任务匹配 / 手动 |
+| matt | research | 从可信来源收集资料和 API 文档，形成研究记录 | 任务匹配 / 手动 |
+| matt | writing-for-agents | 编写 Skill、AGENTS.md、CLAUDE.md 等 Agent 文档 | 任务匹配 / 手动 |
+| matt | to-spec | 将已有讨论整理为 Spec | 仅手动 |
+| matt | to-tickets | 大型需求拆成有阻塞关系的 Ticket | 仅手动 |
+| matt | implement | 普通开发默认入口，按需 TDD，完成后 code-review | 仅手动 |
+| matt | implement-spec | 大型多 Ticket 并行开发 | 仅手动 |
+| matt | code-review | Standards / Spec 两轴代码审查 | 任务匹配 / 主链调用 / 手动 |
+| matt | retro | 复盘 Agent 环境、工具与 token 浪费 | 仅手动 |
 | common-workflow | find-skills | 按需求查找 Skill，了解能力与安装方式 | 任务匹配 / 手动 |
 | software-dev | frontend-design | 指导新页面或改版的视觉风格、排版和细节 | 任务匹配 / 手动 |
 | software-dev | web-design-guidelines | 审查 Web 界面、可访问性和交互规范 | 任务匹配 / 手动 |
@@ -59,9 +64,6 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 | engineering-tools | playwright-cli | 通过 Playwright CLI 操作浏览器并验证交互 | 任务匹配 / 手动 |
 | agent-manager | am-context | 粗略估算本轮当前仍可见的上下文；仅 Codex | 仅手动 |
 | agent-manager | am-config | 检查相关冲突后编辑项目指令、安装指定 Skill 或修改受支持的 Plugin 开关；也可只读查冲突 | 仅手动 |
-| personal-dev | dev-prepare | 结合项目代码生成 SPEC / PLAN，统一确认一次后结束，不开发 | 仅手动 |
-| personal-dev | dev-delegate | 消费既定 SPEC / PLAN 执行 SDD、独立验收与有限修复 | 仅手动 |
-| personal-dev | dev-auto | 自动准备并检查 SPEC / PLAN，直接复用委派执行器连续开发 | 仅手动 |
 | personal-dev | dev-review | 只读审查当前项目或明确范围，独立复核高等级发现并生成报告；各端使用各自 adapter | 仅手动 |
 | personal-dev | dev-simplify | 默认只读提出行为等价的精简建议，确认后再编辑 | 仅手动 |
 | personal-dev | dev-runtime-check | 使用当前 Harness 原生 Shell / SSH 对指定远端主机、容器或服务取证；默认只读 | 仅手动 |
@@ -76,54 +78,42 @@ $agent-manager:am-config 将项目 AGENTS.md 中“完成后提交并推送”�
 
 委派开发以文件形式的 SPEC / PLAN 为输入；单任务也保存，交接保持简短。普通少量串行任务不额外建 ledger 或长报告；仅并行调度、复杂依赖、长时恢复或只读 PLAN 裁决需要时建立被 Git 忽略的 `.personal-dev/sdd/<task-id>/progress.md`。需求与计划默认保留，额外复杂任务记录或验收证据确需长期保存时才使用 `docs/personal-dev/tasks/<task-id>/`。其他产物的路径和边界见[任务产物位置](../plugins/personal-dev/references/artifacts.md)。
 
+## Matt 精选工作流
+
+首次在目标项目使用工程主链前，显式调用 `$matt:setup-matt-pocock-skills`（Claude：`/matt:setup-matt-pocock-skills`），配置 issue tracker 与领域文档。整个目录含 GitHub / GitLab / 本地 Markdown tracker、domain 与 triage 模板；未安装 triage 时，上游 setup 跳过其标签配置，不需要引入 triage Skill。
+
+| 场景 | 推荐入口 |
+| --- | --- |
+| 需求澄清 | `$matt:grill-with-docs` |
+| 需求整理 | `$matt:to-spec` |
+| 大型需求拆分 | `$matt:to-tickets` |
+| 普通开发（默认） | `$matt:implement` |
+| 大型并行开发 | `$matt:implement-spec` |
+| 困难 Bug | `$matt:diagnosing-bugs` |
+| 代码审查 | `$matt:code-review` |
+| Agent 工作环境复盘 | `$matt:retro` |
+
+日常按 `grill-with-docs → to-spec → 按需 to-tickets → implement` 使用，不强制每次拆 Ticket。`implement-spec` 仅用于大型、多 Ticket 且适合多 Agent 并行的任务，不作为普通开发默认入口。Claude 前缀用 `/matt:`；agy / dsh 以实际发现的 `/skill-name` 为准。
+
+运行依赖：`grill-with-docs → grilling + domain-modeling`；`implement → tdd + code-review`；`tdd → codebase-design`（接口 / seam 设计时）；`implement-spec → tdd + code-review`（消费 Spec / Ticket，需 tracker 配置）；`improve-codebase-architecture → codebase-design + grilling + domain-modeling`；`retro → writing-for-agents`。to-spec、to-tickets、code-review、implement-spec 在缺少项目配置时提示运行 setup。
+
+`handoff` 用于换 Harness / 上下文、跨目录与交接；诊断、研究、架构改进和文档工具独立使用。`retro` 仅手动触发，不加到默认开发完成流程。清单不包含 ask-matt、grill-me、triage、wayfinder、prototype、pr、wizard、teach、to-questionnaire、wait-what 或 in-progress / misc / deprecated。模板中出现这些名称不构成运行依赖。
+
+每个选定目录完整同步，保留上游 agents、模板及相对引用文件；没有自定义 wrapper、worker/reviewer 路由或客户端 adapter。上游 implement 自身会在完成后调用 code-review，其审查流程仍按 upstream 原文执行。
+
 ## 个人开发工具（Codex / Claude Code / agy / dsh）
 
-三个开发入口均只由用户手动触发；本文简称 `$dev-prepare` / `$dev-delegate` / `$dev-auto`，Codex / Claude Code 使用下表完整命名空间，agy 分别使用 `/dev-prepare`、`/dev-delegate`、`/dev-auto`：
+仅保留 `dev-review`、`dev-simplify`、`dev-runtime-check`，全部手动调用。开发主链使用 matt。
 
-| 入口 | Codex | Claude Code | 结果 |
-| --- | --- | --- | --- |
-| 先准备 | `$personal-dev:dev-prepare` | `/personal-dev:dev-prepare` | 结合项目规则和代码生成 SPEC / PLAN，统一人工确认一次后结束，不开发 |
-| 直接执行 | `$personal-dev:dev-delegate` | `/personal-dev:dev-delegate` | 消费既定 SPEC / PLAN，执行 SDD；缺失时提示 prepare / auto，不重新推导需求 |
-| 自动完成 | `$personal-dev:dev-auto` | `/personal-dev:dev-auto` | 复用准备流程，自动检查通过后直接进入同一委派执行器，正常需求不确认 |
+dev-review 只需显式 `reviewer=<model>:<effort>`，支持 `review / r / check`、空白分隔和模型 / effort 归一化，例如 `$personal-dev:dev-review r 6.1terra high`。可选 worker 保持校验兼容，但不会派发执行代理。必须唯一匹配当前 Harness 实际模型并能显式落实 effort；不支持时 BLOCKED，不 fallback。校验器完整随 dev-review 打包，见[模型契约](../plugins/personal-dev/references/subagent-models.md)。
 
-```text
-$personal-dev:dev-prepare 给现有列表增加状态筛选，保持分页和接口兼容
-# 确认 SPEC / PLAN 后，此入口结束；再单独调用：
-$personal-dev:dev-delegate w 6luna high r 6.1terra high 按 docs/personal-dev/specs/<task-id>-design.md 和 docs/personal-dev/plans/<task-id>.md 执行
-$personal-dev:dev-delegate worker=6-luna:medium reviewer=6.1-terra:xhigh 按已确定的 SPEC / PLAN 执行
-# 或者从需求到开发连续完成：
-$personal-dev:dev-auto w=6luna:high r=6.1terra:high 给现有列表增加状态筛选，保持分页和接口兼容
-```
-
-`SPEC > PLAN > Coder interpretation`。SPEC 记录目标、范围、不做项、现有约束、关键行为和验收标准；PLAN 记录任务、依赖、write_scope、目标、验证和完成标准。简单需求保持简短。默认写入 `docs/personal-dev/specs/<task-id>-design.md` 与 `docs/personal-dev/plans/<task-id>.md`，共用 task-id，prepare 确认及执行完成后均保留，可随项目版本管理；后续 Agent 读取路径而非反复复制聊天。临时交接、日志与证据放在 `.personal-dev/sdd/<task-id>/`，全部验收及已授权收尾完成后仅清理本次执行现场。用户指定位置和项目规则优先；旧布局按明确路径继续消费或恢复，不自动搬迁。PLAN 与 SPEC 冲突由主模型按 SPEC 修正并记录裁决，不让 Coder / Reviewer 改写明确需求。
-
-`dev-auto` 直接读取共享准备规则和 dev-delegate 正文，无需嵌套调用手动 Skill，也无需用户再次输入 dev-delegate。它从准备到执行只允许因重大歧义、当前未授权的破坏性操作或安全边界不清集中询问一次；普通细节自行合理裁决，不确认 SPEC、PLAN、模型、effort，不在任务之间询问。必需能力缺失或环境不满足时如实报告限制；该入口不扩大平台或项目权限。共同定义见[准备与消费契约](../plugins/personal-dev/references/preparation.md)。
-
-dev-delegate / dev-auto 须同时显式提供 worker + reviewer；dev-review 默认只需 reviewer。worker 支持 `worker / work / w / code`，reviewer 支持 `reviewer / review / r / check`。角色与值可用 `=`、`:` 或空白分隔，model 与 effort 可用冒号或空白分隔，符号两侧允许空白；例如 `$dev-delegate w 6luna high r 6.1terra high`、`$dev-auto w=6luna:high r=6.1terra:high`、`$dev-review check 6.1terra H`。
-
-三个入口共用[子代理模型契约](../plugins/personal-dev/references/subagent-models.md)：角色、model 和 effort 不区分大小写；`6luna / 6-luna / gpt6luna / gpt-6-luna` 可唯一匹配当前的 `gpt-6-luna`，`6.1terra` 等形式同理；effort 额外支持 `h → high`、`m → medium`。归一化只处理格式，仍保留完整版本和系列名；`terra` 不补版本，不按能力或最新型号猜测。匹配必须唯一，且该型号确实支持所请求 effort；派发使用当前清单的精确值。非法、歧义、重复或缺项立即中断，不替换模型或升降 effort。
-
-若上述简写仍被旧的严格格式规则拦截，按[安装与更新](#安装与更新)刷新 `personal-dev` 安装副本至 `0.9.3` 或更新版本，再新建聊天；界面未刷新时重开客户端。仓库源码与安装缓存是独立副本，以新会话实际加载的正文为准。
-
-dev-auto 在生成 SPEC / PLAN 前校验并传递同一对配置；dev-review 兼容额外提供的 worker，提供时仍校验，后续流程确需执行型子代理才显式要求它，不因此扩权。dev-prepare、dev-simplify、dev-runtime-check 当前无子代理时无需参数，转入委派时在交接入口校验。执行型工作统一 worker；审查、符合性、验证结果、回归风险、独立复核和 Final Reviewer 统一 reviewer。并行代理按角色共用配置，主会话模型不变。
-
-模型及 effort 必须在当前 Harness 的原生工具中可用且能显式落实，不支持立即说明原因并中断，不自动选型号、推断或升降强度、替换模型或继承默认。当前 Agent 不提供 effort 覆写字段时同样中断；这可能使该 Harness 的委派流程暂不可用，无子代理的入口仍可使用。四端策略和 helper 协议见[子代理模型契约](../plugins/personal-dev/references/subagent-models.md)，工具字段按 [Codex](../plugins/personal-dev/references/codex.md)、[Claude](../plugins/personal-dev/references/claude.md)、[agy](../plugins/personal-dev/references/agy.md)、[dsh](../plugins/personal-dev/references/dsh.md) 适配，派发前展示实际配置后直接执行，不修改全局配置。
-
-dev-delegate 默认路径为 `worker → reviewer → 必要修复 → 最终 fresh verification → DONE`。PLAN 仍按完整功能拆分并标注并行候选，执行默认单 worker 顺序进行；只有多个独立任务确有收益或用户要求且范围、共享契约、验证资源和槽位均安全时才并行，通常两个、最多三个写代理。can_parallel 仅是候选资格，旧 PLAN 无标记不妨碍按需判断，显式串行要求保留。下游等上游独立验收通过且契约确定。ledger / 恢复仅按调度或恢复需要启用，普通少量串行任务在可写 PLAN 简记进度；恢复核对文件、代码、Git 与代理状态，不重复派发或重置修复次数。
-
-每个任务由独立 Coder 和干净只读 Reviewer 分工。无 blocker 直接最终核验；有 blocker 通常修一次并复验，持续存在才继续，三轮是最大上限。首轮修复后同根因仍在或补丁引入新 blocker，主模型先在既有 PLAN / ledger 完成根因裁决与失败交错测试，再用剩余轮次修复。“继续执行 / 别中断”不自动取消上限；用户明确更改预算时保留累计次数并记录有限范围与收敛条件。优先原 Coder，仅不可恢复、上下文失效或同根因反复无进展时启用 fresh coder，始终使用同一 worker 与 SPEC / PLAN。普通建议与偏好不阻塞，范围外要求拒绝；复验聚焦修复及影响，同根因或新 finding 不重开预算。第三轮后主模型裁决，核心 blocker 未解记 FAILED；仅冻结实际依赖与风险范围。完整规则见[角色契约](../plugins/personal-dev/skills/dev-delegate/references/roles.md)与[编排恢复](../plugins/personal-dev/skills/dev-delegate/references/orchestration.md)。
-
-主模型始终对照 SPEC 检查总需求、跨任务联动、范围和最终版本，并完成最终 fresh verification：最后修改后运行最小有效验证，已有对应最终版本的当前轮实测可复用，不重复全量验证。用户明确要求、安全 / 权限、并发 / 事务一致性、破坏性数据迁移或明显公共 API 不兼容风险须覆盖风险终审；单个完整验收单元可复用已覆盖风险的最终独立验收，只为具体覆盖缺口、未覆盖的跨任务风险或用户明确要求另一位终审者增加 Final Reviewer。仍使用同一 reviewer，不启动第二套全项目 dev-review，沿用任务剩余修复次数。代码量和任务量本身不增加审查层级。
-
-失败、中断或收尾未完成时保留 SPEC / PLAN 和 ledger。部分失败不宣称全部完成，不自动提交、推送或发布混合的失败实现；全部通过后只按目标项目已有授权收尾，安全清理本次临时目录。Codex 检查器只校验传入模型元数据，不发现型号、不验证来源、不拦截原生派发；使用已有工具环境，不安装或切换运行时。隔离加载测试不代表真实模型已完成 SDD，也不承诺固定 token 或额度节省。
-
-测试 / 构建 / 浏览器验证及 SSH 命令遵循[命令与资源契约](../plugins/personal-dev/references/execution-resources.md)：工具返回后台 ID 时继续跟踪到退出，失败也释放本次进程；清理目录或 worktree 前先关闭本次服务、测试与文件句柄。Windows 不能仅靠命令行包含目录判断占用，也不按名称批量停止用户进程。命令等待时间不是超时，测试摘要不是退出证明。`am-config` 的独立随包约束见[隔离验证](../plugins/agent-manager/skills/am-config/references/project-edits.md#隔离加载验证)；纯文档准备和 `am-context` 不启动验证进程。
+验证与清理遵守[命令与资源契约](../plugins/personal-dev/references/execution-resources.md)，跟踪后台 ID 至真实退出；共享 Harness 文件仅服务保留的审查能力。
 
 ### 精简当前改动
 
 调用 `dev-simplify` 后默认由当前模型只读检查并提出行为等价的精简建议，等待确认后编辑；用户明确要求直接精简时执行。默认范围是当前项目工作区的暂存、未暂存和新增源码；用户只写 Skill 名称时仍先检查该 diff。只有 Git 不可用或没有 diff、且未指定范围时才询问，不猜最近提交或扩大到全项目。Bug 单独报告，修复需另行明确授权。
 
-该 Skill 只作用于当前调用指向的项目和任务，不跨项目、不修改全局配置；任务结束或用户明确更换任务后不继续生效。`dev-simplify` 默认不自行派生代理或调用其他 Skill；用户明确选择 `dev-delegate` 时，才将已启用约束、已确认建议、授权范围和验证条件交给既有流程，尚待确认的建议仍需等待确认。
+该 Skill 只作用于当前调用指向的项目和任务，不跨项目、不修改全局配置；任务结束或用户明确更换任务后不继续生效。`dev-simplify` 默认不自行派生代理或调用其他 Skill；只执行用户明确授权的精简范围。
 
 调用 Skill 本身不扩大 Git、依赖或发布权限；这些操作按目标项目规则和当前任务已有授权处理。若组合使用两个 Skill，Codex CLI `0.162.0-alpha.17.2` 实测同一消息内的两个显式入口都会加载；Claude Code `2.1.296` 同一消息只直接加载第一个入口。Claude Code 上请在后续消息中再显式调用另一个 Skill；不要把同消息并列调用当作双入口均已加载的保证。
 
@@ -190,7 +180,7 @@ Plugin 提供 Skill 内容，不代装 Playwright、Java、Vue 等运行依赖�
 
 ### Antigravity CLI（agy）
 
-agy 产品目录包含五个 Plugin、28 个 Skills（加载机制已在 agy 1.4.2 验证）；`am-context` 仍仅 Codex。同步使用本仓库项目 Skill：Codex `$sync-agy`，Claude Code / agy `/sync-agy`。它只服务仓库维护，不进入产品目录或全局 Skills。
+agy 产品目录包含六个 Plugin、28 个 Skills（加载机制已在 agy 1.4.2 验证）；`am-context` 仍仅 Codex。同步使用本仓库项目 Skill：Codex `$sync-agy`，Claude Code / agy `/sync-agy`。它只服务仓库维护，不进入产品目录或全局 Skills。
 
 在仓库根也可直接运行 PowerShell 7 脚本：
 
@@ -203,13 +193,13 @@ pwsh -NoProfile -File .agents/skills/sync-agy/scripts/sync.ps1
 
 脚本使用原生 `agy plugin validate / install / list`；默认从 PATH 查找，Windows 可回退到 `%LOCALAPPDATA%/agy/bin/agy.exe`，也可显式传 `-AgyPath`。它不执行 Git pull、不改其他客户端配置，保留其他来源的插件与已有禁用状态。仓库内容更新后重复同步即可刷新安装副本；不是实时同步。安装路径以 `agy plugin list --json` 返回值为准，本机 1.4.2 实际使用 `~/.gemini/config/plugins/`，不硬编码旧文档路径。
 
-安装后开启新 agy 会话或按客户端提供的入口重载，确认 `/vue`、`/am-config`、`/dev-prepare`、`/dev-auto` 等命令。手动 Skills 仍需明确调用；不要仅凭 frontmatter 声称客户端已强制门控。静态校验、安装清单及资源一致性不代表已运行真实模型、SSH 或子代理业务流程。
+安装后开启新 agy 会话或按客户端提供的入口重载，确认 `/vue`、`/am-config`、`/implement`、`/retro` 等命令。手动 Skills 仍需明确调用；不要仅凭 frontmatter 声称客户端已强制门控。静态校验、安装清单及资源一致性不代表已运行真实模型、SSH 或子代理业务流程。
 
-`personal-dev` 的准备、简化与远端诊断使用共享流程；委派与审查使用 [agy 原生适配](../plugins/personal-dev/references/agy.md)，先按入口校验显式配置（dev-review 只要求 reviewer，dev-delegate / dev-auto 仍要求 worker + reviewer），必要模型、effort 或覆写能力缺失立即中断并报告具体限制。`am-config` 使用 [agy 项目编辑适配](../plugins/agent-manager/references/agy.md)，支持项目指令、standalone Skill、Plugin 文件准备与只读冲突检查；当前未验证项目 Plugin 开关，不能用全局 `enable / disable / install` 代替仅项目操作。
+`personal-dev` 的审查使用 [agy 原生适配](../plugins/personal-dev/references/agy.md)，显式 reviewer、模型或 effort 覆写能力缺失时中断；精简与远端诊断沿用共享流程。`am-config` 项目编辑与只读检查范围保持不变。
 
 ### DeepSeek Harness 桌面版（dsh）
 
-桌面版通过自带的文件系统 Skill provider 加载五个产品包的共享 Skills 与完整资源，`am-context` 仅 Codex。同步不按版本号拦截，但会使用已安装桌面版的原生加载器校验实际兼容性。项目同步入口为 Codex `$sync-dsh`、Claude Code / agy `/sync-dsh`，不进入产品目录。这里使用已安装的桌面版，无需 npm CLI。
+桌面版通过自带的文件系统 Skill provider 加载六个产品包的共享 Skills 与完整资源，`am-context` 仅 Codex。同步不按版本号拦截，但会使用已安装桌面版的原生加载器校验实际兼容性。项目同步入口为 Codex `$sync-dsh`、Claude Code / agy `/sync-dsh`，不进入产品目录。这里使用已安装的桌面版，无需 npm CLI。
 
 在仓库根按项目规则核验 `mise current`、`python --version`（3.12+）及 uv，再运行；`--desktop-path` 使用实际安装路径：
 
@@ -222,19 +212,20 @@ uv run --python (mise which python) --no-python-downloads --script .agents/skill
 
 脚本复用已有 PyYAML 6.x，通过 uv 隔离安装；不修改项目依赖或系统运行时。默认数据根是 `DSH_HOME` 或 `~/.dsh`，可用 `--dsh-home` 指定。必须先启动过桌面版以初始化 `profiles/desktop`。
 
-内容放入 `~/.dsh/marketplaces/agent-marketplace/releases/<摘要>/plugins/`，保留包内相对路径、许可证及手动调用策略；`profiles/desktop/cordis.patch.yml` 仅维护带标记的 `agent-marketplace-skills` provider。已有设置、第三方扩展和默认 Skills 根保留，旧内容快照保留；用户同名 Skills、手改快照或并发配置修改会阻止覆盖。每次同步是显式刷新，不做后台自动同步，也不注册五个 npm 扩展。
+内容放入 `~/.dsh/marketplaces/agent-marketplace/releases/<摘要>/plugins/`，保留包内相对路径、许可证及手动调用策略；`profiles/desktop/cordis.patch.yml` 仅维护带标记的 `agent-marketplace-skills` provider。已有设置、第三方扩展和默认 Skills 根保留，旧内容快照保留；用户同名 Skills、手改快照或并发配置修改会阻止覆盖。每次同步是显式刷新，不做后台自动同步，也不注册六个 npm 扩展。
 
-同步后重开桌面版，在 `/` 建议菜单确认 `/vue`、`/am-config`、`/dev-prepare`、`/dev-auto` 等入口。`disable-model-invocation: true` 的 Skills 只通过用户直接输入 `/name` 注入。隔离验证会使用桌面版真实 provider 读取清单和正文，但不启动 Host 或模型，因此当前会话注入、SSH 和子代理业务执行仍需分别验证。
+同步后重开桌面版，在 `/` 建议菜单确认 `/vue`、`/am-config`、`/implement`、`/retro` 等入口。`disable-model-invocation: true` 的 Skills 只通过用户直接输入 `/name` 注入。隔离验证会使用桌面版真实 provider 读取清单和正文，但不启动 Host 或模型，因此当前会话注入、SSH 和子代理业务执行仍需分别验证。
 
-自有流程见 [dsh 开发适配](../plugins/personal-dev/references/dsh.md)和 [dsh 项目编辑适配](../plugins/agent-manager/references/dsh.md)。委派与独立审查要求实际提供 spawn 干净子代理；只有 fork 或能力缺失时明确 BLOCKED。`am-config` 支持项目指令编辑、standalone Skill、产品文件准备和只读检查；仅项目作用域的原生 Plugin 安装 / 开关尚未验证，不操作用户 desktop profile 代替。
+自有审查流程见 [dsh 审查适配](../plugins/personal-dev/references/dsh.md)和 [dsh 项目编辑适配](../plugins/agent-manager/references/dsh.md)。dev-review 要求实际提供 spawn 干净子代理；只有 fork 或能力缺失时明确 BLOCKED。`am-config` 支持项目指令编辑、standalone Skill、产品文件准备和只读检查；仅项目作用域的原生 Plugin 安装 / 开关尚未验证，不操作用户 desktop profile 代替。
 
 ### Codex
 
-从 Gitee 添加 Marketplace，再安装需要的分类；下面列出 Marketplace 中的五个 Plugin，可按需选择：
+从 Gitee 添加 Marketplace，再安装需要的分类；下面列出 Marketplace 中的六个 Plugin，可按需选择：
 
 ```powershell
 codex plugin marketplace add git@gitee.com:vsattce/agent-marketplace.git --ref main
 codex plugin add common-workflow@agent-marketplace --json
+codex plugin add matt@agent-marketplace --json
 codex plugin add software-dev@agent-marketplace --json
 codex plugin add engineering-tools@agent-marketplace --json
 codex plugin add agent-manager@agent-marketplace --json
@@ -254,6 +245,7 @@ codex plugin add personal-dev@agent-marketplace --json
 ```powershell
 claude plugin marketplace add git@gitee.com:vsattce/agent-marketplace.git
 claude plugin install common-workflow@agent-marketplace
+claude plugin install matt@agent-marketplace
 claude plugin install software-dev@agent-marketplace
 claude plugin install engineering-tools@agent-marketplace
 claude plugin install agent-manager@agent-marketplace
@@ -275,7 +267,9 @@ claude plugin update software-dev@agent-marketplace
 
 **从旧开发 Plugin 迁移**：刷新 Marketplace 本身不会移除已安装的 `frontend-dev` 或 `backend-dev` 副本。先安装 `software-dev@agent-marketplace`，确认新入口可用后，再用客户端原生流程分别禁用或卸载旧 Plugin；不要手动编辑全局配置或安装缓存。Codex 可运行 `codex plugin remove frontend-dev@agent-marketplace` 与 `codex plugin remove backend-dev@agent-marketplace`；Claude Code 可运行 `claude plugin uninstall frontend-dev@agent-marketplace` 与 `claude plugin uninstall backend-dev@agent-marketplace`。新入口示例：Codex `$software-dev:fastapi`、Claude Code `/software-dev:fastapi`。
 
-**Playwright Plugin 迁移**：`testing-automation` 已并入 `engineering-tools`。刷新 Marketplace 不会卸载旧副本；已安装旧包时，先用客户端原生流程卸载，再安装或刷新 `engineering-tools@agent-marketplace`，避免重复发现 `playwright-cli`。Codex 使用 `codex plugin remove testing-automation@agent-marketplace`；Claude Code 使用 `claude plugin uninstall testing-automation@agent-marketplace`（项目或 local 安装需选择原作用域）。新调用为 Codex `$engineering-tools:playwright-cli`、Claude Code `/engineering-tools:playwright-cli`，任务匹配策略与上游内容不变。agy 同步前也须通过原生 CLI 卸载旧包，脚本检测到旧包会在写入前停止；同步后仍用 `/playwright-cli`。dsh 重新执行 `$sync-dsh` 后，现有 provider 切换到新快照中的五个产品目录，旧快照保留，仍用 `/playwright-cli`。本仓库变更不会自动迁移日常客户端安装。
+**Playwright Plugin 迁移**：`testing-automation` 已并入 `engineering-tools`。刷新 Marketplace 不会卸载旧副本；已安装旧包时，先用客户端原生流程卸载，再安装或刷新 `engineering-tools@agent-marketplace`，避免重复发现 `playwright-cli`。Codex 使用 `codex plugin remove testing-automation@agent-marketplace`；Claude Code 使用 `claude plugin uninstall testing-automation@agent-marketplace`（项目或 local 安装需选择原作用域）。新调用为 Codex `$engineering-tools:playwright-cli`、Claude Code `/engineering-tools:playwright-cli`，任务匹配策略与上游内容不变。agy 同步前也须通过原生 CLI 卸载旧包，脚本检测到旧包会在写入前停止；同步后仍用 `/playwright-cli`。dsh 重新执行 `$sync-dsh` 后，现有 provider 切换到新快照中的六个产品目录，旧快照保留，仍用 `/playwright-cli`。本仓库变更不会自动迁移日常客户端安装。
+
+**Matt 迁移**：先安装 matt，再刷新 common-workflow 和 personal-dev，重载或新建聊天，确认旧 common-workflow Matt 副本不再被发现。Matt 调用前缀改为 `$matt:` / `/matt:`，common-workflow 仅留 find-skills。仓库迁移不自动刷新日常全局安装；agy / dsh 仍通过各自现有显式同步入口刷新完整产品目录。
 
 ## 常见问题
 

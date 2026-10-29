@@ -48,6 +48,7 @@ agent-marketplace/
 ├── scripts/sync.py                # 第三方同步工具
 ├── tests/                         # 同步、管理工具与客户端验收
 ├── plugins/
+│   ├── matt/                      # 精选 Matt 原始 Skill 完整目录
 │   ├── common-workflow/           # 第三方快照
 │   ├── software-dev/              # 第三方快照
 │   ├── engineering-tools/          # 第三方快照
@@ -59,11 +60,9 @@ agent-marketplace/
 └── README.md                      # 概览与文档入口
 ```
 
-五个 Plugin 都提供 Claude Code `.claude-plugin/plugin.json`；Codex 侧除 `agent-manager` 外使用便携 `plugin.json`，该 Plugin 使用原生 `.codex-plugin/plugin.json` 并显式发现 `skills/` 与 `codex-skills/`。`am-context` 放在后者，因此仅 Codex 可发现；`am-config` 仍共享。三个第三方分类另存 `licenses/<name>/`，两个 Marketplace 均指向 `./plugins/<plugin>`。当前 Codex 有 29 个 Skills、Claude Code / agy / dsh 各有 28 个：第三方三类共 21 个，`agent-manager` 分别有 2 / 1 / 1 / 1 个，`personal-dev` 四端各有 6 个。`dev-prepare` / `dev-auto` 复用 `references/preparation.md`；`dev-auto` 直接读取 `dev-delegate` 正文，执行端按 Harness 使用 `references/codex.md` / `references/claude.md` / `references/agy.md` / `references/dsh.md`，Codex 使用现有模型检查器，不新增 Plugin 或调度系统。
+六个 Plugin 都提供 Claude `.claude-plugin/plugin.json`；Codex 除 agent-manager 使用原生 `.codex-plugin/plugin.json` 外，其余沿用便携 `plugin.json`。两个 Marketplace 指向同一产品根。第三方四类共 26 个 Skills：matt 17、common-workflow 1、software-dev 5、engineering-tools 3；加上 agent-manager 的 2 / 1 与 personal-dev 的 3 项，Codex 为 31 项，其余三端为 30 项。
 
-`personal-dev` 当前模型规则见[子代理模型契约](../plugins/personal-dev/references/subagent-models.md)：`dev-review` 只必填 reviewer，支持 `reviewer / review / r / check`；`dev-delegate` / `dev-auto` 仍必填 worker + reviewer。额外提供的 worker 也须校验。三个入口复用现有共享解析与校验：角色与值支持 `=`、`:` 或空白分隔，model 与 effort 支持冒号或空白分隔；归一化大小写、常见 GPT 前缀与连字符形式及 `h / m` effort 简写，JSON 字段协议保持不变。检查器先唯一匹配当前工具实际型号，再校验该型号的 effort，输出精确值；歧义或不支持立即停止，不自动选型、不 fallback。
-
-执行默认采用短路径：委派为 `worker → reviewer → 必要修复 → 最终 fresh verification → DONE`，审查为 `reviewer → 主模型核验证据 → 输出报告`。普通任务单 worker 顺序执行，普通审查单 reviewer；修复通过即停止，三轮仅是上限。并行、ledger / 恢复、fresh coder、依赖冻结、严重或争议发现的独立复核及重专项验证均按实际需要启用，Final Reviewer 保留原有高风险触发条件。维护时以当前入口、共享契约、adapter 和脚本为准；`docs/superpowers/` 的既有 SPEC / PLAN 保留为阶段记录，当前用法见[使用手册](usage.md#个人开发工具codex--claude-code--agy--dsh)。
+personal-dev 仅保留审查、精简与运行诊断；reviewer 模型契约、四端审查适配、资源与产物规则仍被保留入口使用。审查解析与校验实现位于 dev-review/scripts，完整随包，不依赖开发编排。
 
 Codex 便携 manifest 的中文信息位于 `extensions.com.openai.interface`；原生 Codex manifest 的中文信息使用根级 `interface`。Claude manifest / catalog 有意不写 version，Git 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
 
@@ -75,19 +74,19 @@ Codex 便携 manifest 的中文信息位于 `extensions.com.openai.interface`；
 
 lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，不参与版本选择，不手工维护。
 
-当前来源包含三个分类、21 个第三方 Skill：`common-workflow` 13 个、`software-dev` 5 个、`engineering-tools` 3 个。`common-workflow` 包含 Matt Pocock 的 `codebase-design`、`tdd`，以及用户主动调用的 `setup-matt-pocock-skills`、`grill-me`、`grill-with-docs`、`improve-codebase-architecture` 和允许依赖被动调用的 `grilling`、`domain-modeling`；Docker Compose 使用 Docker 官方 `docker-compose-patterns`，Java 使用 GitHub `awesome-copilot` 的 `java-springboot`。准确来源、路径与固定策略以 sources 配置为准。
+当前来源包含四个分类、26 个第三方 Skill；matt 只登记明确选择的 17 项，repo 为 mattpocock/skills、ref 为 main、path 使用上游实际目录。sources 是选择清单，不扫描或镜像整个 stable 目录。推荐主链与完整名单见[使用手册](usage.md#matt-精选工作流)。
 
 `software-dev` 收录第三方上游项目的 Skills，仅由本仓库汇集、整理供个人使用；作者署名、上游内容及许可证均按原样保留。该说明不适用于 `agent-manager`、`personal-dev` 等本仓库自有 Plugin。
 
 第三方 `skills/` 原样同步，不手工修改快照；[.gitattributes](../.gitattributes) 禁止 Git 转换这些文件的换行。Skill 内许可证保留原样，upstream 根 LICENSE / NOTICE 等另存到 `licenses/<skill-name>/`。快照随仓库发布，换电脑通过 Plugin 安装恢复。
 
-`agent-manager`、`personal-dev`、项目 `upgrade` Skill 和各 manifest 直接维护，不进入 sources / lock。新增第三方 Skill 优先归入现有三类；只有新的领域才考虑增加分类。自有 Plugin 不走第三方同步。第三方 `resolving-merge-conflicts`、standalone `pdf` 和 Legacy 入口不保留。
+`agent-manager`、`personal-dev`、项目 `upgrade` Skill 和各 manifest 直接维护，不进入 sources / lock。新增第三方 Skill 优先归入现有分类；Matt 子集只通过明确选择扩展；只有新的领域才考虑增加分类。自有 Plugin 不走第三方同步。第三方 `resolving-merge-conflicts`、standalone `pdf` 和 Legacy 入口不保留。
 
 `playwright-cli` 的来源、固定快照、许可证、正文与触发策略保持不变，仅分组迁入 `engineering-tools`。同步白名单与两端 marketplace 使用新分组；agy / dsh 继续由 catalog 发现产品，不增加独立适配层。旧安装与调用前缀的迁移见[使用手册](usage.md#安装与更新)。
 
 ### 同步工具写入边界
 
-`scripts/sync.py` 的 `MANAGED_PLUGINS` 只允许三个第三方分类。新增 sources 分组不能授予其他目录写入权限；未知分组、混入非 Generated 项的 lock、Owned 目标、manifest 目标或重定向目录均在写入前拒绝。
+`scripts/sync.py` 的 `MANAGED_PLUGINS` 只允许 common-workflow、matt、software-dev、engineering-tools 四个第三方分类。新增 sources 分组不能授予其他目录写入权限；未知分组、混入非 Generated 项的 lock、Owned 目标、manifest 目标或重定向目录均在写入前拒绝。
 
 发布与回滚只允许写 `plugins/<managed>/skills/<name>`、`plugins/<managed>/licenses/<name>` 和根 lock。脚本不遍历 Owned 目录清理，新建自有 Plugin 不修改该白名单。
 
@@ -95,7 +94,7 @@ lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，�
 
 ### 使用项目 Skill
 
-在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入 Codex / Claude Code Marketplace 的 29 / 28 个 Skills。
+在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入 Codex / Claude Code Marketplace 的 31 / 30 个 Skills。
 
 Agent 核对目标、Git 状态与运行时后，按 sources 的既定来源 / ref 同步，保留用户改动，检查差异并运行相关验证。按 [AGENTS.md](../AGENTS.md) 默认提交、推送当前分支；当前任务明确不提交或不推送时遵从该要求。环境、同步或验证失败时停止，零差异不制造提交。
 
@@ -191,7 +190,7 @@ uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,
 | `tests/test_sync.py` | 重复同步、快照恢复、upstream 更新、许可证、失败不写入、路径与重名拒绝、回滚和移出配置项保留 |
 | `tests/test_agent_manager.py` | Codex / Claude Plugin 包装、手动策略与只读来源比较 |
 | `tests/test_agy_sync.py` | 模拟 agy CLI 检查只读预检、产品同步、禁用状态保留、资源核对与失败停止；不修改真实 agy 配置 |
-| `tests/test_personal_dev.py` / `tests/test_personal_dev_review.py` / `tests/test_personal_dev_packaging.py` | 开发与审查模型选择、阻塞与安全 CLI 输出，以及六个 Skill 的双端包装、共享资源、加载长度和手动策略 |
+| `tests/test_personal_dev.py` / `tests/test_personal_dev_review.py` / `tests/test_personal_dev_packaging.py` | 审查模型校验、阻塞与安全 CLI 输出，以及三个 Skill 的双端包装、共享资源、加载长度和手动策略 |
 | `tests/test_configure_project.py` | Codex 事务编辑、路径安全与不支持能力的拒绝 |
 | `tests/test_configure_project_claude.py` | Claude JSON 增量编辑、覆盖检查与失败恢复 |
 
@@ -207,14 +206,14 @@ Remove-Item Env:AGENT_MANAGER_CODEX_TESTS
 
 使用项目内隔离 CODEX_HOME、临时项目、安装 fixture 与 localhost 请求捕获器，不调用真实模型、不执行 Skill 正文，也不更新日常全局配置或安装缓存。
 
-`tests/test_personal_dev_loader.py` 复用同一隔离方式，检查六个 Skill 的发现、普通提示不注入新 Skill 正文以及显式调用注入。`tests/fixtures/dev-delegate-scenarios.md` 覆盖准备 / 执行 / 自动模式、默认短路径、按需并行与恢复、一次修复通过、三轮上限、失败隔离和条件终审；推演与静态包装检查不能冒充真实模型 SDD 执行。模型检查器只校验显式参数与传入的当前工具元数据，型号来源和实际派发效果仍由当前会话核验。
+`tests/test_personal_dev_loader.py` 复用隔离方式，检查三个保留入口的发现、手动策略与正文加载。`tests/test_matt.py` 检查精选清单、运行依赖、内部资源、来源与 manifest 一致性；目录字节完整性还需与本次实际 fetch 的 upstream commit 核对。
 该加载用例已在 Codex CLI 0.160.1 与 0.162.0-alpha.17.2 上通过；这是实际验证版本记录，不定义版本支持范围。隔离 fixture 显式让 localhost 绕过代理，并关闭远端 Plugin 同步和系统代理回退，避免工作站网络配置干扰加载证据；失败时保留 fixture 内的退出诊断。
 
 2026-10-12 目录调整实测：Codex CLI `0.162.0-alpha.17.2` 可发现并显式加载新增的 `java-springboot` 与 `docker-compose-patterns`；Java 正文完整注入，Compose 的 `SKILL.md` 为 9739 字节，当前 CLI 仅直接注入前 8000 字节。随包文件完整保留，使用时仍需按需读取完整入口与引用资源；加载测试通过不代表长正文完整注入。
 
 ### Claude 隔离加载器
 
-`tests/test_claude_loader.py` 覆盖五个 Plugin 安装与发现、手动策略、六个 personal-dev Skill 显式加载与原生 Agent schema、项目 upgrade 入口、CLAUDE.md 导入 AGENTS.md、项目值覆盖用户值及 local 反向覆盖：
+`tests/test_claude_loader.py` 覆盖六个 Plugin 安装与发现、手动策略、三个 personal-dev Skill 显式加载与原生 Agent schema、项目 upgrade 入口、CLAUDE.md 导入 AGENTS.md、项目值覆盖用户值及 local 反向覆盖：
 
 ```powershell
 $env:AGENT_MANAGER_CLAUDE_TESTS = "1"
@@ -249,7 +248,7 @@ Windows Python 3.12.13，Codex CLI `0.162.0-alpha.17.2`、Claude Code `2.1.291`�
 
 覆盖六个 Plugin / 18 个 Skills 的双端注册包装、管理工具和 personal-dev 的发现与手动加载、Claude 原生 Agent schema、项目 `/upgrade` 入口与 `CLAUDE.md` 导入 `AGENTS.md`、两端项目 Plugin 覆盖及配置事务。保留此前验证版本；新增精确版本仍须与本轮实际客户端版本一致，未知版本继续拒绝。
 
-Claude `2.1.291` 捕获到的 Agent 参数为 `description`、`isolation`、`model`、`prompt`、`run_in_background`、`subagent_type`，没有 `effort`；该记录只代表当时 schema。当前 personal-dev 要求显式 worker / reviewer，两项均须核验，工具无法覆写 effort 时立即中断，不再省略参数继承默认。共享 helper 的参数、模型名单与 effort 支持有单元测试；四端 adapter 统一映射执行型 worker 与判断型 reviewer。未运行真实模型委派或逐项业务流程，不把请求捕获和场景检查称为真实推理验收。
+Claude `2.1.291` 捕获到的 Agent 参数为 `description`、`isolation`、`model`、`prompt`、`run_in_background`、`subagent_type`，没有 `effort`；该记录只代表当时 schema。当前 dev-review 要求显式 reviewer，可选 worker 提供时也须核验，工具无法覆写 effort 时立即中断，不再省略参数继承默认。共享 helper 的参数、模型名单与 effort 支持有单元测试；四端 adapter 使用审查 reviewer 配置。未运行真实模型委派或逐项业务流程，不把请求捕获和场景检查称为真实推理验收。
 
 ## 交付
 
