@@ -1,6 +1,6 @@
 ---
 name: sync-agy
-description: 同步 agy 全局插件：用于用户要求检查或同步本仓库产品插件到 Antigravity CLI 全局；仅服务仓库维护，不导入项目开发工具。
+description: 同步 agy 全局插件：用于用户要求检查或同步本仓库产品到 Antigravity CLI 全局，并回收可确认来源的退役插件；仅服务仓库维护。
 ---
 
 # 同步 agy 全局插件

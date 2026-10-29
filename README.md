@@ -19,7 +19,7 @@
 
 Codex / Claude Code 按分类安装，完整身份为 `<plugin>@agent-marketplace`。
 
-agy 使用本地产品插件安装，进入本仓库后调用项目 Skill `$sync-agy`（Claude / agy 为 `/sync-agy`），检查或同步当前工作区的全部产品插件到 agy 全局；不导入本仓库开发工具。agy 使用 `/vue`、`/implement` 等当前会话实际提供的入口。安装、更新及项目作用域限制见[使用手册 · agy](docs/usage.md#antigravity-cliagy)。
+agy 使用本地产品插件安装，进入本仓库后调用项目 Skill `$sync-agy`（Claude / agy 为 `/sync-agy`），检查或同步当前工作区的全部产品插件到 agy 全局；经来源核实的退役插件会停用并移入回收站，不导入本仓库开发工具。agy 使用 `/vue`、`/implement` 等当前会话实际提供的入口。安装、更新及项目作用域限制见[使用手册 · agy](docs/usage.md#antigravity-cliagy)。
 
 dsh 桌面版使用项目 Skill `$sync-dsh`（Claude / agy 为 `/sync-dsh`），同步当前产品 Skills 与完整资源，通过已安装桌面版自带的加载器验证；调用方式为 `/vue`、`/implement` 等。不按版本号拦截，不需要 npm CLI。见[使用手册 · dsh 桌面版](docs/usage.md#deepseek-harness-桌面版dsh)。
 
@@ -58,6 +58,8 @@ dsh 桌面版使用项目 Skill `$sync-dsh`（Claude / agy 为 `/sync-dsh`），
 | 手动复盘 Agent 环境 | `$matt:retro` | `/matt:retro` |
 
 Matt 推荐主链为 `grill-with-docs → to-spec → 按需 to-tickets → implement`。普通任务使用 `implement`；仅大型、多 Ticket 且确实适合多 Agent 并行时使用 `implement-spec`。`handoff`、`diagnosing-bugs`、`research`、`improve-codebase-architecture` 独立使用；`retro` 只手动复盘，不加入默认完成流程。
+
+上游 `implement` 包含完整测试、`code-review` 和提交步骤；其审查使用提交之间的差异，不包括未提交的工作区改动。标签配置与审查范围的使用边界见[Matt 工作流](docs/usage.md#matt-精选工作流)。
 
 `matt` 只收录 sources 中明确选择的 17 个完整目录，正文、触发策略、agents、模板及引用资源保持 upstream 原样，不添加自定义 wrapper、模型路由或 Harness adapter。`setup-matt-pocock-skills` 配置 issue tracker 与领域文档；运行依赖随包提供，详见[Matt 工作流](docs/usage.md#matt-精选工作流)。
 

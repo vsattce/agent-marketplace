@@ -73,6 +73,8 @@ $matt:handoff 整理当前进度，供新会话继续
 
 首次在目标项目使用工程主链前，显式调用 `$matt:setup-matt-pocock-skills`（Claude：`/matt:setup-matt-pocock-skills`），配置 issue tracker 与领域文档。整个目录含 GitHub / GitLab / 本地 Markdown tracker、domain 与 triage 模板；未安装 triage 时，上游 setup 跳过其标签配置，不需要引入 triage Skill。
 
+注意：`to-spec` 和 `to-tickets` 仍要求标签约定，并使用 `ready-for-agent`。未安装 triage 时，需在目标项目的 issue tracker 配置中明确该标签的使用方式；GitHub / GitLab 项目还需确认目标标签已存在或按授权创建。本仓库的本地 Markdown 约定已记录在 [issue-tracker.md](agents/issue-tracker.md)。
+
 | 场景 | 推荐入口 |
 | --- | --- |
 | 需求澄清 | `$matt:grill-with-docs` |
@@ -92,6 +94,8 @@ $matt:handoff 整理当前进度，供新会话继续
 
 每个选定目录完整同步，保留上游 agents、模板及相对引用文件；没有自定义 wrapper、worker/reviewer 路由或客户端 adapter。上游 implement 自身会在完成后调用 code-review，其审查流程仍按 upstream 原文执行。
 
+上游 `implement` 要求执行完整测试、调用 `code-review`，然后提交当前分支；是否执行提交仍遵循用户授权和项目规则。`code-review` 使用 `git diff <fixed-point>...HEAD`，默认通过并行子代理审查，有 Spec 时审查标准与需求两方面；它需要一个比较基准，且该命令不包含暂存或未提交的工作区改动。因此，调用发生在提交前时，不能仅凭该审查声称未提交改动已被覆盖。完整测试和并行审查也应计入普通任务的时间与 token 成本。
+
 ## 安装与更新
 
 Plugin 提供 Skill 内容，不代装 Playwright、Java、Vue 等运行依赖；使用时遵循目标项目的环境约束。
@@ -109,7 +113,7 @@ pwsh -NoProfile -File .agents/skills/sync-agy/scripts/sync.ps1 -CheckOnly
 pwsh -NoProfile -File .agents/skills/sync-agy/scripts/sync.ps1
 ```
 
-脚本使用原生 `agy plugin validate / install / list`；默认从 PATH 查找，Windows 可回退到 `%LOCALAPPDATA%/agy/bin/agy.exe`，也可显式传 `-AgyPath`。它不执行 Git pull、不改其他客户端配置，保留其他来源的插件与已有禁用状态。仓库内容更新后重复同步即可刷新安装副本；不是实时同步。安装路径以 `agy plugin list --json` 返回值为准，本机 1.4.2 实际使用 `~/.gemini/config/plugins/`，不硬编码旧文档路径。
+脚本使用原生 `agy plugin validate / install / list / disable`；默认从 PATH 查找，Windows 可回退到 `%LOCALAPPDATA%/agy/bin/agy.exe`，也可显式传 `-AgyPath`。它不执行 Git pull、不改其他客户端配置，保留其他来源的插件与已有禁用状态。当前产品全部核验后，脚本识别当前用户默认插件目录 `~/.gemini/config/plugins/` 中 manifest 确认属于本仓库、但已不在 catalog 的旧插件，停用并将安装目录移入回收站；其他路径或无法确认来源的插件保留。只读预检会列出待回收项，不做修改。仓库内容更新后重复同步即可刷新安装副本；不是实时同步。
 
 安装后开启新 agy 会话或按客户端提供的入口重载，确认 `/vue`、`/implement`、`/retro` 等命令。手动 Skills 仍需明确调用；不要仅凭 frontmatter 声称客户端已强制门控。静态校验、安装清单及资源一致性不代表已运行真实模型、SSH 或子代理业务流程。
 
@@ -177,7 +181,7 @@ claude plugin update software-dev@agent-marketplace
 
 **从旧开发 Plugin 迁移**：刷新 Marketplace 本身不会移除已安装的 `frontend-dev` 或 `backend-dev` 副本。先安装 `software-dev@agent-marketplace`，确认新入口可用后，再用客户端原生流程分别禁用或卸载旧 Plugin；不要手动编辑全局配置或安装缓存。Codex 可运行 `codex plugin remove frontend-dev@agent-marketplace` 与 `codex plugin remove backend-dev@agent-marketplace`；Claude Code 可运行 `claude plugin uninstall frontend-dev@agent-marketplace` 与 `claude plugin uninstall backend-dev@agent-marketplace`。新入口示例：Codex `$software-dev:fastapi`、Claude Code `/software-dev:fastapi`。
 
-**Playwright Plugin 迁移**：`testing-automation` 已并入 `engineering-tools`。刷新 Marketplace 不会卸载旧副本；已安装旧包时，先用客户端原生流程卸载，再安装或刷新 `engineering-tools@agent-marketplace`，避免重复发现 `playwright-cli`。Codex 使用 `codex plugin remove testing-automation@agent-marketplace`；Claude Code 使用 `claude plugin uninstall testing-automation@agent-marketplace`（项目或 local 安装需选择原作用域）。新调用为 Codex `$engineering-tools:playwright-cli`、Claude Code `/engineering-tools:playwright-cli`，任务匹配策略与上游内容不变。agy 同步前也须通过原生 CLI 卸载旧包，脚本检测到旧包会在写入前停止；同步后仍用 `/playwright-cli`。dsh 重新执行 `$sync-dsh` 后，现有 provider 切换到新快照中的四个产品目录，旧快照保留，仍用 `/playwright-cli`。本仓库变更不会自动迁移日常客户端安装。
+**Playwright Plugin 迁移**：`testing-automation` 已并入 `engineering-tools`。刷新 Marketplace 不会卸载 Codex / Claude 的旧副本；已安装旧包时，先用客户端原生流程卸载，再安装或刷新 `engineering-tools@agent-marketplace`，避免重复发现 `playwright-cli`。Codex 使用 `codex plugin remove testing-automation@agent-marketplace`；Claude Code 使用 `claude plugin uninstall testing-automation@agent-marketplace`（项目或 local 安装需选择原作用域）。新调用为 Codex `$engineering-tools:playwright-cli`、Claude Code `/engineering-tools:playwright-cli`，任务匹配策略与上游内容不变。agy 同步会在来源可确认时自动停用并回收旧包，同步后仍用 `/playwright-cli`；无法确认来源时会停止并保留旧包。dsh 重新执行 `$sync-dsh` 后，现有 provider 切换到新快照中的四个产品目录，旧快照保留，仍用 `/playwright-cli`。本仓库变更不会自动迁移日常客户端安装。
 
 **Matt 迁移**：先安装 matt，再刷新 common-workflow，重载或新建聊天，确认旧 common-workflow Matt 副本不再被发现。Matt 调用前缀改为 `$matt:` / `/matt:`，common-workflow 仅留 find-skills。仓库迁移不自动刷新日常全局安装；agy / dsh 仍通过各自现有显式同步入口刷新完整产品目录。
 
