@@ -143,6 +143,55 @@ class DesktopSyncTests(unittest.TestCase):
         self.assertEqual(resource.read_text(), "User edit")
         self.assertEqual(self.patch.read_bytes(), before)
 
+    def test_check_only_rejects_modified_snapshot_without_changing_it(self):
+        result = self.run_sync()
+        resource = Path(result["release"]) / "plugins/example/references/contract.md"
+        resource.write_text("User edit", encoding="utf-8")
+        before = self.patch.read_bytes()
+        with self.assertRaisesRegex(sync.SyncError, "edited or is incomplete"):
+            self.run_sync(check_only=True)
+        self.assertEqual(resource.read_text(), "User edit")
+        self.assertEqual(self.patch.read_bytes(), before)
+
+    def test_interrupted_copy_does_not_publish_partial_snapshot_and_can_retry(self):
+        release = Path(self.run_sync(check_only=True)["release"])
+        write_bytes = Path.write_bytes
+
+        def interrupted_write(path, content):
+            if "releases" in path.parts and path.name == "contract.md":
+                raise OSError("simulated copy interruption")
+            return write_bytes(path, content)
+
+        with mock.patch.object(Path, "write_bytes", interrupted_write):
+            with self.assertRaisesRegex(sync.SyncError, "staging.*retained"):
+                self.run_sync()
+        self.assertFalse(release.exists())
+        self.assertEqual(self.patch.read_bytes(), self.original.encode())
+        self.assertTrue(list(release.parent.glob(".stage-*")))
+        self.assertEqual(self.run_sync()["release"], str(release))
+
+    def test_nested_user_group_in_managed_block_is_preserved(self):
+        result = self.run_sync()
+        entries = sync.parse_patch(self.patch.read_text())[1]["insert"]
+        group = [{"insert": [{"id": "user-group", "name": "cordis:group", "group": True,
+                              "disabled": True, "config": entries}]}]
+        changed = sync.BEGIN + "\n" + yaml.safe_dump(group) + sync.END + "\n"
+        self.patch.write_text(changed, encoding="utf-8")
+        with self.assertRaises(sync.SyncError):
+            self.run_sync()
+        self.assertEqual(self.patch.read_text(), changed)
+        self.assertTrue(Path(result["release"]).exists())
+
+    def test_check_only_rejects_existing_lock_without_removing_it(self):
+        destination = self.home / "marketplaces/agent-marketplace"
+        destination.mkdir(parents=True)
+        lock = destination / ".sync.lock"
+        lock.write_text("Other run", encoding="utf-8")
+        with self.assertRaisesRegex(sync.SyncError, "Another synchronization"):
+            self.run_sync(check_only=True)
+        self.assertEqual(lock.read_text(), "Other run")
+        self.assertFalse((destination / "releases").exists())
+
     def test_concurrent_settings_edit_is_preserved(self):
         def change_settings(desktop, roots, home, **options):
             if roots and "releases" in roots[0].parts:

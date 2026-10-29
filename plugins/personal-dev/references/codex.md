@@ -46,4 +46,4 @@ V2 原编码代理返工优先用 `followup_task`，运行中补充信息用 `se
 
 dev-delegate 默认单 worker 顺序执行；仅按共享编排安全条件并行，先启动本批再等待，使用实际槽位，不改配置补能力。dev-review 默认单 reviewer，主模型核证出报告，严重或争议发现再独立复核。
 
-fresh coder、Final Reviewer、修复预算及 ledger 沿用入口契约。记录实际 Agent/task id、配置、阶段与轮次于可写 PLAN 或按需 ledger；恢复先核对当前配置与代理状态，保留计数和证据，通知延迟时不派发重叠写代理。CLI 包装与加载证据见[维护指南](../../../docs/maintenance.md)，实际权限、额度及接口仍按本轮工具核对。
+fresh coder、Final Reviewer、修复预算及 ledger 沿用入口契约。记录实际 Agent/task id、配置、阶段与轮次于可写 PLAN 或按需 ledger；恢复先核对当前配置与代理状态，保留计数和证据，通知延迟时不派发重叠写代理。CLI 包装与加载证据见[维护指南](https://github.com/vsattce/agent-marketplace/blob/main/docs/maintenance.md)，实际权限、额度及接口仍按本轮工具核对。

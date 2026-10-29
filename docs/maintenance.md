@@ -124,7 +124,7 @@ uv run --python (mise which python) --no-python-downloads --script scripts/sync.
 
 同步工具按 repo + ref 拉取快照，校验目录、Skill 名称与描述，保留许可证，更新 lock 并报告文件增删改。它不执行 upstream 脚本，不安装 Plugin、不清理 standalone，也不 commit / push。
 
-所有来源拉取与校验通过后才替换本地快照；普通写入失败会恢复替换前的快照与 lock。网络、ref 或 path 失败时非零退出，保留原有内容。相同 commit 且内容未变时保留同步时间；重复运行不制造 lock 差异，也能恢复误改或缺失的快照。
+所有来源拉取与校验通过后才替换本地快照；普通写入失败会恢复替换前的快照与 lock。回滚再次失败时继续尝试其他项目的恢复，报告未恢复项并保留备份。每次运行的 `.agent-tmp/sync/<run-id>/` 由脚本输出并保留，失败或中断不清理；验证、整体检查及已授权收尾完成后，按项目清理规则处理本次目录。网络、ref 或 path 失败时非零退出，保留原有内容。相同 commit 且内容未变时保留同步时间；重复运行不制造 lock 差异，也能恢复误改或缺失的快照。
 
 单个快照同步时会移除 upstream 已删除的文件；整项从配置移除时，旧 Skill 和记录会保留并提示人工检查。脚本不自动推荐、分类或更换 upstream；仓库没有后台更新、semver 解析或 GitHub Actions 自动更新。
 

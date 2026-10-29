@@ -251,15 +251,22 @@ def publish(replacements: list[tuple[Path, Path]], workspace: Path, root: Path) 
                 target.replace(backup)
             applied.append((target, backup))
             staged.replace(target)
-    except (OSError, SyncError):
-        for target, backup in reversed(applied):
-            managed_target(target, root)
-            if target.is_dir():
-                shutil.rmtree(target)
-            elif target.exists():
-                target.unlink()
-            if backup is not None:
-                backup.replace(target)
+    except (OSError, SyncError) as error:
+        failures = []
+        for index, (target, backup) in reversed(list(enumerate(applied))):
+            try:
+                managed_target(target, root)
+                if target.exists():
+                    target.replace(workspace / f"failed-{index}")
+                if backup is not None:
+                    backup.replace(target)
+            except (OSError, SyncError) as rollback_error:
+                failures.append(f"{target.relative_to(root)}: {rollback_error}")
+        if failures:
+            raise SyncError(
+                f"Publication failed: {error}; rollback incomplete: {'; '.join(failures)}; "
+                f"recovery files retained at {workspace}"
+            ) from error
         raise
 
 
@@ -281,50 +288,50 @@ def sync(root: Path) -> None:
     summaries = []
     # Stage and validate every source before changing any tracked snapshot.
     temporary_parent = sync_temporary_parent(root)
-    with tempfile.TemporaryDirectory(prefix="run-", dir=temporary_parent) as temporary:
-        workspace = Path(temporary)
-        repositories = {}
-        for source in sources:
-            name, group = source["name"], source["group"]
-            key = (source["repo"], source["ref"])
-            if key not in repositories:
-                print(f"Fetch {source['repo']} @ {source['ref']}", flush=True)
-                repositories[key] = fetch(source, workspace / f"repo-{len(repositories)}")
-            repository, commit = repositories[key]
-            upstream = repository / source["path"]
-            contained(upstream, repository)
-            validate_skill(upstream, name)
-            target = root / "plugins" / group / "skills" / name
-            contained(target, root / "plugins" / group)
-            managed_target(target, root)
-            staged = workspace / f"skill-{name}"
-            shutil.copytree(upstream, staged)
-            before, after = fingerprints(target), fingerprints(staged)
-            changed = before != after
-            if changed:
-                replacements.append((staged, target))
-            licenses = workspace / f"licenses-{name}"
-            copy_licenses(repository, licenses)
-            license_target = root / "plugins" / group / "licenses" / name
-            contained(license_target, root / "plugins" / group)
-            managed_target(license_target, root)
-            if fingerprints(license_target) != fingerprints(licenses):
-                replacements.append((licenses, license_target))
-            record = {**source, "commit": commit}
-            old = records.get(name, {})
-            if isinstance(old, dict) and all(old.get(field) == value for field, value in record.items()) and not changed and old.get("syncedAt"):
-                record["syncedAt"] = old["syncedAt"]
-            else:
-                record["syncedAt"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
-            records[name] = record
-            previous_commit = old.get("commit", "none") if isinstance(old, dict) else "none"
-            summaries.append(f"{group}/{name}: {previous_commit} -> {commit}; {change_summary(before, after)}")
-        lock_text = json.dumps({"skills": records}, ensure_ascii=False, indent=2) + "\n"
-        if not lock_path.exists() or lock_path.read_text(encoding="utf-8") != lock_text:
-            staged_lock = workspace / "sources.lock.json"
-            staged_lock.write_text(lock_text, encoding="utf-8", newline="\n")
-            replacements.append((staged_lock, lock_path))
-        publish(replacements, workspace, root)
+    workspace = Path(tempfile.mkdtemp(prefix="run-", dir=temporary_parent))
+    print(f"Synchronization workspace retained until validation and authorized cleanup: {workspace}", flush=True)
+    repositories = {}
+    for source in sources:
+        name, group = source["name"], source["group"]
+        key = (source["repo"], source["ref"])
+        if key not in repositories:
+            print(f"Fetch {source['repo']} @ {source['ref']}", flush=True)
+            repositories[key] = fetch(source, workspace / f"repo-{len(repositories)}")
+        repository, commit = repositories[key]
+        upstream = repository / source["path"]
+        contained(upstream, repository)
+        validate_skill(upstream, name)
+        target = root / "plugins" / group / "skills" / name
+        contained(target, root / "plugins" / group)
+        managed_target(target, root)
+        staged = workspace / f"skill-{name}"
+        shutil.copytree(upstream, staged)
+        before, after = fingerprints(target), fingerprints(staged)
+        changed = before != after
+        if changed:
+            replacements.append((staged, target))
+        licenses = workspace / f"licenses-{name}"
+        copy_licenses(repository, licenses)
+        license_target = root / "plugins" / group / "licenses" / name
+        contained(license_target, root / "plugins" / group)
+        managed_target(license_target, root)
+        if fingerprints(license_target) != fingerprints(licenses):
+            replacements.append((licenses, license_target))
+        record = {**source, "commit": commit}
+        old = records.get(name, {})
+        if isinstance(old, dict) and all(old.get(field) == value for field, value in record.items()) and not changed and old.get("syncedAt"):
+            record["syncedAt"] = old["syncedAt"]
+        else:
+            record["syncedAt"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        records[name] = record
+        previous_commit = old.get("commit", "none") if isinstance(old, dict) else "none"
+        summaries.append(f"{group}/{name}: {previous_commit} -> {commit}; {change_summary(before, after)}")
+    lock_text = json.dumps({"skills": records}, ensure_ascii=False, indent=2) + "\n"
+    if not lock_path.exists() or lock_path.read_text(encoding="utf-8") != lock_text:
+        staged_lock = workspace / "sources.lock.json"
+        staged_lock.write_text(lock_text, encoding="utf-8", newline="\n")
+        replacements.append((staged_lock, lock_path))
+    publish(replacements, workspace, root)
     for summary in summaries:
         print(summary)
     unlisted = records.keys() - {source["name"] for source in sources}

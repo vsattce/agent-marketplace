@@ -188,7 +188,7 @@ Plugin 提供 Skill 内容，不代装 Playwright、Java、Vue 等运行依赖�
 
 ### Antigravity CLI（agy）
 
-agy 产品目录包含五个 Plugin、27 个 Skills（加载机制已在 agy 1.4.2 验证）；`am-context` 仍仅 Codex。同步使用本仓库项目 Skill：Codex `$sync-agy`，Claude Code / agy `/sync-agy`。它只服务仓库维护，不进入产品目录或全局 Skills。
+agy 产品目录包含五个 Plugin、28 个 Skills（加载机制已在 agy 1.4.2 验证）；`am-context` 仍仅 Codex。同步使用本仓库项目 Skill：Codex `$sync-agy`，Claude Code / agy `/sync-agy`。它只服务仓库维护，不进入产品目录或全局 Skills。
 
 在仓库根也可直接运行 PowerShell 7 脚本：
 

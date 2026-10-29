@@ -132,18 +132,19 @@ def managed_patch(text: str, roots: list[Path]) -> tuple[str, bool, list[str]]:
         if (len(own_block) != 1 or set(own_block[0]) != {"insert"}
                 or not isinstance(own_block[0]["insert"], list) or len(own_block[0]["insert"]) != 1):
             raise SyncError("Managed block contains user entries; it was preserved")
-        own_rows = list(all_rows(own_block))
-        own = [row for row in own_rows if row.get("id") == PROVIDER_ID]
-        if len(own) != 1 or own[0].get("name") != "@deepseek-ai/dsh-skill-filesystem":
+        own = own_block[0]["insert"][0]
+        if (not isinstance(own, dict) or own.get("id") != PROVIDER_ID
+                or own.get("name") != "@deepseek-ai/dsh-skill-filesystem"):
             raise SyncError("Managed provider identity changed")
-        if set(own[0]) - {"id", "name", "disabled", "config"}:
+        if set(own) - {"id", "name", "disabled", "config"}:
             raise SyncError("Managed provider contains user fields; it was preserved")
-        disabled = own[0].get("disabled", False)
+        disabled = own.get("disabled", False)
         if type(disabled) is not bool:
             raise SyncError("Managed provider disabled state must be a boolean")
         expected = {"providerName", "includeDefaultRoots", "customSkillDirs"}
-        config = own[0].get("config", {})
-        if set(config) != expected or config["providerName"] != "agent-marketplace" or config["includeDefaultRoots"] is not False:
+        config = own.get("config", {})
+        if (not isinstance(config, dict) or set(config) != expected
+                or config["providerName"] != "agent-marketplace" or config["includeDefaultRoots"] is not False):
             raise SyncError("Managed provider config was edited; preserve it and resolve the conflict first")
         prior_roots = config["customSkillDirs"]
         if not isinstance(prior_roots, list) or not prior_roots:
@@ -214,6 +215,15 @@ def verify_skills(observed: dict, expected: dict[str, dict], base: Path) -> None
             raise SyncError(f"Desktop invocation policy differs: {entry['name']}")
 
 
+def verify_snapshot(release: Path, hashes: dict[str, str]) -> None:
+    if not release.is_dir():
+        raise SyncError("Installed snapshot was edited or is incomplete; it was preserved")
+    actual = {path.relative_to(release).as_posix(): digest(path.read_bytes())
+              for path in release.rglob("*") if plain_path(path).is_file()}
+    if actual != hashes:
+        raise SyncError("Installed snapshot was edited or is incomplete; it was preserved")
+
+
 @contextmanager
 def sync_lock(path: Path):
     try:
@@ -256,24 +266,29 @@ def synchronize(repository: Path, desktop: Path, home: Path, *, check_only: bool
         raise SyncError("Existing user skill names conflict: " + ", ".join(conflicts))
     summary = {"desktopVersion": native["version"], "plugins": len(plugin_names), "skills": len(skills),
                "enabled": not disabled, "release": str(release), "checkOnly": check_only}
+    lock = plain_path(destination / ".sync.lock")
+    if lock.exists():
+        raise SyncError(f"Another synchronization owns {lock}; no automatic lock removal")
+    if release.exists():
+        verify_snapshot(release, hashes)
     if check_only:
         return summary
     destination.mkdir(parents=True, exist_ok=True)
-    with sync_lock(destination / ".sync.lock"):
+    with sync_lock(lock):
         if release.exists():
-            actual = {path.relative_to(release).as_posix(): digest(path.read_bytes())
-                      for path in release.rglob("*") if plain_path(path).is_file()}
-            if actual != hashes:
-                raise SyncError("Installed snapshot was edited or is incomplete; it was preserved")
+            verify_snapshot(release, hashes)
         else:
-            release.mkdir(parents=True)
-            for relative, content in files.items():
-                target = release / relative
-                target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_bytes(content)
-        for relative, expected_hash in hashes.items():
-            if digest((release / relative).read_bytes()) != expected_hash:
-                raise SyncError("Copied resource differs; Desktop settings were preserved")
+            release.parent.mkdir(parents=True, exist_ok=True)
+            staging = plain_path(Path(tempfile.mkdtemp(prefix=".stage-", dir=release.parent)))
+            try:
+                for relative, content in files.items():
+                    target = staging / relative
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_bytes(content)
+                verify_snapshot(staging, hashes)
+                staging.rename(release)
+            except (OSError, SyncError) as error:
+                raise SyncError(f"Snapshot staging failed; files retained at {staging}: {error}") from error
         verify_skills(inspect(desktop, roots, home), skills, release)
         current_files, _ = products(repository)
         if current_files != files or (patch.read_bytes() if patch.exists() else None) != original:

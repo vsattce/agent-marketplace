@@ -13,6 +13,6 @@ Only use when explicitly invoked by the user. Codex 使用 `$personal-dev:dev-au
 3. 无重大问题时记为 AUTO_READY，**不确认 SPEC、PLAN、模型或 effort，直接继续**。仅重大歧义、未授权的破坏性操作、安全边界不清允许集中询问一次；整次流程共用这一次预算，等待明确答复后继续，规则见共用契约。
 4. 读取同包 [dev-delegate 执行正文](../dev-delegate/SKILL.md)，将生成的两个文件路径、task-id 与同一对已验证 worker / reviewer 配置传入，在当前主控制上下文执行其默认短路径，按实际风险升级，直到最终核验与已有授权范围内的收尾结束。读取角色与 Harness adapter 规则，修复收敛、并行和 ledger 参考仅按需读取；**不在 Task 之间询问，不再做人工准备确认**。
 
-组合通过读取共享文件执行，不要求客户端通过 Skill 工具嵌套调用手动入口，也不要求用户再发 dev-delegate 命令。dev-delegate 的显式授权条件由本次 dev-auto 调用满足；其他入口仍保持手动触发。**本文件不另行定义模型策略、修复轮次、调度或 Final Review 规则**，这些只维护在 dev-delegate 及其 references / scripts 中。
+本次 dev-auto 已授权上述组合执行，无需嵌套调用 Skill 工具或再发 dev-delegate 命令；其他入口仍保持手动触发。模型策略、修复轮次、调度与 Final Review 统一遵循 dev-delegate 及其 references / scripts，本文件不另行定义。
 
 `SPEC > PLAN > Coder interpretation`。Coder / Reviewer 从文件读取既定需求；能力缺失或任务失败按既有执行契约报告，不能把受阻伪报完成。Git、发布、依赖和全局环境权限服从目标项目规则与本次已有授权。

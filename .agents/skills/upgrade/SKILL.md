@@ -7,7 +7,7 @@ description: 升级第三方 Skills：用于升级或同步 agent-marketplace �
 
 Codex 用户调用 `$upgrade`，Claude Code 用户通过 `.claude/skills/upgrade/` 入口调用 `/upgrade`，即执行升级，无需用户手动输入同步命令。两端共用本文件的执行正文；不依赖任何一端专用的委派工具。
 
-同步暂存由脚本保存在项目 `.agent-tmp/sync/<run-id>/` 并在结束时清理。短期命令日志按需放入 `.agent-tmp/tasks/<task-id>/`；只有需要跨步骤恢复或保留验收证据时才创建长期任务记录。路径细则见[任务产物位置](../../../plugins/personal-dev/references/artifacts.md)。
+同步暂存与恢复备份保存在项目 `.agent-tmp/sync/<run-id>/`，脚本输出本次路径，不自动清理。失败或中断时保留现场；验证、整体检查与已授权 Git 收尾完成后，按项目规则仅清理本次目录。短期命令日志按需放入 `.agent-tmp/tasks/<task-id>/`；只有需要跨步骤恢复或保留验收证据时才创建长期任务记录。路径细则见[任务产物位置](../../../plugins/personal-dev/references/artifacts.md)。
 
 ## 确认目标与环境
 
@@ -34,7 +34,7 @@ uv run --python (mise which python) --no-python-downloads --script scripts/sync.
 
 其他 Shell 使用等效命令，将 `mise which python` 的结果作为 `--python` 的单个参数，保留 `--no-python-downloads`。
 
-- 以 `sources.yaml` 的 repo / path / ref 为准：分支获取该分支最新内容，固定 commit 继续固定。保持既定来源和 ref；改变固定版本需用户明确要求。
+- 按 `sources.yaml` 的 repo / path / ref 同步：分支取最新提交，固定 commit 保持不变；改变既定来源或 ref 须用户明确要求。
 - 复用脚本的校验、许可证保留、快照替换、lock 更新与失败恢复。第三方内容按 upstream 原样同步，自有 Plugin、项目 Skill、manifest 和全局安装配置保持原状。
 - 退出码非零时停止，说明失败阶段与原因，检查实际差异；不提交失败结果，不循环重试，不自行修补第三方内容绕过校验。
 

@@ -464,16 +464,34 @@ def publish(root: Path, config: Path, original: bytes | None, planned: bytes, ex
             error.changes_applied = "UNKNOWN; CHECK PROJECT CONFIG"
         raise
     finally:
-        if staging is not None and staging.exists():
-            safe_path(staging, root)
-            staging.unlink()
+        active_error = sys.exception()
+        cleanup_errors = []
         if lock_fd is not None:
-            os.close(lock_fd)
-            safe_path(lock, root)
-            lock.unlink()
-        if created_directory and config.parent.exists() and not any(config.parent.iterdir()):
-            safe_path(config.parent, root)
-            config.parent.rmdir()
+            try:
+                os.close(lock_fd)
+            except OSError as error:
+                cleanup_errors.append((lock, error))
+        for temporary_path in (staging, lock if lock_fd is not None else None):
+            try:
+                if temporary_path is not None and temporary_path.exists():
+                    safe_path(temporary_path, root)
+                    temporary_path.unlink()
+            except (OSError, Blocked) as error:
+                cleanup_errors.append((temporary_path, error))
+        try:
+            if created_directory and config.parent.exists() and not any(config.parent.iterdir()):
+                safe_path(config.parent, root)
+                config.parent.rmdir()
+        except (OSError, Blocked) as error:
+            cleanup_errors.append((config.parent, error))
+        if cleanup_errors:
+            paths = "; ".join(dict.fromkeys(str(path) for path, _ in cleanup_errors))
+            if isinstance(active_error, Blocked):
+                active_error.reason += "; CLEANUP FAILED"
+                active_error.target = paths
+            else:
+                raise Blocked("CONFIG CLEANUP FAILED; CHECK PROJECT CONFIG", target=paths,
+                              changes_applied="UNKNOWN; CHECK PROJECT CONFIG" if replaced else "NONE") from cleanup_errors[0][1]
 
 
 def configure(payload: dict, cwd: Path) -> dict:

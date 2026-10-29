@@ -12,8 +12,6 @@ Only use when explicitly invoked by the user. Codex 使用 `$personal-dev:dev-pr
 
 SPEC 是业务需求最高约束：`SPEC > PLAN > Coder interpretation`。按需求规模控制文档长度；普通细节根据项目现状裁决，重大未决点在这一次确认中一并列出，不先启动多轮问答。
 
-等待明确确认；确认后只记录 CONFIRMED 并结束。本入口只写本次需求文件，**不执行代码、不派发 Coder、不 commit / push，不自动调用 dev-delegate**。修订、阻塞和输出位置均遵循共用契约。
+等待明确确认；确认后记录 CONFIRMED 并结束。本入口只写本次需求文件，**不执行代码、不派发 Coder、不 commit / push**；后续开发须另行显式调用 `$dev-delegate`，需要自动准备并连续开发时另用 `$dev-auto`。修订、阻塞和输出位置均遵循共用契约，不自动切换模式。
 
 本入口由主模型生成并自检文档，不启动子代理，无需 worker / reviewer 参数；若用户另行选择委派，在该入口先按[子代理模型契约](../../references/subagent-models.md)校验本次显式配置。
-
-后续开发由用户另行显式调用 `$dev-delegate`；想跳过文档确认并连续开发时，另用 `$dev-auto`。不从本入口自动切换模式。

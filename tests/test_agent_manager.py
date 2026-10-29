@@ -29,7 +29,7 @@ class PackagingTests(unittest.TestCase):
         self.assertEqual(len(entries), 1)
         self.assertEqual(entries[0]["source"]["path"], "./plugins/agent-manager")
         manifest = json.loads((PLUGIN / ".codex-plugin/plugin.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifest["version"], "0.8.3")
+        self.assertEqual(manifest["version"], "0.8.4")
         self.assertFalse((PLUGIN / "plugin.json").exists())
         self.assertEqual(manifest["skills"], ["./skills/", "./codex-skills/"])
         self.assertEqual(entries[0]["description"], manifest["description"])

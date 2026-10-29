@@ -51,7 +51,9 @@ class SyncTests(unittest.TestCase):
             skill_sync.sync(self.root)
 
     def snapshot(self):
-        return {path.relative_to(self.root).as_posix(): path.read_bytes() for path in self.root.rglob("*") if path.is_file()}
+        return {path.relative_to(self.root).as_posix(): path.read_bytes()
+                for path in self.root.rglob("*") if path.is_file()
+                and ".agent-tmp" not in path.relative_to(self.root).parts}
 
     def test_updates_latest_content_and_preserves_licenses(self):
         asset = self.upstream / "skills" / "alpha" / "old.txt"
@@ -68,7 +70,7 @@ class SyncTests(unittest.TestCase):
         self.assertEqual((self.root / "plugins/common-workflow/licenses/alpha/LICENSE").read_bytes(), (self.upstream / "LICENSE").read_bytes())
         self.assertEqual(json.loads((self.root / "sources.lock.json").read_text())["skills"]["alpha"]["commit"], self.commit)
 
-    def test_sync_uses_unique_temporary_run_directories_and_cleans_them(self):
+    def test_sync_retains_unique_run_directories_until_authorized_cleanup(self):
         destinations = []
 
         def record_fetch(source, destination):
@@ -86,10 +88,10 @@ class SyncTests(unittest.TestCase):
         for run_directory in run_directories:
             self.assertEqual(run_directory.parent, expected_parent)
             self.assertTrue(run_directory.name.startswith("run-"))
-            self.assertFalse(run_directory.exists())
-        self.assertEqual(list(expected_parent.iterdir()), [])
+            self.assertTrue(run_directory.is_dir())
+        self.assertEqual(set(expected_parent.iterdir()), set(run_directories))
 
-    def test_sync_cleans_temporary_run_directory_when_fetch_fails(self):
+    def test_sync_retains_temporary_run_directory_when_fetch_fails(self):
         destinations = []
 
         def fail_fetch(source, destination):
@@ -102,8 +104,8 @@ class SyncTests(unittest.TestCase):
 
         self.assertEqual(len(destinations), 1)
         self.assertEqual(destinations[0].parent.parent, self.root / ".agent-tmp" / "sync")
-        self.assertFalse(destinations[0].parent.exists())
-        self.assertEqual(list((self.root / ".agent-tmp" / "sync").iterdir()), [])
+        self.assertTrue(destinations[0].parent.is_dir())
+        self.assertEqual(list((self.root / ".agent-tmp" / "sync").iterdir()), [destinations[0].parent])
 
     def test_sync_rejects_redirected_temporary_parent_before_fetch(self):
         temporary_parent = self.root / ".agent-tmp"
@@ -424,6 +426,34 @@ class SyncTests(unittest.TestCase):
         with patch.object(Path, "replace", replace), self.assertRaises(OSError):
             self.run_sync()
         self.assertEqual(before, self.snapshot())
+
+    def test_failed_rollback_retains_backup_and_restores_other_targets(self):
+        self.run_sync()
+        original = self.snapshot()
+        self.commit = "b" * 40
+        (self.upstream / "skills/alpha/SKILL.md").write_text(
+            "---\nname: alpha\ndescription: New\n---\nNew instructions\n", encoding="utf-8")
+        (self.upstream / "LICENSE").write_text("New license\n", encoding="utf-8")
+        replace = Path.replace
+
+        def failing_replace(path, target):
+            if path.name == "sources.lock.json" and path.parent.name.startswith("run-"):
+                raise OSError("simulated publication failure")
+            if path.name == "backup-1":
+                raise OSError("simulated rollback failure")
+            return replace(path, target)
+
+        with patch.object(Path, "replace", failing_replace):
+            with self.assertRaisesRegex(skill_sync.SyncError, "rollback incomplete.*retained") as caught:
+                self.run_sync()
+        backups = list((self.root / ".agent-tmp/sync").glob("run-*/backup-1/LICENSE"))
+        self.assertEqual(len(backups), 1)
+        self.assertEqual(backups[0].read_bytes(), original["plugins/common-workflow/licenses/alpha/LICENSE"])
+        self.assertEqual((self.root / "plugins/common-workflow/skills/alpha/SKILL.md").read_bytes(),
+                         original["plugins/common-workflow/skills/alpha/SKILL.md"])
+        self.assertEqual((self.root / "sources.lock.json").read_bytes(), original["sources.lock.json"])
+        self.assertIn("simulated publication failure", str(caught.exception))
+        self.assertIn("simulated rollback failure", str(caught.exception))
 
     def test_owned_plugin_survives_repeated_sync_and_failure(self):
         owned = self.root / "plugins/agent-manager/skills/am-config"

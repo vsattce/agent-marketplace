@@ -314,6 +314,39 @@ class ConfigureProjectTests(unittest.TestCase):
         with patch.object(editor.os, "replace", side_effect=OSError("fixture")):
             self.blocked("CONFIG WRITE FAILED")
 
+    def test_lock_cleanup_failure_reports_applied_config_and_lock_path(self):
+        unlink = Path.unlink
+
+        def fail_lock_cleanup(path, *args, **kwargs):
+            if path.name == ".configure-project.lock":
+                raise PermissionError("simulated cleanup failure")
+            return unlink(path, *args, **kwargs)
+
+        with patch.object(Path, "unlink", fail_lock_cleanup):
+            with self.assertRaises(editor.Blocked) as caught:
+                self.run_editor()
+        self.assertIn("CLEANUP FAILED", caught.exception.reason)
+        self.assertNotEqual(caught.exception.changes_applied, "NONE")
+        self.assertIn(".configure-project.lock", caught.exception.target)
+        self.assertTrue(tomllib.loads(self.config.read_text())["plugins"]["alpha@fixture"]["enabled"])
+
+    def test_cleanup_failure_preserves_original_verification_error(self):
+        unlink = Path.unlink
+
+        def fail_lock_cleanup(path, *args, **kwargs):
+            if path.name == ".configure-project.lock":
+                raise PermissionError("simulated cleanup failure")
+            return unlink(path, *args, **kwargs)
+
+        with patch.object(Path, "unlink", fail_lock_cleanup), patch.object(
+                editor, "verify_config", side_effect=editor.Blocked("CONFIG VERIFICATION FAILED")):
+            with self.assertRaises(editor.Blocked) as caught:
+                self.run_editor()
+        self.assertIn("ORIGINAL RESTORED", caught.exception.reason)
+        self.assertIn("CLEANUP FAILED", caught.exception.reason)
+        self.assertEqual(caught.exception.changes_applied, "NONE")
+        self.assertFalse(self.config.exists())
+
     def test_existing_lock_is_not_deleted_or_overwritten(self):
         self.config.parent.mkdir()
         lock = self.config.parent / ".configure-project.lock"

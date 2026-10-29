@@ -252,7 +252,7 @@ class PersonalDevPackagingTests(unittest.TestCase):
             {"dev-prepare", "dev-delegate", "dev-auto", "dev-review", "dev-simplify", "dev-runtime-check"},
         )
         self.assertEqual(manifest["name"], entries[0]["name"])
-        self.assertEqual(manifest["version"], "0.9.3")
+        self.assertEqual(manifest["version"], "0.9.4")
         self.assertEqual(manifest["extensions"]["com.openai"]["interface"], entries[0]["interface"])
         self.assertTrue((SKILL / "scripts/select_models.py").is_file())
         self.assertTrue((SKILL / "references/roles.md").is_file())
@@ -293,8 +293,7 @@ class PersonalDevPackagingTests(unittest.TestCase):
         sources = yaml.safe_load((ROOT / "sources.yaml").read_text(encoding="utf-8"))["groups"]
         lock = json.loads((ROOT / "sources.lock.json").read_text(encoding="utf-8"))["skills"]
         self.assertEqual(set(sources), {"common-workflow", "software-dev", "engineering-tools"})
-        self.assertEqual(sum(len(group["skills"]) for group in sources.values()), 20)
-        self.assertEqual(len(lock), 20)
+        self.assertEqual(set(lock), {skill["name"] for group in sources.values() for skill in group["skills"]})
         self.assertIn("vue", lock)
         self.assertEqual(
             {item["name"] for item in sources["software-dev"]["skills"]},

@@ -10,6 +10,8 @@
 
 返回 DONE / DONE_WITH_CONCERNS / NEEDS_CONTEXT / BLOCKED，附实际改动、验证命令与结果、未验证项及原因。报告待核实，不等于验收通过；单任务简报，长报告 / 多轮证据用本次目录文件定位交接。
 
+`DONE_WITH_CONCERNS` 由主模型核对顾虑与证据，工作已完成则进入独立验收；`NEEDS_CONTEXT` 补充必要信息后续接原 Coder，无法解决时按 `BLOCKED` 处理。两者都不直接记 `DONE`，不因此增加修复轮次或默认向用户提问。
+
 ## 独立验收代理
 
 使用 reviewer，新建区别于全部 Coder 的干净只读上下文。提供同一 SPEC / PLAN、Ruling 定位、staged / unstaged / 新文件差异、编码报告与验证证据；先读 SPEC 和补正，不只按未补正的外部 PLAN 验收。检查需求、正确性、直接调用关系和必要质量边界；不写文件、修复、提交或派生代理，有副作用验证交主模型安排 Worker。双方不直接交流，由主模型传递信息。
