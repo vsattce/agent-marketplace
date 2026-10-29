@@ -14,9 +14,9 @@
 $testTemp = (Get-Location).Path
 $env:TEMP = $testTemp
 $env:TMP = $testTemp
-$env:AGENT_MANAGER_CODEX_TESTS = '1'
-$env:AGENT_MANAGER_CLAUDE_TESTS = '1'
-uv run --python (mise which python) --no-python-downloads --with 'PyYAML>=6.0.2,<7' --with 'tomlkit>=0.13.3,<1' python -B -m unittest discover -s tests -v
+$env:MARKETPLACE_CODEX_TESTS = '1'
+$env:MARKETPLACE_CLAUDE_TESTS = '1'
+uv run --python (mise which python) --no-python-downloads --with 'PyYAML>=6.0.2,<7' python -B -m unittest discover -s tests -v
 ```
 
 首次全量运行 133 项，132 通过、1 项失败。失败是 Claude loader 对隔离项目 `AGENTS.md` 的固定断言仍使用旧句“优先兼容 Claude Code 和当前 Codex”；当前规则已改为“当前仅支持 Claude Code 和 Codex”。仅同步该测试断言后，定向复跑 `test_project_upgrade_entry_and_shared_rules_load`：1 项通过，exit 0。完整套件没有在这项测试断言更新后重跑，因此不将两次结果表述为一次全量通过。

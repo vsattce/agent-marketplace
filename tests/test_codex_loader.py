@@ -1,6 +1,6 @@
 """Opt-in real Codex loader tests with isolated config and no model inference.
 
-Set AGENT_MANAGER_CODEX_TESTS=1 to run. A localhost provider captures the actual
+Set MARKETPLACE_CODEX_TESTS=1 to run. A localhost provider captures the actual
 request context then stops the CLI; no model, external API, or Skill body executes.
 """
 
@@ -114,7 +114,7 @@ def rpc_skills(cwd: Path, env: dict[str, str], selector: str | None = None) -> t
                 return message["result"]
 
     try:
-        request(1, "initialize", {"clientInfo": {"name": "agent-manager-probe", "version": "0.1.0"}, "capabilities": {"experimentalApi": True}})
+        request(1, "initialize", {"clientInfo": {"name": "marketplace-probe", "version": "0.1.0"}, "capabilities": {"experimentalApi": True}})
         process.stdin.write('{"method":"initialized"}\n')
         process.stdin.flush()
         payload = request(2, "skills/list", {"cwds": [str(cwd)], "forceReload": True})
@@ -135,7 +135,7 @@ def rpc_skills(cwd: Path, env: dict[str, str], selector: str | None = None) -> t
             process.stdout.close()
 
 
-@unittest.skipUnless(os.environ.get("AGENT_MANAGER_CODEX_TESTS") == "1", "Opt-in isolated Codex loader validation")
+@unittest.skipUnless(os.environ.get("MARKETPLACE_CODEX_TESTS") == "1", "Opt-in isolated Codex loader validation")
 class CodexLoaderTests(unittest.TestCase):
     def setUp(self):
         self.temporary = temporary_test_directory("codex-loader")
@@ -188,7 +188,6 @@ class CodexLoaderTests(unittest.TestCase):
         (self.agent_home / "config.toml").write_text(config, encoding="utf-8")
         run(["git", "init", "--quiet"], self.env, self.project)
         run(["codex", "plugin", "marketplace", "add", str(ROOT), "--json"], self.env, self.project)
-        run(["codex", "plugin", "add", "agent-manager@agent-marketplace", "--json"], self.env, self.project)
 
     def capture(self, prompt):
         self.requests.clear()
@@ -216,41 +215,6 @@ class CodexLoaderTests(unittest.TestCase):
         self.assertTrue(captured and self.requests, f"No loader request captured; exit {process.returncode}: {diagnostic}")
         return json.dumps(self.requests[0], ensure_ascii=False)
 
-    def test_discovery_and_manual_only_context(self):
-        inventory, _ = rpc_skills(self.project, self.env)
-        owned = [item for item in inventory if item["name"].startswith("agent-manager:")]
-        self.assertEqual({item["name"] for item in owned}, {"agent-manager:am-config", "agent-manager:am-context"})
-        self.assertTrue(all(item.get("enabled", True) for item in owned))
-        ordinary = self.capture("请讨论当前项目的 Plugin / Skill 冲突、版本更新和项目开关配置，不调用任何 Skill。")
-        for marker in (
-            "# 编辑项目 Agent 指令 / Skill / Plugin",
-            "# 本轮上下文估算",
-            "Only use when explicitly invoked by the user.",
-        ):
-            self.assertNotIn(marker, ordinary)
-        for name, marker in (
-            ("am-config", "# 编辑项目 Agent 指令 / Skill / Plugin"),
-            ("am-context", "# 本轮上下文估算"),
-        ):
-            if name == "am-config":
-                with self.subTest(invocation=name):
-                    context = self.capture(f"${name} 仅验证 Skill 加载，本轮无需执行任何操作。")
-                    print(f"\nBare ${name} injected: {marker in context}", flush=True)
-            with self.subTest(invocation=f"agent-manager:{name}"):
-                context = self.capture(f"$agent-manager:{name} 仅验证 Skill 加载，本轮无需执行任何操作。")
-                self.assertTrue(marker in context, "Namespaced explicit invocation did not inject Skill instructions")
-                if name == "am-context":
-                    request = json.loads(context)
-                    source = ROOT / "plugins/agent-manager/codex-skills/am-context/SKILL.md"
-                    source_text = source.read_text(encoding="utf-8")
-                    captured = captured_skill_source(request, "agent-manager:am-context")
-                    self.assertIsNotNone(captured, "Codex did not inject the am-context Skill body")
-                    captured_path, injected_source = captured
-                    self.assertTrue(source_text.startswith(injected_source),
-                                    f"Codex injected content is not a prefix of am-context: {captured_path}")
-                    body = skill_body("agent-manager", name, "codex-skills")
-                    body_offset = injected_source.find(body[:40])
-                    self.assertGreaterEqual(body_offset, 0, "Codex explicit invocation omitted the am-context body")
 
     def test_new_third_party_plugins_discover_and_inject_skills(self):
         run(["codex", "plugin", "add", "software-dev@agent-marketplace", "--json"], self.env, self.project)

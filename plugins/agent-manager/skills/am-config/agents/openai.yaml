@@ -1,6 +1,0 @@
-interface:
-  display_name: "编辑项目 Agent 指令 / Skill / Plugin"
-  short_description: "仅手动编辑项目、准备注册 Plugin 或只读查冲突；区分配置保存与实际加载。"
-  default_prompt: "使用 $agent-manager:am-config 处理我指定的项目指令、Skill、Plugin 准备注册或开关；只写当前项目，必要时隔离验证加载，区分文件准备、配置保存与实际生效；若仅查冲突则全程只读。"
-policy:
-  allow_implicit_invocation: false

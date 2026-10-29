@@ -21,4 +21,3 @@
 ## 与现有流程的关系
 
 Matt 的 `to-spec`、`to-tickets`、`implement` 与 `implement-spec` 使用上述本地 tracker 约定；已有规格说明可通过路径引用，避免重复保存。
-`personal-dev` 仅保留审查、精简与运行诊断，报告按各入口约定按需保存；既有历史需求与计划保留。

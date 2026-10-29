@@ -113,7 +113,7 @@ class PluginDevSnapshotTests(unittest.TestCase):
         self.assertIn(".agents/plugin-dev/upstream/** -text", (ROOT / ".gitattributes").read_text(encoding="utf-8"))
 
 
-@unittest.skipUnless(os.environ.get("AGENT_MANAGER_CODEX_TESTS") == "1", "Opt-in isolated Codex loader validation")
+@unittest.skipUnless(os.environ.get("MARKETPLACE_CODEX_TESTS") == "1", "Opt-in isolated Codex loader validation")
 class CodexPluginDevLoaderTests(unittest.TestCase):
     def setUp(self):
         # Reuse the repository's existing local API capture fixture and its isolated CODEX_HOME.

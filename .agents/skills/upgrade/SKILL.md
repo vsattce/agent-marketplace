@@ -7,7 +7,7 @@ description: 升级第三方 Skills：用于升级或同步 agent-marketplace �
 
 Codex 用户调用 `$upgrade`，Claude Code 用户通过 `.claude/skills/upgrade/` 入口调用 `/upgrade`，即执行升级，无需用户手动输入同步命令。两端共用本文件的执行正文；不依赖任何一端专用的委派工具。
 
-同步暂存与恢复备份保存在项目 `.agent-tmp/sync/<run-id>/`，脚本输出本次路径，不自动清理。失败或中断时保留现场；验证、整体检查与已授权 Git 收尾完成后，按项目规则仅清理本次目录。短期命令日志按需放入 `.agent-tmp/tasks/<task-id>/`；只有需要跨步骤恢复或保留验收证据时才创建长期任务记录。路径细则见[任务产物位置](../../../plugins/personal-dev/references/artifacts.md)。
+同步暂存与恢复备份保存在项目 `.agent-tmp/sync/<run-id>/`，脚本输出本次路径，不自动清理。失败或中断时保留现场；验证、整体检查与已授权 Git 收尾完成后，按项目规则仅清理本次目录。短期命令日志按需放入 `.agent-tmp/tasks/<task-id>/`；只有需要跨步骤恢复或保留验收证据时才创建长期任务记录。路径细则见[任务产物位置](../../../AGENTS.md#任务产物目录)。
 
 ## 确认目标与环境
 
@@ -26,7 +26,7 @@ Codex 用户调用 `$upgrade`，Claude Code 用户通过 `.claude/skills/upgrade
 
 ## 执行升级
 
-执行同步或测试前读取[命令与资源契约](../../../plugins/personal-dev/references/execution-resources.md)，为 Git / Python / 测试命令保留后台 ID 与退出状态；失败、中断或超时先结束本次进程，再决定恢复。清理暂存目录前确认其进程与文件句柄已释放，不能仅因同步输出结束就删除。
+执行同步或测试前读取[命令与资源契约](../../../docs/agents/execution-resources.md)，为 Git / Python / 测试命令保留后台 ID 与退出状态；失败、中断或超时先结束本次进程，再决定恢复。清理暂存目录前确认其进程与文件句柄已释放，不能仅因同步输出结束就删除。
 
 环境核对通过后，在仓库根执行一次：
 

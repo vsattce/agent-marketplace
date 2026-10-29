@@ -30,7 +30,7 @@ function global:agy {
         'list' { ConvertTo-Json -InputObject @($global:mockInstalled) -Depth 5 -Compress }
         'validate' {
             $name = Split-Path $args[2] -Leaf
-            if ($env:AGY_TEST_MODE -eq 'invalid' -and $name -eq 'personal-dev') {
+            if ($env:AGY_TEST_MODE -eq 'invalid' -and $name -eq 'common-workflow') {
                 $global:LASTEXITCODE = 2
                 return
             }
@@ -97,7 +97,6 @@ class AgySyncTests(unittest.TestCase):
         last_validation = max(index for index, call in enumerate(calls) if call.startswith("plugin|validate|"))
         first_install = min(index for index, call in enumerate(calls) if call.startswith("plugin|install|"))
         self.assertLess(last_validation, first_install)
-        self.assertNotIn("am-context", installed["agent-manager"]["skills"])
         self.assertEqual(set(installed["engineering-tools"]["skills"]), {
             "docker-build-strategies", "docker-compose-patterns", "playwright-cli",
         })

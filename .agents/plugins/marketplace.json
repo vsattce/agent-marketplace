@@ -66,62 +66,13 @@
       "interface": {
         "displayName": "软件开发",
         "shortDescription": "第三方上游开发 Skills 的个人整理，保留原作者署名和许可证。",
-        "longDescription": "本 Plugin 汇集第三方上游项目提供的 Skills，仅为个人使用进行整理。各 Skill 的原作者署名、上游内容和许可证均按原样保留；本仓库不主张这些 Skills 为自有作品。`agent-manager` 和 `personal-dev` 是本仓库另行直接维护的 OWNED Plugin，不属于第三方内容。\n\nfrontend-design（界面设计）：新建或重塑前端页面，指导视觉风格、排版和界面细节。触发：主动（界面设计任务）／被动（手动）。\nweb-design-guidelines（Web 界面审查）：检查 UI 代码、可访问性和交互是否符合 Web 设计规范。触发：主动（界面审查任务）／被动（手动）。\nvue（Vue 3 基础知识）：基于 Vue 官方文档介绍 Vue 3 Composition API、响应式系统和内置组件。项目级规则优先，例如项目要求 JavaScript 时遵循项目规则。触发：主动（Vue 开发任务）／被动（手动）。\nfastapi（FastAPI 开发）：指导 FastAPI 应用与 API 的构建。触发：主动（FastAPI 开发任务）／被动（手动）。\njava-springboot（Spring Boot 开发）：指导 Spring Boot 的 REST API、依赖注入、数据访问、安全认证与测试实践。触发：主动（Spring Boot 开发任务）／被动（手动）。\n\n主动表示 Codex 可按当前任务自动选用；被动表示手动指定 Skill，例如 $software-dev:vue 或 $software-dev:fastapi。启用插件不会自行执行任务。",
+        "longDescription": "本 Plugin 汇集第三方上游项目提供的 Skills，仅为个人使用进行整理。各 Skill 的原作者署名、上游内容和许可证均按原样保留；本仓库不主张这些 Skills 为自有作品。\n\nfrontend-design（界面设计）：新建或重塑前端页面，指导视觉风格、排版和界面细节。触发：主动（界面设计任务）／被动（手动）。\nweb-design-guidelines（Web 界面审查）：检查 UI 代码、可访问性和交互是否符合 Web 设计规范。触发：主动（界面审查任务）／被动（手动）。\nvue（Vue 3 基础知识）：基于 Vue 官方文档介绍 Vue 3 Composition API、响应式系统和内置组件。项目级规则优先，例如项目要求 JavaScript 时遵循项目规则。触发：主动（Vue 开发任务）／被动（手动）。\nfastapi（FastAPI 开发）：指导 FastAPI 应用与 API 的构建。触发：主动（FastAPI 开发任务）／被动（手动）。\njava-springboot（Spring Boot 开发）：指导 Spring Boot 的 REST API、依赖注入、数据访问、安全认证与测试实践。触发：主动（Spring Boot 开发任务）／被动（手动）。\n\n主动表示 Codex 可按当前任务自动选用；被动表示手动指定 Skill，例如 $software-dev:vue 或 $software-dev:fastapi。启用插件不会自行执行任务。",
         "developerName": "hjy",
         "category": "Developer Tools",
         "websiteURL": "https://gitee.com/vsattce/agent-marketplace",
         "brandColor": "#3F7667",
         "composerIcon": "./assets/icon.png",
         "logo": "./assets/icon.png"
-      }
-    },
-    {
-      "name": "agent-manager",
-      "source": {
-        "source": "local",
-        "path": "./plugins/agent-manager"
-      },
-      "policy": {
-        "authentication": "ON_INSTALL",
-        "installation": "AVAILABLE"
-      },
-      "description": "仅手动自检本轮可见上下文，或编辑 Codex / Claude 项目指令、安装指定 Skill、准备注册项目 Plugin 与配置开关；支持只读冲突检查。",
-      "category": "Developer Tools",
-      "skills": [
-        "./skills/",
-        "./codex-skills/"
-      ],
-      "interface": {
-        "displayName": "Agent 管理工具",
-        "shortDescription": "本轮上下文估算与项目编辑、冲突检查；仅手动调用。",
-        "longDescription": "本仓库直接维护的 OWNED Plugin，包含两个仅手动调用入口。\n\nam-context（本轮上下文估算，仅 Codex）：只按当前对话仍可见的内容粗略估算类别区间，不调用工具、Python 或 tokenizer，也不读取文件、会话、项目、规则或配置。压缩后只估算当前可见摘要；不披露隐藏指令。\n\nam-config（编辑项目 Agent 指令 / Skill / Plugin）：先检查本次操作相关的冲突与重复，再按明确请求编辑项目 AGENTS.md、复制指定来源的 standalone Skill、准备和注册项目 Plugin，或修改 Codex / Claude 项目 Plugin 开关；也可只读查找当前项目与相关全局来源的冲突，报告后结束。轻微差异简述；实质冲突详细报告双方原文、位置、影响与最小方案，未明确取舍前停止写入。项目与全局来源按各客户端加载规则判断，全局始终只读。项目 Plugin 分阶段核验文件准备、项目注册、配置保存和实际加载；必要时使用项目内隔离 fixture，不因尚未安装就拒绝合法准备，也不自动转向全局安装。单个 Skill 项目开关暂不支持；agy 支持项目指令、Skill、Plugin 文件准备与只读检查，项目 Plugin 开关未验证；dsh 桌面版支持项目指令、standalone Skill、产品文件准备及只读检查，项目 Plugin 开关未验证；其他 Harness 为 BLOCKED。\n\n显式调用：Codex 为 $agent-manager:am-context / $agent-manager:am-config，Claude Code 为 /agent-manager:am-config。加载证据不足时标记 PARTIAL / UNKNOWN / BLOCKED。",
-        "developerName": "hjy",
-        "category": "Developer Tools",
-        "websiteURL": "https://gitee.com/vsattce/agent-marketplace",
-        "brandColor": "#475569"
-      }
-    },
-    {
-      "name": "personal-dev",
-      "source": {
-        "source": "local",
-        "path": "./plugins/personal-dev"
-      },
-      "policy": {
-        "authentication": "ON_INSTALL",
-        "installation": "AVAILABLE"
-      },
-      "description": "仅手动调用的增强代码审查、精简建议与远端诊断工具。",
-      "category": "Developer Tools",
-      "skills": "./skills/",
-      "interface": {
-        "displayName": "个人开发工具",
-        "shortDescription": "仅手动调用的增强代码审查、精简建议与远端诊断工具。",
-        "longDescription": "保留三个仅手动调用入口，支持 Codex、Claude Code、agy 与 dsh 桌面版。\n\ndev-review：显式 reviewer=<model>:<effort>，默认一个只读 reviewer，主模型核验证据后在聊天中输出；仅用户要求时保存报告，不自动提交或推送。原有模型校验与 Harness 支持仅服务该入口。\n\ndev-simplify：默认只读提出行为等价的精简建议，明确授权后才编辑。\n\ndev-runtime-check：以原生 Shell / SSH 诊断指定主机、容器或服务，默认只读；修复与报告保存须符合用户授权。\n\n开发主链使用独立 matt Plugin；不在本插件内编排开发。",
-        "developerName": "hjy",
-        "category": "Developer Tools",
-        "websiteURL": "https://gitee.com/vsattce/agent-marketplace",
-        "brandColor": "#256D74"
       }
     },
     {

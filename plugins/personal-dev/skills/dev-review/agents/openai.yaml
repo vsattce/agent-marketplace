@@ -1,6 +1,0 @@
-interface:
-  display_name: "增强代码审查"
-  short_description: "仅手动调用；默认单 reviewer 审查、主模型核证，聊天输出结果，明确要求时才保存。"
-  default_prompt: "使用 $personal-dev:dev-review，本次显式参数规范格式为 reviewer=<model>:<effort>，按共享契约解析等价写法并归一化，严格校验当前 Harness 支持，不要求 worker；默认单 reviewer 只读审查，由主模型核验证据并在聊天中输出报告，只有用户明确要求保存时才写文件；严重或争议问题再独立复核。"
-policy:
-  allow_implicit_invocation: false

@@ -46,7 +46,7 @@ class DesktopSyncTests(unittest.TestCase):
         resource = self.repository / "plugins/example/references/contract.md"
         resource.parent.mkdir()
         resource.write_text("Contract", encoding="utf-8")
-        codex = self.repository / "plugins/example/codex-skills/am-context/SKILL.md"
+        codex = self.repository / "plugins/example/codex-skills/codex-only-example/SKILL.md"
         codex.parent.mkdir(parents=True)
         codex.write_text("Codex only", encoding="utf-8")
         self.inspector = mock.patch.object(sync, "inspect", side_effect=self.fake_inspect)
@@ -241,8 +241,8 @@ class DesktopSyncTests(unittest.TestCase):
 
     def test_project_tooling_and_codex_only_skill_are_not_exported(self):
         files, skills = sync.products(ROOT)
-        self.assertEqual(len(skills), 30)
-        self.assertEqual(len({entry["plugin"] for entry in skills.values()}), 6)
+        self.assertEqual(len(skills), 26)
+        self.assertEqual(len({entry["plugin"] for entry in skills.values()}), 4)
         self.assertEqual(skills["playwright-cli"]["plugin"], "engineering-tools")
         self.assertNotIn("disable-model-invocation", skills["playwright-cli"]["metadata"])
         self.assertIn("plugins/engineering-tools/licenses/playwright-cli/LICENSE", files)
@@ -250,9 +250,8 @@ class DesktopSyncTests(unittest.TestCase):
         self.assertIn("plugins/matt/licenses/setup-matt-pocock-skills/LICENSE", files)
         self.assertIn("plugins/matt/skills/setup-matt-pocock-skills/domain.md", files)
         self.assertFalse(any(name.startswith("plugins/testing-automation/") for name in files))
-        self.assertNotIn("am-context", skills)
         self.assertFalse(any(".agents/" in name or "/codex-skills/" in name for name in files))
-        for name in ("am-config", "dev-review", "handoff", "grill-with-docs", "improve-codebase-architecture", "setup-matt-pocock-skills"):
+        for name in ("handoff", "grill-with-docs", "improve-codebase-architecture", "setup-matt-pocock-skills"):
             self.assertIs(skills[name]["metadata"]["disable-model-invocation"], True)
         for name in ("grilling", "domain-modeling"):
             self.assertNotIn("disable-model-invocation", skills[name]["metadata"])
@@ -285,13 +284,6 @@ class DesktopPatchTests(unittest.TestCase):
             with self.subTest(original=original), self.assertRaises(sync.SyncError):
                 sync.managed_patch(original, [])
 
-    def test_owned_entrypoints_reference_the_dsh_adapter(self):
-        for source in ("plugins/personal-dev/skills/dev-review/SKILL.md",
-                       "plugins/agent-manager/skills/am-config/SKILL.md"):
-            self.assertIn("../../references/dsh.md", (ROOT / source).read_text("utf-8"))
-        adapter = (ROOT / "plugins/personal-dev/references/dsh.md").read_text("utf-8")
-        self.assertIn("spawn 干净上下文", adapter)
-        self.assertIn("BLOCKED", adapter)
 
 
 @unittest.skipUnless(os.environ.get("DSH_DESKTOP_TESTS"), "Set DSH_DESKTOP_TESTS to the installed Desktop executable")

@@ -8,7 +8,7 @@ description: 同步 agy 全局插件：用于用户要求将 agent-marketplace �
 仅在当前仓库使用。Codex 可调用 `$sync-agy`，Claude Code 可调用 `/sync-agy`，agy 可调用 `/sync-agy`。同步对象来自 `.agents/plugins/marketplace.json` 的产品 Plugin，不包括 `.agents/skills/`、项目 MCP、Superpowers 或本 Skill；不从 Claude / Codex 全局缓存批量导入。`testing-automation` 已并入 `engineering-tools`；若仍安装旧包，先报告并由用户通过原生 CLI 卸载，脚本在写入前停止以避免重复 `/playwright-cli`。
 
 1. 从本文件目录解析 `../../..` 得到仓库根，确认 Git 根与 catalog，检查用户已有改动。同步当前工作区内容，不自动拉取、切换分支、升级来源、提交或推送。
-2. 执行命令前读取[命令与资源契约](../../../plugins/personal-dev/references/execution-resources.md)：设置有限预算，保留未结束命令 ID，确认旧同步进程退出后才重试，不停止用户正在使用的 agy。先运行只读预检：
+2. 执行命令前读取[命令与资源契约](../../../docs/agents/execution-resources.md)：设置有限预算，保留未结束命令 ID，确认旧同步进程退出后才重试，不停止用户正在使用的 agy。先运行只读预检：
 
    ```powershell
    pwsh -NoProfile -File .agents/skills/sync-agy/scripts/sync.ps1 -CheckOnly
@@ -19,4 +19,4 @@ description: 同步 agy 全局插件：用于用户要求将 agent-marketplace �
 4. 脚本逐项校验 manifest、调用原生本地安装、保留已有禁用状态，并检查安装清单、Skills 与配套资源。它仅处理 catalog 指定的插件名，保留其他来源的插件；失败立即停止，不卸载旧插件、不清空安装目录、不修改 trust / 权限 / 模型 / MCP 设置。
 5. 报告 agy 版本、成功 / 未完成项与实际安装位置。提醒新会话或客户端重载后确认可用入口；安装校验不证明真实模型调用、SSH 或子代理业务流程已运行。重复运行用于刷新工作区副本，不等于持续自动同步。
 
-客户端适配见产品包内 `agent-manager/references/agy.md` 与 `personal-dev/references/agy.md`；`am-context` 仍仅 Codex。该 Skill 只服务仓库维护，不注册进 Marketplace、不计入产品数量。
+该 Skill 只服务仓库维护，不注册进 Marketplace、不计入产品数量。

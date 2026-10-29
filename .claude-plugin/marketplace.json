@@ -23,16 +23,6 @@
       "description": "本仓库仅汇集整理第三方上游前端与后端 Skills，供个人使用；内容不由本仓库创作，并保留原作者署名及上游许可证。"
     },
     {
-      "name": "agent-manager",
-      "source": "./plugins/agent-manager",
-      "description": "仅手动编辑 Codex / Claude 项目指令、安装指定 Skill、准备注册项目 Plugin 与配置开关；支持只读冲突检查。"
-    },
-    {
-      "name": "personal-dev",
-      "source": "./plugins/personal-dev",
-      "description": "仅手动调用的增强代码审查、精简建议与远端诊断工具。"
-    },
-    {
       "name": "engineering-tools",
       "source": "./plugins/engineering-tools",
       "description": "Docker 构建、Compose 编排与 Playwright 浏览器自动化工具。"

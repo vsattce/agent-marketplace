@@ -1,5 +1,0 @@
-{
-  "name": "agent-manager",
-  "version": "0.8.4",
-  "description": "编辑 agy 项目 Agent 指令、安装指定 Skill、准备项目 Plugin，或只读检查冲突；仅手动调用。"
-}

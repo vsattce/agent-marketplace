@@ -1,6 +1,0 @@
-interface:
-  display_name: "本轮上下文估算"
-  short_description: "粗略估算当前对话已可见内容；仅手动调用。"
-  default_prompt: "使用 $agent-manager:am-context，仅基于本轮当前对话已可见内容，按默认分类给出粗略区间；不调用工具、不读取任何外部来源。"
-policy:
-  allow_implicit_invocation: false

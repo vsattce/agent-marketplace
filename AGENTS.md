@@ -10,7 +10,7 @@
 
 3. **深度匹配任务：** 按风险、影响和不确定性控制读取范围、计划、产物与验证深度，不机械执行全部 Superpowers Skills。适用 Skill 要求的确认、审查和验证步骤按其触发条件执行；纯文案、文档、只读检查和常规 Git 操作不强制套用完整开发链。用户已明确的目标、取舍与授权不重复询问。
 
-4. **手动入口与授权：** `am-config`、`personal-dev` 等仅手动调用的 Skill 仍须用户显式调用，不因其他 Skill 流程而自动触发。显式调用的 Skill 规定只读、不提交或不推送时，按该次调用边界执行；用户另有明确授权时以用户要求为准。任何 Skill 不扩大任务范围或文件系统、运行时、客户端配置及外部服务权限。
+4. **手动入口与授权：** 仅手动调用的 Skill 仍须用户显式调用，不因其他 Skill 流程而自动触发。显式调用的 Skill 规定只读、不提交或不推送时，按该次调用边界执行；用户另有明确授权时以用户要求为准。任何 Skill 不扩大任务范围或文件系统、运行时、客户端配置及外部服务权限。
 
 5. **客户端与可用性：** Codex / Claude Code 只使用各自当前会话实际可用的 Skill、工具和入口，不把磁盘文件或安装缓存当作已加载。所需能力缺失时说明缺项及受影响步骤，不自行安装、修改全局配置或声称新规则已在当前会话热加载。
 
@@ -20,13 +20,13 @@
 
 2. **产品与开发工具边界（repository development tooling）：** .agents/skills/ 中的 Superpowers、项目 upgrade、Claude Code plugin 开发 Skill 及未来项目级开发 Skill，.agents/plugin-dev/ 中的官方参考快照，以及项目 MCP 与 Codex / Claude 开发辅助配置默认只服务本仓库维护，不属于 Marketplace 产品。除非用户明确要求，不把它们注册到 .agents/plugins/marketplace.json、.claude-plugin/marketplace.json、sources.yaml 或对外安装目录，也不计入 Plugin / Skill 数量；README 保留 Superpowers 不计数说明。
 
-3. **来源与自有内容：** sources.yaml 管理第三方来源，scripts/sync.py 同步快照并把实际结果记录到 sources.lock.json；上游快照不顺手修改，内容变化通过来源、ref、upstream 或同步流程引入。agent-manager、personal-dev、项目 upgrade、manifests、自有脚本与测试由本仓库直接维护，不新增 ownership 系统。
+3. **来源与自有内容：** sources.yaml 管理第三方来源，scripts/sync.py 同步快照并把实际结果记录到 sources.lock.json；上游快照不顺手修改，内容变化通过来源、ref、upstream 或同步流程引入。项目 upgrade、manifests、自有脚本与测试由本仓库直接维护，不新增 ownership 系统。
 
 4. **工作范围与环境：** 仅修改当前仓库和任务授权内容，先检查并保留用户已有改动。无明确授权不修改用户级客户端配置、全局 Plugin / Skill / MCP、系统环境或全局运行时，也不操作其他项目；环境不满足时报告原因，不自行修复全局环境。
 
 5. **最小变更：** 只解决当前需求；直接相关问题可一并修复，无关问题仅报告，不顺手重构或扩建基础设施。
 
-6. **验证：** 复用现有 unittest，按变更运行 agent-manager、personal-dev、sync、Codex / Claude loader、项目配置或 manifest 对应测试；影响范围大或不明时再扩大验证。默认执行 git diff --check。真实客户端测试只用仓库已有显式开关和隔离 fixture，不改日常全局配置。
+6. **验证：** 复用现有 unittest，按变更运行 sync、Codex / Claude loader 或 manifest 对应测试；影响范围大或不明时再扩大验证。默认执行 git diff --check。真实客户端测试只用仓库已有显式开关和隔离 fixture，不改日常全局配置。
 
 7. **文档与入口：** 项目能力、配置、用法、支持范围或维护流程变化时，最小范围同步 README 和直接相关文档。不新建重复 Skill、modern-python Skill 或协作、发布、CI 基础设施。CLAUDE.md 只导入 @AGENTS.md；不复制第二份项目规则。
 
@@ -38,15 +38,12 @@
 
 ## 任务产物目录
 
-- 本仓库维护脚本的同步暂存、unittest fixture 和维护日志按需放入 `.agent-tmp/sync/<run-id>/`、`.agent-tmp/tests/<run-id>/`、`.agent-tmp/tasks/<task-id>/`，由 Git 忽略。测试进程需要 `TMP` / `TEMP` 时，只指向本次测试运行目录；产品插件的输出使用下述专属目录。
-- 插件隔离验证使用 `.personal-dev/tests/<run-id>/` 和 `.agent-manager/tests/<run-id>/`；中断或部分失败保留现场。审查与诊断产物按下述规则按需保存。
-- 全部验收、整体检查和已授权收尾完成后，仅清理本次临时目录。删除前核实目标由本次任务创建，解析后的绝对路径位于当前仓库上述 `.agent-tmp/<类别>/<本次ID>/`、`.personal-dev/tests/<run-id>/` 或 `.agent-manager/tests/<run-id>/` 范围内，且未被符号链接或 junction 重定向；不得扩大到整个临时根目录、类别目录、文档目录、仓库根目录、父目录、用户目录、其他项目或其他任务。
-- 启动测试、构建或客户端隔离验证时，按[命令与资源契约](plugins/personal-dev/references/execution-resources.md)保留后台命令 ID 与退出状态；失败或中断也须释放本次资源。清理前先确认本次进程与文件句柄已退出、自己的终端已离开目标目录；未知占用只读取证，不批量终止用户进程。
+- 本仓库维护脚本的同步暂存、unittest fixture 和维护日志按需放入 `.agent-tmp/sync/<run-id>/`、`.agent-tmp/tests/<run-id>/`、`.agent-tmp/tasks/<task-id>/`，由 Git 忽略。测试进程需要 `TMP` / `TEMP` 时，只指向本次测试运行目录。
+- 全部验收、整体检查和已授权收尾完成后，仅清理本次临时目录。删除前核实目标由本次任务创建，解析后的绝对路径位于当前仓库上述 `.agent-tmp/<类别>/<本次ID>/` 范围内，且未被符号链接或 junction 重定向；不得扩大到整个临时根目录、类别目录、文档目录、仓库根目录、父目录、用户目录、其他项目或其他任务。
+- 启动测试、构建或客户端隔离验证时，按[命令与资源契约](docs/agents/execution-resources.md)保留后台命令 ID 与退出状态；失败或中断也须释放本次资源。清理前先确认本次进程与文件句柄已退出、自己的终端已离开目标目录；未知占用只读取证，不批量终止用户进程。
 - Windows / PowerShell 优先使用 `Remove-Item -LiteralPath <已核实的绝对路径> -Recurse -ErrorAction Stop` 普通递归删除；禁止 `Remove-Item` 及 `rm`、`ri` 等别名使用 `-Force`（含参数缩写）。删除动作保持独立、简单，不与其他含 `-Force` 的命令拼接在同一 Shell 调用中。
 - 普通删除因占用、只读、权限或 Codex 执行策略拒绝而失败时，停止清理、保留目录，并在最终结果报告路径及原因；除非残留影响实际功能或测试正确性，否则不判定开发任务失败。不得继续强制删除，或改用 `cmd /c rd /s /q`、Python `shutil.rmtree`、其他 Shell 包装器规避检查；不得为清理修改全局 Codex 安全策略、用户级配置或系统权限。
-- 增强审查默认在聊天中输出；仅用户明确要求保存时才写报告，未指定位置时使用 `docs/personal-dev/reviews/<review-id>/report.md`。要求保存且长审查确需中断恢复时，轻量进度记录与报告同目录。审查只写获准保存的报告和必要进度记录，不自动提交或推送。
-- 远端诊断默认在聊天中汇报，只有用户要求保存时写入 `docs/personal-dev/runtime/<diagnostic-id>/report.md`。`dev-simplify` 不要求文档。
-- ID 使用用户时区的日期、时间和主题；冲突追加唯一后缀且不覆盖。目标项目规则和用户指定位置优先。`am-config` 的目标旁 `.am-config-*` 原子替换临时文件与 `.configure-project.lock` 保持原位。
+- ID 使用用户时区的日期、时间和主题；冲突追加唯一后缀且不覆盖。目标项目规则和用户指定位置优先。
 
 ## Agent skills
 

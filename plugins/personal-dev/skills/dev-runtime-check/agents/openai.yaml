@@ -1,6 +1,0 @@
-interface:
-  display_name: "远端运行诊断"
-  short_description: "通过当前 Harness 的 Shell / SSH 取证远端主机、容器或服务；默认只读。"
-  default_prompt: "使用 $personal-dev:dev-runtime-check 通过当前 Harness 原生 Shell / SSH 工具诊断用户指定目标；用户明确要求修复时，仅执行授权范围内的必要修复。"
-policy:
-  allow_implicit_invocation: false

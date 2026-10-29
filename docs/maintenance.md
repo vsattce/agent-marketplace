@@ -6,9 +6,9 @@
 
 本仓库支持 Codex、Claude Code、Antigravity CLI（agy）与 DeepSeek Harness 桌面版（dsh）。项目规则、配置、能力、调用方式、支持范围或维护流程有变化时，同步检查并更新 README 与直接相关文档，维护要求以 [AGENTS.md](../AGENTS.md) 为准。
 
-agy 全局同步使用项目 Skill `.agents/skills/sync-agy/`，Claude 入口只引用共享正文；它从现有产品 catalog 读取目标，通过原生 CLI 校验、安装与验证，不进入 Marketplace 产品清单。各产品沿用原有 `plugin.json`；`agent-manager` 使用独立 `.antigravity-plugin/plugin.json`，保留 Codex 专用 `codex-skills/` 的发现边界。自有插件的 agy 行为只维护在随包 `references/agy.md` 及必要入口分支，第三方上游 Skills 不直接修改。安装与业务执行分开验证，具体用法见[agy 使用说明](usage.md#antigravity-cliagy)。
+agy 全局同步使用项目 Skill `.agents/skills/sync-agy/`，Claude 入口只引用共享正文；它从现有产品 catalog 读取目标，通过原生 CLI 校验、安装与验证，不进入 Marketplace 产品清单。各产品沿用原有 `plugin.json`，第三方上游 Skills 不直接修改。安装与业务执行分开验证，具体用法见[agy 使用说明](usage.md#antigravity-cliagy)。
 
-dsh 桌面同步使用 `.agents/skills/sync-dsh/`；Claude / agy 项目入口只引用共享正文。它从产品 catalog 收集共享 Skills，完整保留资源，使用桌面版自带的 Electron / 文件系统 provider 隔离读取并验证清单与调用策略，再发布内容摘要快照和独立的 provider patch。第三方快照保持原样；自有行为维护在必要入口分支与 `references/dsh.md`。当前核验桌面版 `0.2.1-rc.2`，不调用 npm CLI、不修改模型或权限。见[使用手册](usage.md#deepseek-harness-桌面版dsh)。
+dsh 桌面同步使用 `.agents/skills/sync-dsh/`；Claude / agy 项目入口只引用共享正文。它从产品 catalog 收集共享 Skills，完整保留资源，使用桌面版自带的 Electron / 文件系统 provider 隔离读取并验证清单与调用策略，再发布内容摘要快照和独立的 provider patch。第三方快照保持原样。当前核验桌面版 `0.2.1-rc.2`，不调用 npm CLI、不修改模型或权限。见[使用手册](usage.md#deepseek-harness-桌面版dsh)。
 
 同步回归使用 `test_dsh_sync.py`，默认模拟用户根和桌面调用；显式设置 `DSH_DESKTOP_TESTS` 为真实桌面程序路径，可启用仅本地读取的原生 provider 验证，不启动 Host / LLM、不改变日常用户配置。验证命令沿用下文 unittest 的 mise / uv 环境约束。
 
@@ -51,20 +51,16 @@ agent-marketplace/
 │   ├── matt/                      # 精选 Matt 原始 Skill 完整目录
 │   ├── common-workflow/           # 第三方快照
 │   ├── software-dev/              # 第三方快照
-│   ├── engineering-tools/          # 第三方快照
-│   ├── agent-manager/             # OWNED，直接维护
-│   └── personal-dev/              # OWNED，Codex / Claude / agy / dsh、仅手动
+│   └── engineering-tools/          # 第三方快照
 ├── docs/
 │   ├── usage.md
 │   └── maintenance.md
 └── README.md                      # 概览与文档入口
 ```
 
-六个 Plugin 都提供 Claude `.claude-plugin/plugin.json`；Codex 除 agent-manager 使用原生 `.codex-plugin/plugin.json` 外，其余沿用便携 `plugin.json`。两个 Marketplace 指向同一产品根。第三方四类共 26 个 Skills：matt 17、common-workflow 1、software-dev 5、engineering-tools 3；加上 agent-manager 的 2 / 1 与 personal-dev 的 3 项，Codex 为 31 项，其余三端为 30 项。
+四个 Plugin 共 26 个 Skills：matt 17、common-workflow 1、software-dev 5、engineering-tools 3。四端产品清单一致；Codex 沿用便携 `plugin.json`，Claude 使用 `.claude-plugin/plugin.json`，两端 Marketplace 指向同一产品根。
 
-personal-dev 仅保留审查、精简与运行诊断；reviewer 模型契约、四端审查适配、资源与产物规则仍被保留入口使用。审查解析与校验实现位于 dev-review/scripts，完整随包，不依赖开发编排。
-
-Codex 便携 manifest 的中文信息位于 `extensions.com.openai.interface`；原生 Codex manifest 的中文信息使用根级 `interface`。Claude manifest / catalog 有意不写 version，Git 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
+Codex 便携 manifest 的中文信息位于 `extensions.com.openai.interface`；Claude manifest / catalog 有意不写 version，Git 来源按 commit 跟踪更新；validator 的缺少 version 警告属于此版本策略。参考 [OpenAI Plugin 规范](https://developers.openai.com/plugins/build/plugins)与 [Claude 版本策略](https://code.claude.com/docs/en/plugins/host-marketplace)。
 
 ## 第三方来源与维护边界
 
@@ -76,11 +72,11 @@ lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，�
 
 当前来源包含四个分类、26 个第三方 Skill；matt 只登记明确选择的 17 项，repo 为 mattpocock/skills、ref 为 main、path 使用上游实际目录。sources 是选择清单，不扫描或镜像整个 stable 目录。推荐主链与完整名单见[使用手册](usage.md#matt-精选工作流)。
 
-`software-dev` 收录第三方上游项目的 Skills，仅由本仓库汇集、整理供个人使用；作者署名、上游内容及许可证均按原样保留。该说明不适用于 `agent-manager`、`personal-dev` 等本仓库自有 Plugin。
+`software-dev` 收录第三方上游项目的 Skills，仅由本仓库汇集、整理供个人使用；作者署名、上游内容及许可证均按原样保留。
 
 第三方 `skills/` 原样同步，不手工修改快照；[.gitattributes](../.gitattributes) 禁止 Git 转换这些文件的换行。Skill 内许可证保留原样，upstream 根 LICENSE / NOTICE 等另存到 `licenses/<skill-name>/`。快照随仓库发布，换电脑通过 Plugin 安装恢复。
 
-`agent-manager`、`personal-dev`、项目 `upgrade` Skill 和各 manifest 直接维护，不进入 sources / lock。新增第三方 Skill 优先归入现有分类；Matt 子集只通过明确选择扩展；只有新的领域才考虑增加分类。自有 Plugin 不走第三方同步。第三方 `resolving-merge-conflicts`、standalone `pdf` 和 Legacy 入口不保留。
+项目 `upgrade` Skill 和各 manifest 直接维护，不进入 sources / lock。新增第三方 Skill 优先归入现有分类；Matt 子集只通过明确选择扩展；只有新的领域才考虑增加分类。自有 Plugin 不走第三方同步。第三方 `resolving-merge-conflicts`、standalone `pdf` 和 Legacy 入口不保留。
 
 `playwright-cli` 的来源、固定快照、许可证、正文与触发策略保持不变，仅分组迁入 `engineering-tools`。同步白名单与两端 marketplace 使用新分组；agy / dsh 继续由 catalog 发现产品，不增加独立适配层。旧安装与调用前缀的迁移见[使用手册](usage.md#安装与更新)。
 
@@ -94,7 +90,7 @@ lock 自动记录来源、分类、实际同步 commit 与 UTC 同步时间，�
 
 ### 使用项目 Skill
 
-在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入 Codex / Claude Code Marketplace 的 31 / 30 个 Skills。
+在本仓库 Codex 聊天调用 `$upgrade`，共享正文为 [.agents/skills/upgrade/SKILL.md](../.agents/skills/upgrade/SKILL.md)；Claude Code 调用 `/upgrade`，发现入口为 [.claude/skills/upgrade/SKILL.md](../.claude/skills/upgrade/SKILL.md)，再读取共享正文。它不计入 Codex / Claude Code Marketplace 的 26 个 Skills。
 
 Agent 核对目标、Git 状态与运行时后，按 sources 的既定来源 / ref 同步，保留用户改动，检查差异并运行相关验证。按 [AGENTS.md](../AGENTS.md) 默认提交、推送当前分支；当前任务明确不提交或不推送时遵从该要求。环境、同步或验证失败时停止，零差异不制造提交。
 
@@ -138,29 +134,11 @@ git diff --check
 
 首次生成的文件为 untracked，结合 status 核对。回退 upstream 内容时，将 ref 改为 lock 中记录的目标 commit，再运行同步。
 
-## 自有 Agent 管理工具
-
-源码在 [plugins/agent-manager](../plugins/agent-manager)。Codex 有 `am-context` 与 `am-config` 两个手动入口，Claude Code / agy / dsh 仅发现 `am-config`；用户行为与支持范围见[使用手册](usage.md#agent-管理工具)，这里保留维护入口：
-
-| 内容 | 入口 |
-| --- | --- |
-| 当前对话可见上下文的粗略估算（仅 Codex） | [am-context](../plugins/agent-manager/codex-skills/am-context/SKILL.md) |
-| 项目编辑、只读检查与开关编辑器 | [am-config](../plugins/agent-manager/skills/am-config/SKILL.md) |
-| 冲突识别、检查范围与分级输出 | [conflicts.md](../plugins/agent-manager/skills/am-config/references/conflicts.md) |
-| 各客户端来源与加载机制 | [Codex](../plugins/agent-manager/references/codex.md)、[Claude](../plugins/agent-manager/references/claude.md)、[agy](../plugins/agent-manager/references/agy.md)、[dsh](../plugins/agent-manager/references/dsh.md) |
-| 项目文件预检、开关能力与输入契约 | [project-edits.md](../plugins/agent-manager/skills/am-config/references/project-edits.md)、[Codex](../plugins/agent-manager/skills/am-config/references/codex-support.md)、[Claude](../plugins/agent-manager/skills/am-config/references/claude-support.md)、[editor-input.md](../plugins/agent-manager/skills/am-config/references/editor-input.md) |
-
-自有 Skill 命名规则：`personal-dev` 采用 `dev-{action}`，`agent-manager` 采用 `am-{action}`。`am-config` 保持共享 `skills/` 目录；仅 Codex 的 `am-context` 使用 `codex-skills/`。入口使用完整调用名。
-
-Plugin 开关编辑器仅在 Windows 运行；其他平台在配置读写前返回 `BLOCKED / PLUGIN SWITCH CONFIGURATION REQUIRES WINDOWS`，该限制不影响 AGENTS.md 与 standalone Skill 操作。Codex 分支使用 tomlkit 0.13.3+（<1）保留注释与排版；Claude 分支使用标准库增量替换 JSON 值，拒绝重复键和损坏配置。编辑器只处理 Plugin 开关；AGENTS.md 与 standalone Skill 文件操作由 Skill 层完成，并在混合请求写入前统一预检。现有开关事务保留无关字节，具备幂等、锁、原子替换、二次读取和失败恢复；Windows 路径、symlink、junction、hardlink 与非普通目标文件的拒绝行为有测试覆盖。
-
-Skill 运行时使用已准备的 Agent 工具环境，不安装依赖、不启动客户端做能力探测，不用全局写入弥补项目能力缺失。客户端版本适配先补充真实隔离证据，再更新编辑器的精确版本集合及支持说明；inventory 版本必须等于实际客户端版本，不以范围匹配放行未知版本。未适配的 Harness 必须返回 `BLOCKED / UNSUPPORTED AGENT`。
-
 ## 开发验证
 
 以下命令用于开发验收，按改动范围选择。执行 Python 前按上方核对 mise 和实际版本；执行 Node 前同样核对项目约束、`mise current` 与 `node -v`。文档整理无需运行这些客户端或模型流程。
 
-Windows 若系统临时目录使用 `ADMINI~1` 等短路径别名，路径安全测试会拒绝该非规范路径。项目内测试 fixture 和进程临时文件使用 `.agent-tmp/tests/<run-id>/`；需要设置 `TMP` / `TEMP` 时，仅在本次测试进程指向该运行目录，不修改系统或用户环境变量。原始测试日志与短期任务证据按需保存在 `.agent-tmp/tasks/<task-id>/`。
+项目内测试 fixture 和进程临时文件使用 `.agent-tmp/tests/<run-id>/`；TMP / TEMP 仅在该测试进程指向本次运行目录，不修改系统或用户环境。
 
 ### Manifest 检查
 
@@ -176,7 +154,7 @@ claude plugin validate plugins/software-dev
 ### 常规测试
 
 ```powershell
-uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" --with "tomlkit>=0.13.3,<1" python -B -m unittest discover -s tests -v
+uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" python -B -m unittest discover -s tests -v
 ```
 
 真实客户端测试默认不启用。仅同步改动可缩小为：
@@ -188,48 +166,38 @@ uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,
 | 测试入口 | 覆盖内容 |
 | --- | --- |
 | `tests/test_sync.py` | 重复同步、快照恢复、upstream 更新、许可证、失败不写入、路径与重名拒绝、回滚和移出配置项保留 |
-| `tests/test_agent_manager.py` | Codex / Claude Plugin 包装、手动策略与只读来源比较 |
 | `tests/test_agy_sync.py` | 模拟 agy CLI 检查只读预检、产品同步、禁用状态保留、资源核对与失败停止；不修改真实 agy 配置 |
-| `tests/test_personal_dev.py` / `tests/test_personal_dev_review.py` / `tests/test_personal_dev_packaging.py` | 审查模型校验、阻塞与安全 CLI 输出，以及三个 Skill 的双端包装、共享资源、加载长度和手动策略 |
-| `tests/test_configure_project.py` | Codex 事务编辑、路径安全与不支持能力的拒绝 |
-| `tests/test_configure_project_claude.py` | Claude JSON 增量编辑、覆盖检查与失败恢复 |
 
 ### Codex 隔离加载器
 
-`tests/test_codex_loader.py` 验证发现与手动调用；`tests/test_project_config_codex.py` 验证项目 Plugin 覆盖、单个 Skill 项目开关未生效及 untrusted 层忽略。显式启用后运行常规测试命令：
+`tests/test_codex_loader.py` 验证保留产品的发现与显式调用。显式启用后运行常规测试命令：
 
 ```powershell
-$env:AGENT_MANAGER_CODEX_TESTS = "1"
-uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" --with "tomlkit>=0.13.3,<1" python -B -m unittest discover -s tests -v
-Remove-Item Env:AGENT_MANAGER_CODEX_TESTS
+$env:MARKETPLACE_CODEX_TESTS = "1"
+uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" python -B -m unittest discover -s tests -v
+Remove-Item Env:MARKETPLACE_CODEX_TESTS
 ```
 
 使用项目内隔离 CODEX_HOME、临时项目、安装 fixture 与 localhost 请求捕获器，不调用真实模型、不执行 Skill 正文，也不更新日常全局配置或安装缓存。
 
-`tests/test_personal_dev_loader.py` 复用隔离方式，检查三个保留入口的发现、手动策略与正文加载。`tests/test_matt.py` 检查精选清单、运行依赖、内部资源、来源与 manifest 一致性；目录字节完整性还需与本次实际 fetch 的 upstream commit 核对。
+`tests/test_matt.py` 检查精选清单、运行依赖、内部资源、来源与 manifest 一致性；目录字节完整性还需与本次实际 fetch 的 upstream commit 核对。
 该加载用例已在 Codex CLI 0.160.1 与 0.162.0-alpha.17.2 上通过；这是实际验证版本记录，不定义版本支持范围。隔离 fixture 显式让 localhost 绕过代理，并关闭远端 Plugin 同步和系统代理回退，避免工作站网络配置干扰加载证据；失败时保留 fixture 内的退出诊断。
 
 2026-10-12 目录调整实测：Codex CLI `0.162.0-alpha.17.2` 可发现并显式加载新增的 `java-springboot` 与 `docker-compose-patterns`；Java 正文完整注入，Compose 的 `SKILL.md` 为 9739 字节，当前 CLI 仅直接注入前 8000 字节。随包文件完整保留，使用时仍需按需读取完整入口与引用资源；加载测试通过不代表长正文完整注入。
 
 ### Claude 隔离加载器
 
-`tests/test_claude_loader.py` 覆盖六个 Plugin 安装与发现、手动策略、三个 personal-dev Skill 显式加载与原生 Agent schema、项目 upgrade 入口、CLAUDE.md 导入 AGENTS.md、项目值覆盖用户值及 local 反向覆盖：
+`tests/test_claude_loader.py` 覆盖四个 Plugin 安装与发现、手动策略、项目 upgrade 入口及 CLAUDE.md 导入 AGENTS.md：
 
 ```powershell
-$env:AGENT_MANAGER_CLAUDE_TESTS = "1"
-uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" --with "tomlkit>=0.13.3,<1" python -B -m unittest discover -s tests -v
-Remove-Item Env:AGENT_MANAGER_CLAUDE_TESTS
+$env:MARKETPLACE_CLAUDE_TESTS = "1"
+uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" python -B -m unittest discover -s tests -v
+Remove-Item Env:MARKETPLACE_CLAUDE_TESTS
 ```
 
 使用独立 CLAUDE_CONFIG_DIR、临时 Git 项目与 localhost 捕获请求后拒绝推理，不运行真实模型或修改日常配置。
 
-历史加载记录（涉及已移除的 `dev-yagni`）：2026-10-11 personal-dev 新入口组合实测：Codex CLI `0.162.0-alpha.17.2` 在同一消息中显式调用 `dev-yagni` 与 `dev-simplify`，捕获到两个正文均已注入。Claude Code `2.1.296` 同一消息显式调用两个入口时仅直接注入首个入口；测试断言首个正文已加载，并输出第二个入口是否加载的诊断。组合使用时应分开、先后显式调用。该检查捕获原生上下文后拒绝推理，不代表真实模型行为验收。
-
-此前全量验收记录（非本次目录调整）：主模型在原项目检出亲自运行完整 unittest，启用 `AGENT_MANAGER_CODEX_TESTS=1` 与 `AGENT_MANAGER_CLAUDE_TESTS=1`：**147 项全部通过，无跳过**。运行环境为 mise Python `3.12.13`、uv `0.12.3`；UTF-8、TMP / TEMP 和客户端隔离开关仅设置在本次进程。覆盖六个 Plugin / 20 个 Skills 的包装、personal-dev 四入口加载及项目配置回归，未修改日常客户端配置。原生工作树位于受保护的 `.codex` 路径，项目配置写入测试需在普通项目检出运行，不能放宽路径保护来绕过。
-
-2026-10-12 目录调整针对性验证：同步测试 25 项通过，包装测试 7 项通过、1 项既有失败，Codex / Claude 隔离加载各 2 项通过。既有失败为 `agent-manager` 的 catalog / native manifest 网站地址不同（Gitee / GitHub），已在修改前的提交上复现，本次未改动。Claude Code `2.1.296` 完整加载两项新 Skill；同一消息组合调用 `dev-simplify` 与 `dev-runtime-check` 时仍仅直接注入首个入口，应先后调用。以上加载验证拒绝模型推理，不修改日常客户端配置。
-
-2026-10-28 Playwright 合并针对性验证：包装、来源同步、agy 模拟同步、dsh 同步及真实 provider、personal-dev 包装共 **72 项通过**；Codex CLI `0.165.0-alpha.1.2` 与 Claude Code `2.1.307` 的安装 / 发现 / 显式加载另各 1 项通过。agy `1.4.5` 原生校验识别 `engineering-tools` 的 3 个 Skills，未执行日常全局安装。dsh 使用 `0.2.1-rc.2`。Playwright 的正文、引用与许可证共 12 个文件迁移前后字节一致，来源 commit / ref / 时间保留；Codex 仍只直接注入长入口的前 8000 字节，完整文件与引用资源须按需读取。Claude 安装 / 加载测试独立于配置编辑器的精确版本前置检查，未扩大编辑器的已验证版本集合。以上不代表真实模型、浏览器业务流程或当前桌面会话已验收。
+2026-10-28 Playwright 合并针对性验证：包装、来源同步、agy 模拟同步、dsh 同步及真实 provider共 **72 项通过**；Codex CLI `0.165.0-alpha.1.2` 与 Claude Code `2.1.307` 的安装 / 发现 / 显式加载另各 1 项通过。agy `1.4.5` 原生校验识别 `engineering-tools` 的 3 个 Skills，未执行日常全局安装。dsh 使用 `0.2.1-rc.2`。Playwright 的正文、引用与许可证共 12 个文件迁移前后字节一致，来源 commit / ref / 时间保留；Codex 仍只直接注入长入口的前 8000 字节，完整文件与引用资源须按需读取。Claude 安装 / 加载测试独立于配置编辑器的精确版本前置检查，未扩大编辑器的已验证版本集合。以上不代表真实模型、浏览器业务流程或当前桌面会话已验收。
 
 ### 历史验收范围
 
@@ -237,21 +205,13 @@ Remove-Item Env:AGENT_MANAGER_CLAUDE_TESTS
 
 | 客户端 | 当时版本 | 已记录的验证 |
 | --- | --- | --- |
-| Codex | `0.162.0-alpha.2` | 四个第三方 Plugin / 13 个 Skills 的安装、发现、字节与 metadata 核对及旧入口清理；管理工具的加载与项目配置能力另有隔离测试 |
+| Codex | `0.162.0-alpha.2` | 四个第三方 Plugin / 13 个 Skills 的安装、发现、字节与 metadata 核对及旧入口清理 |
 | Claude Code | `2.1.296` | 隔离安装五个 Plugin、发现 16 个 Skills、手动策略与项目配置覆盖 |
 
 这些工程检查覆盖包装、发现、内容与配置能力，未逐个执行全部 Skill 的业务流程。日常安装成功与隔离工程验收分别记录，不能由前者推断所有 Skill 内部流程都已验证。
-
-### 2026-10-11 自有能力双平台验收
-
-Windows Python 3.12.13，Codex CLI `0.162.0-alpha.17.2`、Claude Code `2.1.291`。同时启用两端隔离测试，以规范项目路径作为本次测试进程的临时目录，完整 Python 测试 **127 项全部通过，无跳过**。
-
-覆盖六个 Plugin / 18 个 Skills 的双端注册包装、管理工具和 personal-dev 的发现与手动加载、Claude 原生 Agent schema、项目 `/upgrade` 入口与 `CLAUDE.md` 导入 `AGENTS.md`、两端项目 Plugin 覆盖及配置事务。保留此前验证版本；新增精确版本仍须与本轮实际客户端版本一致，未知版本继续拒绝。
-
-Claude `2.1.291` 捕获到的 Agent 参数为 `description`、`isolation`、`model`、`prompt`、`run_in_background`、`subagent_type`，没有 `effort`；该记录只代表当时 schema。当前 dev-review 要求显式 reviewer，可选 worker 提供时也须核验，工具无法覆写 effort 时立即中断，不再省略参数继承默认。共享 helper 的参数、模型名单与 effort 支持有单元测试；四端 adapter 使用审查 reviewer 配置。未运行真实模型委派或逐项业务流程，不把请求捕获和场景检查称为真实推理验收。
 
 ## 交付
 
 修改后核对实际 diff、无关改动与文档一致性，按风险执行必要验证，并运行 `git diff --check`。影响用户使用时更新使用手册；影响概览或入口时更新 README。
 
-按 [AGENTS.md](../AGENTS.md) 默认在同一收尾流程提交并推送当前分支，遵循 Conventional Commits；先推送 Gitee `origin`，成功后再推送 GitHub `github` 的同名分支。GitHub 失败不回滚 Gitee、不阻塞任务完成，分别报告两端结果。管理 Skill 在用户项目内执行时不 commit / push。
+按 [AGENTS.md](../AGENTS.md) 默认在同一收尾流程提交并推送当前分支，遵循 Conventional Commits；先推送 Gitee `origin`，成功后再推送 GitHub `github` 的同名分支。GitHub 失败不回滚 Gitee、不阻塞任务完成，分别报告两端结果。

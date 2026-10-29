@@ -3,8 +3,6 @@ __pycache__/
 *.pyc
 .skill-sync-*/
 .agent-tmp/
-.personal-dev/
-.agent-manager/
 
 # Temporary artifacts when TMP/TEMP points to the repository.
 /claude/fswatch-probe-*/

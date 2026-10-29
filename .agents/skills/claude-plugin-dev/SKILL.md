@@ -7,9 +7,9 @@ description: 开发 Claude Code Plugin：用于开发、修复或检查本仓库
 
 Use the relevant official reference bundled at `.agents/plugin-dev/upstream/`. Start with that topic's `SKILL.md` or guide, then read only the linked references, examples, and scripts needed for the task. The bundle's entry point is `.agents/plugin-dev/upstream/README.md`.
 
-Keep temporary validation artifacts under `.agent-tmp/tests/<run-id>/` and short-lived task logs under `.agent-tmp/tasks/<task-id>/`. Create long-term task notes only when needed to resume work or retain acceptance evidence; follow the [task artifact locations](../../../plugins/personal-dev/references/artifacts.md).
+Keep temporary validation artifacts under `.agent-tmp/tests/<run-id>/` and short-lived task logs under `.agent-tmp/tasks/<task-id>/`. Create long-term task notes only when needed to resume work or retain acceptance evidence; follow the [task artifact locations](../../../AGENTS.md#任务产物目录).
 
-Before running validators, test clients, hooks, or MCP fixtures, read the [command and resource contract](../../../plugins/personal-dev/references/execution-resources.md). Track native background IDs through exit, including failure and cancellation; close only this task's test processes before cleaning its directories. Reuse sufficient evidence instead of repeatedly starting clients or scanning the same scope.
+Before running validators, test clients, hooks, or MCP fixtures, read the [command and resource contract](../../../docs/agents/execution-resources.md). Track native background IDs through exit, including failure and cancellation; close only this task's test processes before cleaning its directories. Reuse sufficient evidence instead of repeatedly starting clients or scanning the same scope.
 
 | Topic | Start here | Related upstream material |
 | --- | --- | --- |

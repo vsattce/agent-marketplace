@@ -486,26 +486,26 @@ class SyncTests(unittest.TestCase):
         self.assertIn("simulated rollback failure", str(caught.exception))
 
     def test_owned_plugin_survives_repeated_sync_and_failure(self):
-        owned = self.root / "plugins/agent-manager/skills/am-config"
+        owned = self.root / "plugins/custom-owned/skills/custom-skill"
         owned.mkdir(parents=True)
         (owned / "SKILL.md").write_text("owned source", encoding="utf-8")
         references = owned / "references"
         references.mkdir()
         (references / "conflicts.md").write_text("owned conflict checks", encoding="utf-8")
         self.run_sync()
-        before = skill_sync.fingerprints(self.root / "plugins/agent-manager")
+        before = skill_sync.fingerprints(self.root / "plugins/custom-owned")
         snapshot = self.snapshot()
         self.run_sync()
         self.assertEqual(snapshot, self.snapshot())
         self.mock_fetch.side_effect = skill_sync.SyncError("network unavailable")
         with self.assertRaises(skill_sync.SyncError):
             self.run_sync()
-        self.assertEqual(before, skill_sync.fingerprints(self.root / "plugins/agent-manager"))
+        self.assertEqual(before, skill_sync.fingerprints(self.root / "plugins/custom-owned"))
 
     def test_sources_cannot_grant_owned_plugin_write_access(self):
-        (self.root / "plugins/agent-manager").mkdir()
-        (self.root / "plugins/agent-manager/plugin.json").write_text('{}', encoding="utf-8")
-        document = {"groups": {"agent-manager": {"displayName": "Owned", "skills": self.sources}}}
+        (self.root / "plugins/custom-owned").mkdir()
+        (self.root / "plugins/custom-owned/plugin.json").write_text('{}', encoding="utf-8")
+        document = {"groups": {"custom-owned": {"displayName": "Owned", "skills": self.sources}}}
         (self.root / "sources.yaml").write_text(yaml.safe_dump(document), encoding="utf-8")
         before = self.snapshot()
         with self.assertRaises(skill_sync.SyncError):
@@ -517,19 +517,19 @@ class SyncTests(unittest.TestCase):
         with temporary_test_directory("publisher") as staging:
             staged = Path(staging) / "replacement"
             staged.mkdir()
-            for relative in ("plugins/agent-manager/skills/am-config", "plugins/common-workflow/plugin.json", "plugins/common-workflow/skills", "plugins/common-workflow/.claude-plugin/plugin.json", "plugins/common-workflow/kimi.plugin.json", "plugins/engineering-tools/plugin.json", "kimi.plugin.json", ".claude-plugin/marketplace.json"):
+            for relative in ("plugins/custom-owned/skills/custom-skill", "plugins/common-workflow/plugin.json", "plugins/common-workflow/skills", "plugins/common-workflow/.claude-plugin/plugin.json", "plugins/common-workflow/kimi.plugin.json", "plugins/engineering-tools/plugin.json", "kimi.plugin.json", ".claude-plugin/marketplace.json"):
                 with self.subTest(target=relative), self.assertRaises(skill_sync.SyncError):
                     skill_sync.publish([(staged, self.root / relative)], Path(staging), self.root)
             self.assertTrue(staged.exists())
 
     def test_owned_lock_item_is_rejected_before_fetch(self):
-        (self.root / "sources.lock.json").write_text(json.dumps({"skills": {"owned": {"group": "agent-manager"}}}), encoding="utf-8")
+        (self.root / "sources.lock.json").write_text(json.dumps({"skills": {"owned": {"group": "custom-owned"}}}), encoding="utf-8")
         with self.assertRaises(skill_sync.SyncError):
             self.run_sync()
         self.assertEqual(self.mock_fetch.call_count, 0)
 
     def test_managed_directory_cannot_redirect_into_owned(self):
-        owned = self.root / "plugins/agent-manager"
+        owned = self.root / "plugins/custom-owned"
         owned.mkdir()
         target = self.root / "plugins/common-workflow/skills"
         try:
