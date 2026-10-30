@@ -22,7 +22,7 @@ dsh 桌面同步使用 `.agents/skills/sync-dsh/`；Claude / agy 项目入口只
 
 仓库开发工具（repository development tooling）包括 .agents/skills/ 中的 Superpowers、项目 upgrade、sync-agy、sync-dsh、Claude Code plugin 开发 Skill 与未来项目级开发 Skill，.agents/plugin-dev/ 中的官方参考快照，以及项目 MCP 与 Codex / Claude 开发辅助配置。这些能力服务仓库维护，不进入 Marketplace 产品目录或数量；除明确要求，不注册到 .agents/plugins/marketplace.json、.claude-plugin/marketplace.json、sources.yaml 或对外安装目录。Superpowers 仅在用户明确手动指定时调用，不作为日常维护的默认启动流程，且不计入 Marketplace 数量。第三方快照与自有维护内容的维护方式见下文“第三方来源与维护边界”。
 
-Codex 项目配置 .codex/config.toml 提供 OpenAI Docs MCP 和 Context7：OpenAI Docs 用于按需核对 Codex / OpenAI 的 plugin、MCP、Skill 与配置行为；Context7 用于外部库、框架、SDK、CLI 的 API、配置格式和版本差异。稳定的本地修改不必每次查文档；复用已有结果，查询不提交凭据、私有源码或会话内容。连接不可用时，转查对应官方网页。配置格式与加载边界见 [Codex 配置文件官方说明](https://learn.chatgpt.com/docs/config-file/config-basic)及 [OpenAI Docs MCP](https://developers.openai.com/learn/docs-mcp)。
+Codex 项目配置 .codex/config.toml 提供 OpenAI Docs MCP，用于按需核对 Codex / OpenAI 的 plugin、MCP、Skill 与配置行为；可用的 Context7 用于外部库、框架、SDK、CLI 的 API、配置格式和版本差异。稳定的本地修改不必每次查文档；复用已有结果，查询不提交凭据、私有源码或会话内容。连接不可用时，转查对应官方网页。配置格式与加载边界见 [Codex 配置文件官方说明](https://learn.chatgpt.com/docs/config-file/config-basic)及 [OpenAI Docs MCP](https://developers.openai.com/learn/docs-mcp)。
 
 这份 Codex 配置仅用于受信任项目的 Codex 会话。Claude Code 使用自己的项目 MCP 入口 .mcp.json；不得将 Codex 配置直接套用到 Claude。参见 [Claude Code MCP 官方说明](https://code.claude.com/docs/en/mcp)。根目录 CLAUDE.md 只导入 AGENTS.md。
 

@@ -84,6 +84,6 @@ Superpowers 及其 Skills 默认不自动调用，只有用户明确手动指定
 
 自有入口执行命令时跟踪后台 ID 至实际退出，先关闭本次测试 / 客户端进程再清理目录；详见[命令与资源契约](docs/agents/execution-resources.md)。
 
-本仓库通过 [.codex/config.toml](.codex/config.toml) 为 Codex 配置 Context7 与 OpenAI Docs 官方远程 MCP，按 [AGENTS.md](AGENTS.md) 中的规则按需查阅。该配置只作用于受信任项目的 Codex 会话，不属于 Marketplace Plugin；Claude Code 使用自己的项目 MCP 配置，不套用 Codex 配置。工具用途、查阅边界与加载方式见[维护指南](docs/maintenance.md#仓库开发工具)。配置变更后经 Codex MCP 重载或新会话确认工具可用。
+本仓库通过 [.codex/config.toml](.codex/config.toml) 为 Codex 配置 OpenAI Docs 官方远程 MCP，按 [AGENTS.md](AGENTS.md) 中的规则按需查阅。该配置只作用于受信任项目的 Codex 会话，不属于 Marketplace Plugin；Claude Code 使用自己的项目 MCP 配置，不套用 Codex 配置。工具用途、查阅边界与加载方式见[维护指南](docs/maintenance.md#仓库开发工具)。配置变更后经 Codex MCP 重载或新会话确认工具可用。
 
 Claude Code plugin 的开发参考固定在项目内的官方 `plugin-dev` 快照，由 Codex 项目 Skill `$claude-plugin-dev` 按需引导；来源、路径与刷新边界见[维护指南](docs/maintenance.md#claude-code-plugin-开发指导)。
