@@ -60,7 +60,7 @@ $matt:handoff 整理当前进度，供新会话继续
 | engineering-tools | docker-compose-patterns | 指导 Compose 服务依赖、健康检查、卷、网络与开发覆盖配置 | 任务匹配 / 手动 |
 | engineering-tools | playwright-cli | 通过 Playwright CLI 操作浏览器并验证交互 | 任务匹配 / 手动 |
 
-`grill-with-docs` 调用 `grilling` + `domain-modeling`；`improve-codebase-architecture` 调用 `codebase-design` + `grilling` + `domain-modeling`。这些依赖全部在同一 Plugin，安装 `common-workflow` 即包含完整目录和资源。`grill-me` 仅调用 `grilling`。三个入口保留上游的 `disable-model-invocation: true` 与 `allow_implicit_invocation: false`；依赖保留上游可由模型调用的策略与描述，不额外限制其触发条件。
+`grill-with-docs` 调用 `grilling` + `domain-modeling`；`improve-codebase-architecture` 调用 `codebase-design` + `grilling` + `domain-modeling`。这些依赖全部在 `matt` Plugin，安装 `matt` 即包含完整目录和资源。两个入口保留上游的仅手动策略：Claude 使用 `disable-model-invocation: true`，Codex 使用 `agents/openai.yaml` 中的 `allow_implicit_invocation: false`；依赖保留上游可由模型调用的策略与描述，不额外限制其触发条件。
 
 `setup-matt-pocock-skills` 同样保留上游仅手动调用策略，用于初始化目标项目的工程 Skill 配置；先检查现状并确认草稿，再写入问题跟踪与领域文档约定。仅在目标项目已安装 `triage` 时配置分诊标签。安装此 Skill 不会自动运行初始化；执行时遵守目标项目规则，例如本仓库的 `CLAUDE.md` 仅导入 `AGENTS.md`。
 
@@ -100,6 +100,23 @@ $matt:handoff 整理当前进度，供新会话继续
 
 Plugin 提供 Skill 内容，不代装 Playwright、Java、Vue 等运行依赖；使用时遵循目标项目的环境约束。
 
+### 导入兼容性与限制
+
+以下为 2026-10-30 针对四个 Plugin、26 个 Skills 的导入核验记录，当时未发现导入阻塞，实测范围如下。版本表示该次验证环境，不定义最低版本或其他版本的支持范围；CLI 隔离验证也不代表当前桌面聊天已加载全部入口。
+
+| 客户端 | 已验证范围 |
+| --- | --- |
+| Codex CLI `0.165.0-alpha.1.2` | 隔离安装四个 Plugin，发现并逐项显式加载 26 个 Skills；123 个正文、引用、许可证与资源文件和仓库一致；9 个仅手动入口未出现在普通请求的自动发现上下文中 |
+| Claude Code `2.1.307` | 隔离安装四个 Plugin，发现 26 个命令，逐项完整注入正文；9 个仅手动入口未出现在普通请求的模型调用清单中 |
+| agy `1.4.5` | 四个 Plugin 的原生只读预检通过；现有安装包含全部 26 个 Skills，123 个资源文件和仓库一致；本次未重新安装或运行 TUI / 模型 |
+| dsh 桌面版 `0.2.1-rc.3` | 只读预检、原生 provider 加载与 9 个仅手动入口策略核验通过；现有四个产品目录、26 个 Skills 及快照内 127 个文件和仓库一致；未启动 Host / 模型 |
+
+**Codex 长正文限制**：本次实测有 7 个入口仅将 `SKILL.md` 的前 8000 字节直接注入请求：`frontend-design`、`fastapi`、`docker-build-strategies`、`docker-compose-patterns`、`playwright-cli`、`diagnosing-bugs`、`writing-for-agents`。安装文件完整，但首次注入会缺少末尾指令或资源链接；使用这些入口时应读取安装路径中的完整 `SKILL.md`，再按需读取引用文件。其他 19 个入口在本次实测中完整注入。
+
+**agy 长正文限制**：本机 `1.4.5` 原生验证器确认，Skill 正文超过 24000 字节时只加载前 24000 字节。当前 26 个入口的文件最大为 15428 字节，均未触及这一限制。Claude 的 26 个正文已通过实际请求捕获确认完整；dsh 的原生 provider 与模型正文渲染器也逐项保留了全部正文，但没有捕获真实模型请求。
+
+agy 的仅手动策略尚未通过真实会话验证，不能把 Claude frontmatter 或 Codex 的 `agents/openai.yaml` 当作 agy 已强制执行门控的证据。Matt 原始流程还依赖当前 Harness 的 Skill 调用、子代理及 Shell 能力；本次验证覆盖安装、发现、正文加载与资源完整性，未逐项执行这些业务流程。测试入口和证据范围见[维护指南](maintenance.md#产品导入核验2026-10-30)。
+
 ### Antigravity CLI（agy）
 
 agy 产品目录包含四个 Plugin、26 个 Skills。同步使用本仓库项目 Skill：Codex `$sync-agy`，Claude Code / agy `/sync-agy`。它只服务仓库维护，不进入产品目录或全局 Skills。
@@ -121,13 +138,13 @@ pwsh -NoProfile -File .agents/skills/sync-agy/scripts/sync.ps1
 
 桌面版通过自带的文件系统 Skill provider 加载四个产品包的共享 Skills 与完整资源。同步不按版本号拦截，但会使用已安装桌面版的原生加载器校验实际兼容性。项目同步入口为 Codex `$sync-dsh`、Claude Code / agy `/sync-dsh`，不进入产品目录。这里使用已安装的桌面版，无需 npm CLI。
 
-在仓库根按项目规则核验 `mise current`、`python --version`（3.12+）及 uv，再运行；`--desktop-path` 使用实际安装路径：
+在仓库根按项目规则核验 `mise current`、`mise exec -- python --version`（3.12+）及 `mise exec -- uv --version`，再运行；`--desktop-path` 使用实际安装路径：
 
 ```powershell
 # 只读预检
-uv run --python (mise which python) --no-python-downloads --script .agents/skills/sync-dsh/scripts/sync.py --desktop-path "D:\DeepSeek Harness\DeepSeek Harness.exe" --check-only
+mise exec -- uv run --python (mise which python) --no-python-downloads --script .agents/skills/sync-dsh/scripts/sync.py --desktop-path "D:\DeepSeek Harness\DeepSeek Harness.exe" --check-only
 # 同步或刷新
-uv run --python (mise which python) --no-python-downloads --script .agents/skills/sync-dsh/scripts/sync.py --desktop-path "D:\DeepSeek Harness\DeepSeek Harness.exe"
+mise exec -- uv run --python (mise which python) --no-python-downloads --script .agents/skills/sync-dsh/scripts/sync.py --desktop-path "D:\DeepSeek Harness\DeepSeek Harness.exe"
 ```
 
 脚本复用已有 PyYAML 6.x，通过 uv 隔离安装；不修改项目依赖或系统运行时。默认数据根是 `DSH_HOME` 或 `~/.dsh`，可用 `--dsh-home` 指定。必须先启动过桌面版以初始化 `profiles/desktop`。
@@ -179,11 +196,15 @@ claude plugin update software-dev@agent-marketplace
 
 其他分类同理，完成后新建会话。切换同名市场来源前先核对注册；移除 Marketplace 会同时卸载其插件。
 
+### 旧 Plugin 迁移
+
 **从旧开发 Plugin 迁移**：刷新 Marketplace 本身不会移除已安装的 `frontend-dev` 或 `backend-dev` 副本。先安装 `software-dev@agent-marketplace`，确认新入口可用后，再用客户端原生流程分别禁用或卸载旧 Plugin；不要手动编辑全局配置或安装缓存。Codex 可运行 `codex plugin remove frontend-dev@agent-marketplace` 与 `codex plugin remove backend-dev@agent-marketplace`；Claude Code 可运行 `claude plugin uninstall frontend-dev@agent-marketplace` 与 `claude plugin uninstall backend-dev@agent-marketplace`。新入口示例：Codex `$software-dev:fastapi`、Claude Code `/software-dev:fastapi`。
 
 **Playwright Plugin 迁移**：`testing-automation` 已并入 `engineering-tools`。刷新 Marketplace 不会卸载 Codex / Claude 的旧副本；已安装旧包时，先用客户端原生流程卸载，再安装或刷新 `engineering-tools@agent-marketplace`，避免重复发现 `playwright-cli`。Codex 使用 `codex plugin remove testing-automation@agent-marketplace`；Claude Code 使用 `claude plugin uninstall testing-automation@agent-marketplace`（项目或 local 安装需选择原作用域）。新调用为 Codex `$engineering-tools:playwright-cli`、Claude Code `/engineering-tools:playwright-cli`，任务匹配策略与上游内容不变。agy 同步会在来源可确认时自动停用并回收旧包，同步后仍用 `/playwright-cli`；无法确认来源时会停止并保留旧包。dsh 重新执行 `$sync-dsh` 后，现有 provider 切换到新快照中的四个产品目录，旧快照保留，仍用 `/playwright-cli`。本仓库变更不会自动迁移日常客户端安装。
 
 **Matt 迁移**：先安装 matt，再刷新 common-workflow，重载或新建聊天，确认旧 common-workflow Matt 副本不再被发现。Matt 调用前缀改为 `$matt:` / `/matt:`，common-workflow 仅留 find-skills。仓库迁移不自动刷新日常全局安装；agy / dsh 仍通过各自现有显式同步入口刷新完整产品目录。
+
+**自有开发 Plugin 退役**：`personal-dev`、`agent-manager` 已退出产品目录，旧入口和自定义编排不再保留。普通开发使用 `matt:implement`，大型多 Ticket 并行任务按需使用 `matt:implement-spec`。确认新入口可用后，在 Codex / Claude Code 中按原安装作用域通过客户端原生流程禁用或卸载旧 Plugin；刷新 Marketplace 不会自动卸载旧副本。agy 同步会自动停用并回收来源可确认的退役插件，无法确认来源的目录保留；dsh 同步后切换到当前四个产品目录，旧快照保留。
 
 ## 常见问题
 

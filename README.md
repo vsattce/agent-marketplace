@@ -6,6 +6,8 @@
 
 产品目录包含 **4 个 Plugin**、**26 个 Skills**，四端使用同一产品清单：matt 17、common-workflow 1、software-dev 5、engineering-tools 3。这是仓库入口数量，不代表当前会话已加载。
 
+四端导入核验结果、长正文加载边界与使用限制见[导入兼容性](docs/usage.md#导入兼容性与限制)；安装与发现通过不代表 Skill 的业务流程已逐项执行。
+
 `software-dev` 收录第三方上游项目的 Skills，仅供个人使用与整理；原作者署名、上游内容及许可证均按原样保留。
 
 ## 包含哪些能力
@@ -32,6 +34,7 @@ dsh 桌面版使用项目 Skill `$sync-dsh`（Claude / agy 为 `/sync-dsh`），
 | 已安装，查看调用方式和示例 | [使用手册 · 日常调用](docs/usage.md#日常调用) |
 | 查某个 Skill 的用途 | [使用手册 · Skill 速查](docs/usage.md#skill-速查) |
 | 换电脑安装，或刷新安装副本 | [使用手册 · 安装与更新](docs/usage.md#安装与更新) |
+| 从旧 Plugin 迁移到当前产品目录 | [使用手册 · 旧 Plugin 迁移](docs/usage.md#旧-plugin-迁移) |
 | 维护来源、同步快照、开发与验证 | [维护指南](docs/maintenance.md) |
 
 ## 常用调用

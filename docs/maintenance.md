@@ -8,7 +8,7 @@
 
 agy 全局同步使用项目 Skill `.agents/skills/sync-agy/`，Claude 入口只引用共享正文；它从现有产品 catalog 读取目标，通过原生 CLI 校验、安装与验证，不进入 Marketplace 产品清单。已退出 catalog 的插件只有在安装目录及 manifest 确认属于本仓库时才自动停用并移入回收站；预检只报告，不修改。各产品沿用原有 `plugin.json`，第三方上游 Skills 不直接修改。安装与业务执行分开验证，具体用法见[agy 使用说明](usage.md#antigravity-cliagy)。
 
-dsh 桌面同步使用 `.agents/skills/sync-dsh/`；Claude / agy 项目入口只引用共享正文。它从产品 catalog 收集共享 Skills，完整保留资源，使用桌面版自带的 Electron / 文件系统 provider 隔离读取并验证清单与调用策略，再发布内容摘要快照和独立的 provider patch。第三方快照保持原样。当前核验桌面版 `0.2.1-rc.2`，不调用 npm CLI、不修改模型或权限。见[使用手册](usage.md#deepseek-harness-桌面版dsh)。
+dsh 桌面同步使用 `.agents/skills/sync-dsh/`；Claude / agy 项目入口只引用共享正文。它从产品 catalog 收集共享 Skills，完整保留资源，使用桌面版自带的 Electron / 文件系统 provider 隔离读取并验证清单与调用策略，再发布内容摘要快照和独立的 provider patch。第三方快照保持原样。当前核验桌面版 `0.2.1-rc.3`，不调用 npm CLI、不修改模型或权限。见[使用手册](usage.md#deepseek-harness-桌面版dsh)。
 
 同步回归使用 `test_dsh_sync.py`，默认模拟用户根和桌面调用；显式设置 `DSH_DESKTOP_TESTS` 为真实桌面程序路径，可启用仅本地读取的原生 provider 验证，不启动 Host / LLM、不改变日常用户配置。验证命令沿用下文 unittest 的 mise / uv 环境约束。
 
@@ -20,7 +20,7 @@ dsh 桌面同步使用 `.agents/skills/sync-dsh/`；Claude / agy 项目入口只
 
 ## 仓库开发工具
 
-仓库开发工具（repository development tooling）包括 .agents/skills/ 中的 Superpowers、项目 upgrade、sync-agy、Claude Code plugin 开发 Skill 与未来项目级开发 Skill，.agents/plugin-dev/ 中的官方参考快照，以及项目 MCP 与 Codex / Claude 开发辅助配置。这些能力服务仓库维护，不进入 Marketplace 产品目录或数量；除明确要求，不注册到 .agents/plugins/marketplace.json、.claude-plugin/marketplace.json、sources.yaml 或对外安装目录。Superpowers 仅在用户明确手动指定时调用，不作为日常维护的默认启动流程，且不计入 Marketplace 数量。第三方快照与 OWNED 内容的维护方式见下文“第三方来源与维护边界”。
+仓库开发工具（repository development tooling）包括 .agents/skills/ 中的 Superpowers、项目 upgrade、sync-agy、sync-dsh、Claude Code plugin 开发 Skill 与未来项目级开发 Skill，.agents/plugin-dev/ 中的官方参考快照，以及项目 MCP 与 Codex / Claude 开发辅助配置。这些能力服务仓库维护，不进入 Marketplace 产品目录或数量；除明确要求，不注册到 .agents/plugins/marketplace.json、.claude-plugin/marketplace.json、sources.yaml 或对外安装目录。Superpowers 仅在用户明确手动指定时调用，不作为日常维护的默认启动流程，且不计入 Marketplace 数量。第三方快照与自有维护内容的维护方式见下文“第三方来源与维护边界”。
 
 Codex 项目配置 .codex/config.toml 提供 OpenAI Docs MCP 和 Context7：OpenAI Docs 用于按需核对 Codex / OpenAI 的 plugin、MCP、Skill 与配置行为；Context7 用于外部库、框架、SDK、CLI 的 API、配置格式和版本差异。稳定的本地修改不必每次查文档；复用已有结果，查询不提交凭据、私有源码或会话内容。连接不可用时，转查对应官方网页。配置格式与加载边界见 [Codex 配置文件官方说明](https://learn.chatgpt.com/docs/config-file/config-basic)及 [OpenAI Docs MCP](https://developers.openai.com/learn/docs-mcp)。
 
@@ -46,7 +46,7 @@ agent-marketplace/
 ├── sources.yaml                   # 第三方来源配置
 ├── sources.lock.json              # 已同步 commit 与时间
 ├── scripts/sync.py                # 第三方同步工具
-├── tests/                         # 同步、管理工具与客户端验收
+├── tests/                         # 包装、同步与客户端验收
 ├── plugins/
 │   ├── matt/                      # 精选 Matt 原始 Skill 完整目录
 │   ├── common-workflow/           # 第三方快照
@@ -104,18 +104,18 @@ Codex 项目 Skill 从 `.agents/skills/` 发现，Claude 从 `.claude/skills/` �
 
 ```powershell
 mise current
-python --version
+mise exec -- python --version
 mise which python
-uv --version
+mise exec -- uv --version
 ```
 
 核对通过后执行：
 
 ```powershell
-uv run --python (mise which python) --no-python-downloads --script scripts/sync.py
+mise exec -- uv run --python (mise which python) --no-python-downloads --script scripts/sync.py
 ```
 
-已有符合约束且包含 PyYAML 的 Python 环境时，也可 `python scripts/sync.py`。
+已有符合约束且包含 PyYAML 的 Python 环境时，也可 `mise exec -- python scripts/sync.py`。
 
 同步工具按 repo + ref 拉取快照，校验目录、Skill 名称与描述，保留许可证，更新 lock 并报告文件增删改。它不执行 upstream 脚本，不安装 Plugin、不清理 standalone，也不 commit / push。
 
@@ -136,7 +136,7 @@ git diff --check
 
 ## 开发验证
 
-以下命令用于开发验收，按改动范围选择。执行 Python 前按上方核对 mise 和实际版本；执行 Node 前同样核对项目约束、`mise current` 与 `node -v`。文档整理无需运行这些客户端或模型流程。
+以下命令用于开发验收，按改动范围选择。执行 Python 前按上方核对 mise 和实际版本；执行 Node 前同样核对项目约束、`mise current` 与 `mise exec -- node -v`。文档整理无需运行这些客户端或模型流程。
 
 项目内测试 fixture 和进程临时文件使用 `.agent-tmp/tests/<run-id>/`；TMP / TEMP 仅在该测试进程指向本次运行目录，不修改系统或用户环境。
 
@@ -154,27 +154,29 @@ claude plugin validate plugins/software-dev
 ### 常规测试
 
 ```powershell
-uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" python -B -m unittest discover -s tests -v
+mise exec -- uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" python -B -m unittest discover -s tests -v
 ```
 
 真实客户端测试默认不启用。仅同步改动可缩小为：
 
 ```powershell
-uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" python -B -m unittest discover -s tests -p test_sync.py -v
+mise exec -- uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" python -B -m unittest discover -s tests -p test_sync.py -v
 ```
 
 | 测试入口 | 覆盖内容 |
 | --- | --- |
+| `tests/test_marketplace.py`、`tests/test_matt.py` | 产品清单、manifest、来源记录、Matt 运行依赖与随包引用资源 |
 | `tests/test_sync.py` | 重复同步、快照恢复、upstream 更新、许可证、失败不写入、路径与重名拒绝、回滚和移出配置项保留 |
 | `tests/test_agy_sync.py` | 模拟 agy CLI 检查只读预检、产品同步、禁用状态保留、资源核对与失败停止；不修改真实 agy 配置 |
+| `tests/test_dsh_sync.py` | 快照同步、冲突与并发保护、资源及调用策略；设置 `DSH_DESKTOP_TESTS` 后增加真实桌面 provider 验证 |
 
 ### Codex 隔离加载器
 
-`tests/test_codex_loader.py` 验证保留产品的发现与显式调用。显式启用后运行常规测试命令：
+`tests/test_codex_loader.py` 验证 `software-dev`、`engineering-tools` 共 8 个入口的发现与显式调用，不覆盖全部 26 个产品入口。显式启用后运行常规测试命令：
 
 ```powershell
 $env:MARKETPLACE_CODEX_TESTS = "1"
-uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" python -B -m unittest discover -s tests -v
+mise exec -- uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" python -B -m unittest discover -s tests -v
 Remove-Item Env:MARKETPLACE_CODEX_TESTS
 ```
 
@@ -187,11 +189,11 @@ Remove-Item Env:MARKETPLACE_CODEX_TESTS
 
 ### Claude 隔离加载器
 
-`tests/test_claude_loader.py` 覆盖四个 Plugin 安装与发现、手动策略、项目 upgrade 入口及 CLAUDE.md 导入 AGENTS.md：
+`tests/test_claude_loader.py` 的产品用例覆盖四个 Plugin 安装与发现、部分正文显式加载及 `matt:handoff` 的仅手动策略；另有用例检查项目 upgrade 入口及 CLAUDE.md 导入 AGENTS.md。它不逐项验证全部 26 个正文和 9 个仅手动入口：
 
 ```powershell
 $env:MARKETPLACE_CLAUDE_TESTS = "1"
-uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" python -B -m unittest discover -s tests -v
+mise exec -- uv run --python (mise which python) --no-python-downloads --with "PyYAML>=6.0.2,<7" python -B -m unittest discover -s tests -v
 Remove-Item Env:MARKETPLACE_CLAUDE_TESTS
 ```
 
@@ -199,9 +201,23 @@ Remove-Item Env:MARKETPLACE_CLAUDE_TESTS
 
 2026-10-28 Playwright 合并针对性验证：包装、来源同步、agy 模拟同步、dsh 同步及真实 provider共 **72 项通过**；Codex CLI `0.165.0-alpha.1.2` 与 Claude Code `2.1.307` 的安装 / 发现 / 显式加载另各 1 项通过。agy `1.4.5` 原生校验识别 `engineering-tools` 的 3 个 Skills，未执行日常全局安装。dsh 使用 `0.2.1-rc.2`。Playwright 的正文、引用与许可证共 12 个文件迁移前后字节一致，来源 commit / ref / 时间保留；Codex 仍只直接注入长入口的前 8000 字节，完整文件与引用资源须按需读取。Claude 安装 / 加载测试独立于配置编辑器的精确版本前置检查，未扩大编辑器的已验证版本集合。以上不代表真实模型、浏览器业务流程或当前桌面会话已验收。
 
+### 产品导入核验（2026-10-30）
+
+以下保留该次客户端核验记录。本次文档整理复核产品清单、入口策略、文件大小及现有测试覆盖范围，未重新执行这些客户端或模型流程。
+
+针对当前四个产品 Plugin、26 个 Skills，包装、Matt 资源依赖、agy / dsh 同步与 dsh 原生 provider 共 **44 项测试通过**；另有现有 Codex / Claude 产品加载用例各 **1 项通过**。跳过仓库开发 Skill 的验收，没有运行全量开发工具测试。
+
+补充隔离探测逐项验证了 Codex / Claude 的 26 个入口和 9 个仅手动策略，未调用真实模型。Codex 安装中的 123 个资源文件字节一致，19 个入口正文完整注入，7 个长入口仅注入前 8000 字节；Claude 的 26 个正文均完整注入。现有 Codex 加载用例仅覆盖 `software-dev`、`engineering-tools` 的 8 个入口，不能单凭该用例推断其余入口已验收。
+
+agy 原生 `-CheckOnly` 通过，并只读核对现有安装的 123 个资源文件；未重新安装或验证 TUI 的手动门控。dsh `--check-only` 通过，并从现有受管 provider 根加载全部产品，核对 127 个快照文件及调用策略。两端日常配置均未修改。本次客户端版本与使用限制见[导入兼容性](usage.md#导入兼容性与限制)。
+
+长正文补充检查：agy `1.4.5` 原生验证器接受 8000 / 16000 字节的隔离正文；26000 字节正文触发明确警告，提示仅加载前 24000 字节。当前全部产品入口文件均小于 24000 字节。该上限也见[官方更新记录 1.4.1](https://github.com/google-antigravity/antigravity-cli/blob/main/CHANGELOG.md#141)。dsh `0.2.1-rc.3` 的原生 provider 加载内容与 26 个源正文逐项一致，原生 `renderSkillContent` 完整保留全部正文；本机 `dsh-tool-skill` 的显式调用注入和工具结果使用同一渲染器，未发现 8000 字节裁剪。本次没有启动 agy / dsh 的模型流程，不能据此概括其他工具输出预算或历史压缩行为。
+
+核验时本地 `HEAD` 与 Gitee / GitHub 的 `main` 均为 `89b3474`，两个远端的 SSH 只读访问成功；这不替代从远端重新安装的验收。当前 manifest / 路径及策略还对照了 [OpenAI 导入格式](https://learn.chatgpt.com/docs/enterprise/plugin-management#supported-formats)、[Codex Skill 策略](https://learn.chatgpt.com/docs/build-skills#optional-metadata)、[Claude Marketplace 路径](https://code.claude.com/docs/en/plugins/marketplace-reference)和 [agy Skills](https://antigravity.google/docs/skills)。本机客户端实测与官方文档的路径存在版本差异时，以本次实际加载结果记录范围。
+
 ### 历史验收范围
 
-以下是原 README 中 2026-10-10 的工程验收记录，本次文档整理没有重新运行这些测试。
+以下是原 README 中 2026-10-10 的工程验收记录，仅供历史参考，不作为当前产品数量或完整验收范围的依据。
 
 | 客户端 | 当时版本 | 已记录的验证 |
 | --- | --- | --- |
